@@ -1,0 +1,61 @@
+{
+  "screens": [
+    {"id": "overview", "l": "Tổng quan", "save": "live", "f": [
+      {"id": "t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "trend"},
+      {"id": "h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1},
+      {"id": "mode", "l": "Chế độ", "t": "enum", "opt": [["manual", "Tay"], ["auto", "Tự động"]]},
+      {"id": "out", "l": "Relay", "t": "bool", "en": "mode==manual"},
+      {"id": "alarm", "l": "Báo động", "t": "flags",
+       "opt": ["Mất cảm biến", "Chưa có giờ", "Nhiệt độ ngoài ngưỡng", "Độ ẩm ngoài ngưỡng"]},
+      {"id": "muted", "l": "Đã tắt còi", "t": "bool", "ro": 1, "w": "led", "if": "alarm!=0"},
+      {"id": "silence", "l": "Tắt còi", "t": "act", "if": "alarm!=0"},
+      {"id": "ec", "l": "EC", "t": "num", "ro": 1, "g": "Cảm biến đất"},
+      {"id": "sal", "l": "Độ mặn", "t": "num", "ro": 1, "g": "Cảm biến đất"},
+      {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "g": "Cảm biến đất"},
+      {"id": "sok", "l": "Cảm biến", "t": "bool", "ro": 1, "w": "led", "g": "Trạng thái"},
+      {"id": "tok", "l": "Có giờ", "t": "bool", "ro": 1, "w": "led", "g": "Trạng thái"},
+      {"id": "time", "l": "Giờ thiết bị", "t": "text", "g": "Trạng thái"},
+      {"id": "up", "l": "Thời gian chạy", "t": "num", "u": "s", "dp": 0, "ro": 1, "g": "Trạng thái"}
+    ]},
+    {"id": "auto", "l": "Lịch & tự động", "save": "batch", "f": [
+      {"id": "src", "l": "Nguồn tự động", "t": "enum",
+       "opt": [["schedule", "Lịch"], ["sensor", "Cảm biến"], ["both", "Kết hợp"]]},
+      {"id": "date_from", "l": "Từ ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
+      {"id": "date_to", "l": "Đến ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
+      {"id": "sen_type", "l": "Đo theo", "t": "enum", "opt": [["hum", "Độ ẩm"], ["temp", "Nhiệt độ"]],
+       "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
+      {"id": "sen_act", "l": "Kiểu ngưỡng", "t": "enum", "opt": [["low", "Bật khi thấp"], ["high", "Bật khi cao"]],
+       "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
+      {"id": "on_at", "l": "Ngưỡng bật", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
+      {"id": "off_at", "l": "Ngưỡng tắt", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"}
+    ],
+    "rep": {"n": 5, "pfx": "s", "l": "Khung", "f": [
+      {"id": "en", "l": "Bật", "t": "bool"},
+      {"id": "days", "l": "Thứ", "t": "days"},
+      {"id": "on", "l": "Giờ bật", "t": "time"},
+      {"id": "off", "l": "Giờ tắt", "t": "time"}
+    ]}},
+    {"id": "advanced", "l": "Nâng cao", "save": "batch", "f": [
+      {"id": "mb_addr", "l": "Địa chỉ", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Cảm biến Modbus RTU",
+       "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [38400, "38400"], [57600, "57600"], [115200, "115200"]]},
+      {"id": "mb_fc", "l": "Mã hàm", "t": "enum", "opt": [[3, "03 Holding"], [4, "04 Input"]], "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_start", "l": "Thanh ghi đầu", "t": "num", "min": 0, "max": 65535, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_count", "l": "Số thanh ghi", "t": "num", "min": 1, "max": 10, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_idx_h", "l": "Vị trí độ ẩm", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_idx_t", "l": "Vị trí nhiệt độ", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_scale", "l": "Hệ số chia", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_period", "l": "Chu kỳ đọc", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "al_en", "l": "Bật báo động nhiệt độ / độ ẩm", "t": "bool", "g": "Ngưỡng báo động"},
+      {"id": "al_t_lo", "l": "Nhiệt độ thấp", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
+      {"id": "al_t_hi", "l": "Nhiệt độ cao", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
+      {"id": "al_h_lo", "l": "Độ ẩm thấp", "t": "num", "u": "%", "dp": 1, "g": "Ngưỡng báo động"},
+      {"id": "al_h_hi", "l": "Độ ẩm cao", "t": "num", "u": "%", "dp": 1, "g": "Ngưỡng báo động"}
+    ]},
+    {"id": "device", "l": "Thiết bị", "save": "live", "f": [
+      {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20},
+      {"id": "fw", "l": "Firmware", "t": "text"},
+      {"id": "_reboot", "l": "Khởi động lại thiết bị", "t": "act", "c": "Khởi động lại thiết bị?"}
+    ]}
+  ]
+}

@@ -1,0 +1,15 @@
+build/
+.dart_tool/
+firmware/**/build/
+sdkconfig
+sdkconfig.old
+managed_components/
+dependencies.lock
+tools/.venv/
+android/key.properties
+*.jks
+*.keystore
+.idea/
+*.iml
+.claude/
+release/*.apk

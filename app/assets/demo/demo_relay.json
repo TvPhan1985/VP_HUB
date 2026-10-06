@@ -1,0 +1,36 @@
+{
+  "info": {
+    "proto": "vph", "pv": 1, "model": "demorelay", "name": "DEMO-RELAY", "fw": "1.0.0", "hw": "demo",
+    "hdr": ["t", "h", "out", "alarm"], "caps": ["time"], "icon": "relay"
+  },
+  "screens": [
+    {"id": "overview", "l": "Tổng quan", "save": "live", "f": [
+      {"id": "t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "trend"},
+      {"id": "h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1},
+      {"id": "mode", "l": "Chế độ", "t": "enum", "opt": [["manual", "Tay"], ["auto", "Tự động"]]},
+      {"id": "out", "l": "Relay", "t": "bool", "en": "mode==manual"},
+      {"id": "alarm", "l": "Báo động", "t": "flags",
+       "opt": ["Mất cảm biến", "Chưa có giờ", "Nhiệt độ ngoài ngưỡng", "Độ ẩm ngoài ngưỡng"]},
+      {"id": "silence", "l": "Tắt còi", "t": "act", "if": "alarm!=0"}
+    ]},
+    {"id": "auto", "l": "Lịch", "save": "batch", "f": [
+      {"id": "src", "l": "Nguồn tự động", "t": "enum",
+       "opt": [["schedule", "Lịch"], ["sensor", "Cảm biến"], ["both", "Kết hợp"]]},
+      {"id": "on_at", "l": "Bật khi độ ẩm dưới", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
+      {"id": "off_at", "l": "Tắt khi độ ẩm trên", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"}
+    ],
+    "rep": {"n": 3, "pfx": "s", "l": "Khung", "f": [
+      {"id": "en", "l": "Bật", "t": "bool"},
+      {"id": "days", "l": "Thứ", "t": "days", "en": "en==true"},
+      {"id": "on", "l": "Giờ bật", "t": "time", "en": "en==true"},
+      {"id": "off", "l": "Giờ tắt", "t": "time", "en": "en==true"}
+    ]}}
+  ],
+  "values": {
+    "t": 28.4, "h": 72.5, "mode": "manual", "out": true, "alarm": 2,
+    "src": "both", "on_at": 70, "off_at": 80,
+    "s1_en": true, "s1_days": 127, "s1_on": "08:00", "s1_off": "17:00",
+    "s2_en": false, "s2_days": 31, "s2_on": "19:00", "s2_off": "21:30",
+    "s3_en": false, "s3_days": 96, "s3_on": "06:00", "s3_off": "07:00"
+  }
+}
