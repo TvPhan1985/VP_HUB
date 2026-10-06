@@ -1,0 +1,6 @@
+dependencies:
+  idf: ">=5.5"
+  espressif/led_strip: "^3.0.0"
+  # Du an nam trong D:\2026\ thi dung: path: ../../../vp_hub/firmware/components/vph_ble
+  vph_ble:
+    path: ../../../components/vph_ble

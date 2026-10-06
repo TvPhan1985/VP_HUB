@@ -1,0 +1,8 @@
+version: "1.0.0"
+description: Giao thuc BLE chung VPH v1 cho app VP Hub (NimBLE GATT)
+dependencies:
+  idf: ">=5.5"
+  espressif/cjson:
+    version: "*"
+    rules:
+      - if: "idf_version >=6.0"

@@ -76,15 +76,15 @@ Quy tắc chung:
 ## PHẦN B — COMPONENT FIRMWARE DÙNG CHUNG `vph_ble` (không cần phần cứng)
 
 ### Phase 9 — Component `vph_ble`
-- [ ] `firmware/components/vph_ble/` (C, NimBLE, ESP-IDF v5.5, giữ tương thích v6.x — lò nung từng dùng v6.1): API theo PROTOCOL §10. Lấy khung NimBLE từ `c3_relay_ctrl/firmware/components/ble_svc/ble_svc.c` (đã chạy thật, có SUBSCRIBE, MTU 512, quảng bá UUID + tên ở scan response) và cách dựng schema của `Temp_Max31856-main/main/ble_ui.c`.
-- [ ] Lệnh ghi đi qua queue, xử lý trong `vph_poll()` ở task của project. Không ghi NVS hay quảng bá lại trong callback GATT.
-- [ ] Tự tính `sch` (CRC16 các chuỗi schema), tự cắt trang schema (PROTOCOL §8.1), tự ghép `hdr` vào VALUES, cảnh báo log khi vượt PROTOCOL §8.
-- [ ] `firmware/components/vph_ble/README.md`: cách thêm vào dự án mới (xem `docs/QUY_TAC_THIET_BI_MOI.md`), file `VERSION` = `1.0.0`.
-- [ ] `firmware/test_app/`: Unity test chạy trên chip: dựng schema, kích thước, ghép VALUES, parse WRITE đơn/lô, id dành riêng, CRC.
+- [x] `firmware/components/vph_ble/` (C, NimBLE, ESP-IDF v5.5, giữ tương thích v6.x — lò nung từng dùng v6.1): API theo PROTOCOL §10. Lấy khung NimBLE từ `c3_relay_ctrl/firmware/components/ble_svc/ble_svc.c` (đã chạy thật, có SUBSCRIBE, MTU 512, quảng bá UUID + tên ở scan response) và cách dựng schema của `Temp_Max31856-main/main/ble_ui.c`.
+- [x] Lệnh ghi đi qua queue, xử lý trong `vph_poll()` ở task của project. Không ghi NVS hay quảng bá lại trong callback GATT.
+- [x] Tự tính `sch` (CRC16 các chuỗi schema), tự cắt trang schema (PROTOCOL §8.1), tự ghép `hdr` vào VALUES, cảnh báo log khi vượt PROTOCOL §8.
+- [x] `firmware/components/vph_ble/README.md`: cách thêm vào dự án mới (xem `docs/QUY_TAC_THIET_BI_MOI.md`), file `VERSION` = `1.0.0`.
+- [x] `firmware/test_app/`: Unity test chạy trên chip: dựng schema, kích thước, ghép VALUES, parse WRITE đơn/lô, id dành riêng, CRC.
 
 ### Phase 10 — Firmware mẫu `vph_demo` (ESP32-C3 SuperMini)
-- [ ] `firmware/examples/vph_demo/`: dùng `vph_ble` qua `idf_component.yml` đường dẫn tương đối. Model `vphdemo`, 2 màn hình: "Tổng quan" (live: nhiệt độ giả `w:trend`, công tắc LED WS2812 GPIO8, enum màu, act "Bíp") và "Cài đặt" (batch: `rep` 3 khung giờ, 2 ngưỡng ràng buộc nhau, trả lỗi tiếng Việt khi sai). Có `caps:["time"]`.
-- [ ] Đây là **mẫu chuẩn** để copy khi làm dự án mới.
+- [x] `firmware/examples/vph_demo/`: dùng `vph_ble` qua `idf_component.yml` đường dẫn tương đối. Model `vphdemo`, 2 màn hình: "Tổng quan" (live: nhiệt độ giả `w:trend`, công tắc LED WS2812 GPIO8, enum màu, act "Bíp") và "Cài đặt" (batch: `rep` 3 khung giờ, 2 ngưỡng ràng buộc nhau, trả lỗi tiếng Việt khi sai). Có `caps:["time"]`.
+- [x] Đây là **mẫu chuẩn** để copy khi làm dự án mới.
 - **Xong khi:** `tools/idf.ps1 -Dir firmware/examples/vph_demo build` và build `test_app` thành công.
 
 ---
@@ -114,6 +114,7 @@ Làm trên nhánh git riêng `vph` của từng dự án, không đụng nhánh 
 ## Vướng mắc
 _(ghi vào đây)_
 
+- Phase 9: tương thích ESP-IDF v6.x mới chỉ chuẩn bị trong `CMakeLists.txt`/`idf_component.yml` (đổi `json` → `espressif/cjson`), **chưa build thử** vì máy chỉ có v5.5.5.
 - Phase 4: máy không có emulator Android nên không chụp ảnh demo trên emulator; thay bằng chạy thật trên điện thoại ở Phần C.
 - Phase 2/6: bản `Temp_Max31856-main/main/app_config.h` trên máy **không có** `TC_OFFSET_MIN_C/MAX_C/STEP_C` (mà `ble_ui.c` dùng), nên chuỗi schema màn "calibration" trong `app/test/kiln_schemas.dart` dùng giá trị giả định. 6 màn còn lại dựng đúng từ hằng số thật. Không ảnh hưởng app (schema đọc thật từ thiết bị).
 
@@ -126,3 +127,4 @@ _(ghi vào đây)_
 | 1 | 22:02 | 22:06 | `flutter create`, pubspec, manifest |
 | 2–7 | 22:06 | 22:30 | Lõi + giao diện + 2 adapter viết liền một mạch; `flutter analyze` sạch, 77 test qua |
 | 8 | 22:30 | 22:50 | Icon, APK debug + release (`release/VPHub_1.0.0.apk`), README |
+| 9–10 | 22:50 | 23:20 | `vph_ble` (lõi + NimBLE), `test_app` 26 test, `vph_demo`; cả hai build thành công với ESP-IDF v5.5.5 |

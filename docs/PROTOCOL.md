@@ -247,42 +247,46 @@ Firmware phải `ESP_LOGW` khi vượt và có **unit test** kiểm tra kích th
 
 ## 10. Component firmware dùng chung `vph_ble`
 
-Mọi dự án ESP-IDF mới **không tự viết lại GATT**, mà dùng component `vph_ble` (C, NimBLE), tạo ở Phần B của `PLAN.md`. API dự kiến:
+Mọi dự án ESP-IDF mới **không tự viết lại GATT**, mà dùng component `vph_ble` (C, NimBLE) ở `firmware/components/vph_ble`. API đầy đủ: `include/vph_ble.h`; cách dùng: `README.md` của component. Tóm tắt:
 
 ```c
 typedef struct {
     const char *model, *fw, *hw, *icon;
     const char *const *hdr;       // NULL-terminated
     uint32_t caps;                // VPH_CAP_TIME ...
+    const char *name_prefix;      // tên mặc định = <name_prefix>-<4 hex MAC>
 } vph_info_t;
 
-// Dựng schema (giống make_field của lò nung)
+// Dựng schema
 cJSON *vph_screen(const char *id, const char *title, const char *save);
-cJSON *vph_field(cJSON *screen, const char *id, const char *label, const char *type);
+cJSON *vph_field(cJSON *screen_or_rep, const char *id, const char *label, const char *type);
 void   vph_range(cJSON *f, double min, double max, double step);
-void   vph_unit(cJSON *f, const char *u);
+void   vph_unit / vph_dp / vph_readonly / vph_nullable / vph_hint / vph_confirm /
+       vph_show_if / vph_enable_if / vph_group / vph_maxlen (cJSON *f, ...);
 void   vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);
+void   vph_flag_labels(cJSON *f, const char *const *labels, int n);
+cJSON *vph_repeat(cJSON *screen, int n, const char *pfx, const char *label);
 
-// Điền VALUES: project tự ghi các trường của màn hình `screen` vào out
+// Điền VALUES: project ghi các trường của màn `screen` vào out.
+// screen == VPH_SCREEN_HDR: ghi các trường đầu trang.
 typedef void (*vph_values_cb)(uint8_t screen, vph_out_t *out);
 void vph_out_num(vph_out_t *o, const char *id, double v, int dp);
-void vph_out_bool(vph_out_t *o, const char *id, bool v);
-void vph_out_str(vph_out_t *o, const char *id, const char *s);
-void vph_out_null(vph_out_t *o, const char *id);
+void vph_out_int / vph_out_bool / vph_out_str / vph_out_null (...);
 
-// Ghi: gọi trong TASK CHÍNH (không phải callback GATT). Trả 0 = ok, khác 0 = lỗi, err tiếng Việt
+// Ghi: luôn chạy trong TASK gọi vph_poll() (không phải callback GATT).
+// Trả VPH_OK, VPH_ERR_UNKNOWN (không biết trường), hoặc VPH_ERR_REJECT kèm err tiếng Việt.
 typedef int (*vph_write_cb)(const char *id, const cJSON *v, char *err, size_t err_len);
 typedef int (*vph_batch_cb)(const cJSON *set, char *err, size_t err_len);
 
 esp_err_t vph_init(const vph_info_t *info, cJSON *const *screens, int n,
                    vph_values_cb vcb, vph_write_cb wcb, vph_batch_cb bcb);
-void vph_poll(void);              // gọi trong vòng lặp task chính: xử lý WRITE từ queue, trả RESULT
-void vph_set_name(const char *name);
+void vph_poll(void);              // gọi ≥ 10 lần/giây trong vòng lặp task chính
+esp_err_t vph_set_name(const char *name);
 void vph_notify_now(void);
 bool vph_connected(void);
 ```
 
-`vph_ble` tự lo: UUID, quảng bá, MTU, SELECT, cache chuỗi schema, tính `sch`, ghép `hdr` vào VALUES, notify 1 s, queue lệnh ghi, `_name`/`_reboot` (gọi lại project qua `wcb` trước khi thực hiện), RESULT, cảnh báo kích thước.
+`vph_ble` tự lo: UUID, quảng bá, MTU, SELECT, cache chuỗi schema, tính `sch`, ghép `hdr` vào VALUES, notify 1 s, queue lệnh ghi, `_time`/`_name`/`_reboot` (gọi lại project qua `wcb` trước khi thực hiện), RESULT, cảnh báo kích thước.
 
 ---
 
