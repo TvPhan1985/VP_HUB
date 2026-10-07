@@ -1,4 +1,5 @@
-// vph_ble - component dung chung cho moi thiet bi noi giao thuc VPH v1.
+// vph_ble - component dung chung cho moi thiet bi noi giao thuc VPH v1 (ban 1.1).
+// 1.1 them goi y hien thi (icon, chu thich, tile/hero/seg/alarm...) va nang WRITE len 500 byte.
 // Tai lieu giao thuc: docs/PROTOCOL.md. Cach dung: README.md cung thu muc.
 #pragma once
 
@@ -20,7 +21,7 @@ extern "C" {
 #define VPH_SCHEMA_PAGE     480
 #define VPH_MAX_SCHEMA      (4 * VPH_SCHEMA_PAGE)
 #define VPH_MAX_VALUES      240
-#define VPH_MAX_WRITE       240
+#define VPH_MAX_WRITE       500         // v1.1 (truoc la 240); app gui bang long write
 #define VPH_MAX_RESULT      120
 #define VPH_MAX_ERR         80
 #define VPH_MAX_SCREENS     16
@@ -55,12 +56,23 @@ void vph_unit(cJSON *f, const char *u);
 void vph_dp(cJSON *f, int dp);
 void vph_readonly(cJSON *f);
 void vph_nullable(cJSON *f);
-void vph_hint(cJSON *f, const char *w);             // big|trend|led|gauge|warn, noi bang dau phay
+// big|trend|led|gauge|warn va (v1.1) tile|mini|hero|btns|seg|alarm|note|dur, noi bang dau phay
+void vph_hint(cJSON *f, const char *w);
 void vph_confirm(cJSON *f, const char *question);
 void vph_show_if(cJSON *f, const char *cond);       // "alarm!=0"
 void vph_enable_if(cJSON *f, const char *cond);     // "mode==manual"
 void vph_group(cJSON *f, const char *name);
 void vph_maxlen(cJSON *f, int max);                 // do dai toi da cua kieu str
+// ----- v1.1: tu vung hien thi (PROTOCOL §5.1, §5.4, §5.6). App 1.0 bo qua, khong loi -----
+// Icon: dung cho ca man hinh (icon cua tab) va truong. Ten trong bo icon chuan §5.6
+void vph_icon(cJSON *screen_or_field, const char *name);
+void vph_desc(cJSON *f, const char *text);          // dong chu thich nho duoi truong
+void vph_sub(cJSON *f, const char *field_id);       // the hero: gia tri truong nay lam dong phu
+// bool: chu cho 2 trang thai thay "TẮT"/"BẬT", vd ("Dừng", "Đang đốt")
+void vph_bool_labels(cJSON *f, const char *off, const char *on);
+// enum co icon cho tung lua chon; icons[i] co the NULL
+void vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
+                    const char *const *icons, int n);
 // enum: vals[i] la gia tri, labels[i] la chu hien thi
 void vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);
 // enum co gia tri so

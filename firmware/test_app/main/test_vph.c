@@ -310,10 +310,12 @@ TEST_CASE("schema: cat trang 480 byte, ghep lai dung nguyen van", "[schema]")
     TEST_ASSERT_EQUAL(total, at);
     TEST_ASSERT_EQUAL_STRING(all, joined);
     TEST_ASSERT_EQUAL((int)(total / VPH_SCHEMA_PAGE) + 1, pages);
-    // Man nho chi co 1 trang
+    // Man 0 (ngan hon): trang cuoi chua phan du, trang sau do rong
     const char *p;
-    TEST_ASSERT_LESS_THAN(VPH_SCHEMA_PAGE, vph_core_schema_page(0, 0, &p));
-    TEST_ASSERT_EQUAL(0, vph_core_schema_page(0, 1, &p));
+    size_t small = strlen(vph_core_schema(0));
+    int last = (int)(small / VPH_SCHEMA_PAGE);
+    TEST_ASSERT_EQUAL(small % VPH_SCHEMA_PAGE, vph_core_schema_page(0, last, &p));
+    TEST_ASSERT_EQUAL(0, vph_core_schema_page(0, last + 1, &p));
 }
 
 TEST_CASE("schema: kich thuoc lon nhat tung man duoi 1920 byte", "[schema][size]")
@@ -621,5 +623,102 @@ TEST_CASE("_reboot: goi project truoc (de luu NVS), bao can reset", "[reserved]"
     TEST_ASSERT_EQUAL(1, (int)num_of(r, "ok"));
     TEST_ASSERT_EQUAL(VPH_ACT_OK | VPH_ACT_REBOOT, act);
     TEST_ASSERT_TRUE(dev.reboot_seen);
+    cJSON_Delete(r);
+}
+
+// ---------- v1.1: tu vung hien thi + WRITE 500 byte ----------
+
+TEST_CASE("v1.1 schema: ic, d, sub, opt cua bool, opt co icon", "[schema][v11]")
+{
+    cJSON *s = vph_screen("o", "Tổng quan", "live");
+    vph_icon(s, "dashboard");
+    cJSON *t = vph_field(s, "t", "Nhiệt độ", "num");
+    vph_hint(t, "tile,trend");
+    vph_icon(t, "temp");
+    cJSON *out = vph_field(s, "out", "Relay", "bool");
+    vph_hint(out, "hero,btns");
+    vph_sub(out, "mode");
+    vph_desc(out, "Chỉ ở chế độ Tay");
+    cJSON *run = vph_field(s, "run", "Đốt lò", "bool");
+    vph_bool_labels(run, "Dừng", "Đang đốt");
+    cJSON *mode = vph_field(s, "mode", "Chế độ", "enum");
+    static const char *const vals[] = {"manual", "auto"};
+    static const char *const labels[] = {"Tay", "Tự động"};
+    static const char *const icons[] = {"hand", NULL};
+    vph_options_ic(mode, vals, labels, icons, 2);
+
+    const vph_info_t info = {.model = "x", .fw = "1.1.0"};
+    cJSON *one[1] = {s};
+    vph_core_deinit();
+    TEST_ASSERT_EQUAL(ESP_OK, vph_core_init(&info, one, 1, fill, on_write, NULL));
+    cJSON *j = parse(vph_core_schema(0));
+    TEST_ASSERT_EQUAL_STRING("dashboard", str_of(j, "ic"));
+    const cJSON *f = cJSON_GetObjectItemCaseSensitive(j, "f");
+    const cJSON *jt = cJSON_GetArrayItem(f, 0);
+    TEST_ASSERT_EQUAL_STRING("tile,trend", str_of(jt, "w"));
+    TEST_ASSERT_EQUAL_STRING("temp", str_of(jt, "ic"));
+    const cJSON *jo = cJSON_GetArrayItem(f, 1);
+    TEST_ASSERT_EQUAL_STRING("mode", str_of(jo, "sub"));
+    TEST_ASSERT_EQUAL_STRING("Chỉ ở chế độ Tay", str_of(jo, "d"));
+    const cJSON *bl = cJSON_GetObjectItemCaseSensitive(cJSON_GetArrayItem(f, 2), "opt");
+    TEST_ASSERT_EQUAL(2, cJSON_GetArraySize(bl));
+    TEST_ASSERT_EQUAL_STRING("Dừng", cJSON_GetArrayItem(bl, 0)->valuestring);
+    TEST_ASSERT_EQUAL_STRING("Đang đốt", cJSON_GetArrayItem(bl, 1)->valuestring);
+    const cJSON *opt = cJSON_GetObjectItemCaseSensitive(cJSON_GetArrayItem(f, 3), "opt");
+    // Lua chon co icon: 3 phan tu; icon NULL: van 2 phan tu nhu v1.0
+    TEST_ASSERT_EQUAL(3, cJSON_GetArraySize(cJSON_GetArrayItem(opt, 0)));
+    TEST_ASSERT_EQUAL_STRING("hand", cJSON_GetArrayItem(cJSON_GetArrayItem(opt, 0), 2)->valuestring);
+    TEST_ASSERT_EQUAL(2, cJSON_GetArraySize(cJSON_GetArrayItem(opt, 1)));
+    cJSON_Delete(j);
+}
+
+// Dung lenh set dai: {"q":Q,"set":{"lo":10,"hi":50,"pad":"xxxx..."}} voi tong do dai dung bang len
+static void long_set(char *buf, size_t cap, int q, const char *fields, size_t len)
+{
+    int n = snprintf(buf, cap, "{\"q\":%d,\"set\":{%s", q, fields);
+    TEST_ASSERT_TRUE(len + 1 <= cap && (size_t)n + 2 <= len);
+    memset(buf + n, ' ', len - n - 2);      // dem bang dau cach, JSON van hop le
+    buf[len - 2] = '}';
+    buf[len - 1] = '}';
+    buf[len] = 0;
+}
+
+TEST_CASE("v1.1 WRITE: lenh set dai hon 240 byte van duoc, dung 500 byte van duoc", "[write][batch][v11]")
+{
+    setup(0);
+    int act;
+    char cmd[VPH_MAX_WRITE + 40];
+    long_set(cmd, sizeof(cmd), 21, "\"lo\":10,\"hi\":50", 300);
+    TEST_ASSERT_EQUAL(300, strlen(cmd));
+    cJSON *r = do_write(cmd, &act);
+    TEST_ASSERT_EQUAL(21, (int)num_of(r, "q"));
+    TEST_ASSERT_EQUAL(1, (int)num_of(r, "ok"));
+    TEST_ASSERT_EQUAL(10, (int)dev.lo);
+    TEST_ASSERT_EQUAL(50, (int)dev.hi);
+    cJSON_Delete(r);
+
+    long_set(cmd, sizeof(cmd), 22, "\"lo\":11,\"hi\":51", VPH_MAX_WRITE);
+    TEST_ASSERT_EQUAL(VPH_MAX_WRITE, strlen(cmd));
+    r = do_write(cmd, &act);
+    TEST_ASSERT_EQUAL(1, (int)num_of(r, "ok"));
+    TEST_ASSERT_EQUAL(11, (int)dev.lo);
+    cJSON_Delete(r);
+    TEST_ASSERT_EQUAL(2, dev.batches);
+}
+
+TEST_CASE("v1.1 WRITE: qua 500 byte -> Lenh qua dai, tra dung q, khong goi project", "[write][v11]")
+{
+    setup(0);
+    int act;
+    char cmd[VPH_MAX_WRITE + 40];
+    long_set(cmd, sizeof(cmd), 23, "\"lo\":12,\"hi\":52", VPH_MAX_WRITE + 1);
+    cJSON *r = do_write(cmd, &act);
+    TEST_ASSERT_EQUAL(23, (int)num_of(r, "q"));
+    TEST_ASSERT_EQUAL(0, (int)num_of(r, "ok"));
+    TEST_ASSERT_EQUAL_STRING("Lệnh quá dài", str_of(r, "err"));
+    TEST_ASSERT_EQUAL(0, act);
+    TEST_ASSERT_EQUAL(20, (int)dev.lo);
+    TEST_ASSERT_EQUAL(0, dev.batches);
+    TEST_ASSERT_EQUAL(0, dev.writes);
     cJSON_Delete(r);
 }

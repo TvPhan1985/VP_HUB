@@ -129,3 +129,4 @@ _(ghi vào đây)_
 | 2–7 | 22:06 | 22:30 | Lõi + giao diện + 2 adapter viết liền một mạch; `flutter analyze` sạch, 77 test qua |
 | 8 | 22:30 | 22:50 | Icon, APK debug + release (`release/VPHub_1.0.0.apk`), README |
 | 9–10 | 22:50 | 23:20 | `vph_ble` (lõi + NimBLE), `test_app` 24 test, `vph_demo`; cả hai build thành công với ESP-IDF v5.5.5 |
+| U1–U7 | 2026-10-07 | 2026-10-07 | `docs/PLAN_GIAO_DIEN.md`: PROTOCOL v1.1, widget mới, NavigationBar, màn Quét, WRITE 500 byte, `vph_ble` 1.1.0. 88 test app + 27 test Unity trên chip qua; `release/VPHub_1.1.0.apk` đã cài; `vph_demo` 1.1.0 đang nằm trên board COM5 (xem `docs/TEST_ON_HW.md`) |

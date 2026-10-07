@@ -10,7 +10,7 @@ Một app Android cho mọi thiết bị ESP32 của Phận, qua BLE. Giao diệ
 | `firmware/test_app/` | Unity test của `vph_ble`, chạy trên chip |
 | `release/` | APK đã build (`VPHub_<phiên bản>.apk`, không đưa vào git) |
 | `tools/` | `idf.ps1`, `find_port.ps1`, `serial_log.py` |
-| `docs/PROTOCOL.md` | Giao thức BLE chung VPH v1 (nguồn sự thật duy nhất) |
+| `docs/PROTOCOL.md` | Giao thức BLE chung VPH v1.1 (nguồn sự thật duy nhất) |
 | `docs/SPEC.md` | Đặc tả app, các quyết định khi triển khai (§11) |
 | `docs/LEGACY.md` | Adapter cho 2 thiết bị đời cũ |
 | `docs/QUY_TAC_THIET_BI_MOI.md` | Quy tắc cho dự án sau |
@@ -30,7 +30,7 @@ Một app Android cho mọi thiết bị ESP32 của Phận, qua BLE. Giao diệ
 Bật **Gỡ lỗi USB** trên điện thoại, cắm cáp, rồi:
 
 ```powershell
-adb install -r release/VPHub_1.0.0.apk
+adb install -r release/VPHub_1.1.0.apk
 ```
 
 Hoặc chép file APK vào điện thoại và mở để cài. Lần đầu mở app, bấm **Cho phép** quyền "Thiết bị ở gần" (Bluetooth).

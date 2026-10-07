@@ -39,9 +39,12 @@ Component dùng chung: thiết bị nào dùng nó thì app **VP Hub** tự qué
 static cJSON *build_overview(void)
 {
     cJSON *s = vph_screen("overview", "Tổng quan", "live");
+    vph_icon(s, "dashboard");                       // icon của tab
     cJSON *t = vph_field(s, "t", "Nhiệt độ", "num");
-    vph_unit(t, "°C"); vph_dp(t, 1); vph_readonly(t); vph_hint(t, "big,trend");
-    vph_field(s, "out", "Relay", "bool");
+    vph_unit(t, "°C"); vph_dp(t, 1); vph_readonly(t);
+    vph_hint(t, "tile,trend"); vph_icon(t, "temp"); // thẻ số đo có icon, chạm để xem biểu đồ
+    cJSON *out = vph_field(s, "out", "Relay", "bool");
+    vph_hint(out, "hero,btns"); vph_icon(out, "power");   // thẻ trạng thái lớn + 2 nút BẬT/TẮT
     return s;
 }
 
@@ -97,6 +100,24 @@ UUID và GATT, quảng bá (UUID ở gói advertising, tên ở scan response), 
 
 **Luồng chạy:** callback GATT (task của NimBLE) chỉ chép dữ liệu và đẩy lệnh vào queue. `fill_values`, `on_write`, `on_batch` **luôn** chạy trong task gọi `vph_poll()`, nên project không cần mutex cho dữ liệu của mình. VALUES của mọi màn được dựng sẵn mỗi giây để lệnh đọc ngay sau SELECT trả đúng màn mới.
 
+## Gợi ý hiển thị v1.1 (PROTOCOL §5.4, §5.6)
+
+Để app vẽ đẹp như app viết riêng, dùng các hàm sau (app VP Hub 1.0 bỏ qua, không lỗi):
+
+| Muốn | Gọi |
+|---|---|
+| Icon cho tab / trường | `vph_icon(screen_or_field, "temp")` |
+| Số đo chính thành thẻ, 2 thẻ một hàng | `vph_hint(f, "tile")` + `vph_icon` |
+| Vài số phụ gom một thẻ | `vph_hint(f, "mini")` cho các trường liền nhau |
+| Công tắc tải chính | `vph_hint(f, "hero,btns")`, `vph_sub(f, "mode")`, `vph_desc(f, "lý do khi bị khóa")` |
+| Chữ trạng thái khác BẬT/TẮT | `vph_bool_labels(f, "Dừng", "Đang đốt")` |
+| Chọn chế độ có icon | `vph_hint(f, "seg")` + `vph_options_ic(...)` |
+| Thẻ báo động | `vph_hint(flags, "alarm")`, nút "Tắt còi" đặt liền sau, cùng `vph_group` |
+| Dòng cảnh báo | `vph_hint(f, "note")` + `vph_show_if` |
+| Số giây thành "2 giờ 5 phút" | `vph_hint(f, "dur")` |
+
+Mẫu đầy đủ: `firmware/examples/vph_demo/main/main.c`.
+
 ## Giới hạn kích thước (PROTOCOL §8)
 
 | Gói | Tối đa | Component làm gì khi vượt |
@@ -104,6 +125,7 @@ UUID và GATT, quảng bá (UUID ở gói advertising, tên ở scan response), 
 | INFO | 240 byte | `ESP_LOGW` |
 | SCHEMA mỗi màn | 1920 byte (4 trang) | `ESP_LOGW` lúc khởi động; in kích thước từng màn ra log |
 | VALUES mỗi màn (kể cả `hdr`) | 240 byte | `ESP_LOGW` một lần cho mỗi màn; quá 400 byte thì bỏ các trường cuối (JSON vẫn hợp lệ) |
+| WRITE | 500 byte (v1.1) | RESULT `"err":"Lệnh quá dài"`, không gọi `on_write` / `on_batch` |
 | RESULT | 120 byte | `err` bị cắt còn 80 byte |
 
 VALUES quá 240 byte → tách thành 2 màn hoặc rút id ngắn lại. **Dự án phải có unit test** kiểm tra kích thước lớn nhất của từng màn (xem `firmware/test_app/main/test_vph.c`, các test nhãn `[size]`).

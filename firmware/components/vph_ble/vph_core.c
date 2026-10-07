@@ -84,6 +84,30 @@ void vph_enable_if(cJSON *f, const char *cond) { cJSON_AddStringToObject(f, "en"
 void vph_group(cJSON *f, const char *name) { cJSON_AddStringToObject(f, "g", name); }
 void vph_maxlen(cJSON *f, int max) { cJSON_AddNumberToObject(f, "max", max); }
 
+void vph_icon(cJSON *screen_or_field, const char *name) { cJSON_AddStringToObject(screen_or_field, "ic", name); }
+void vph_desc(cJSON *f, const char *text) { cJSON_AddStringToObject(f, "d", text); }
+void vph_sub(cJSON *f, const char *field_id) { cJSON_AddStringToObject(f, "sub", field_id); }
+
+void vph_bool_labels(cJSON *f, const char *off, const char *on)
+{
+    cJSON *opt = cJSON_AddArrayToObject(f, "opt");
+    cJSON_AddItemToArray(opt, cJSON_CreateString(off));
+    cJSON_AddItemToArray(opt, cJSON_CreateString(on));
+}
+
+void vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
+                    const char *const *icons, int n)
+{
+    cJSON *opt = cJSON_AddArrayToObject(f, "opt");
+    for (int i = 0; i < n; i++) {
+        cJSON *item = cJSON_CreateArray();
+        cJSON_AddItemToArray(item, cJSON_CreateString(vals[i]));
+        cJSON_AddItemToArray(item, cJSON_CreateString(labels[i]));
+        if (icons && icons[i]) cJSON_AddItemToArray(item, cJSON_CreateString(icons[i]));
+        cJSON_AddItemToArray(opt, item);
+    }
+}
+
 void vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n)
 {
     cJSON *opt = cJSON_AddArrayToObject(f, "opt");
@@ -441,7 +465,11 @@ int vph_core_handle_write(const char *json, char *result, size_t result_cap)
     const cJSON *jid = cJSON_GetObjectItemCaseSensitive(root, "id");
     const cJSON *v = cJSON_GetObjectItemCaseSensitive(root, "v");
 
-    if (!cJSON_IsObject(root)) {
+    if (strlen(json) > VPH_MAX_WRITE) {
+        // Van doc q (neu JSON con nguyen) de app biet lenh nao bi tu choi
+        ESP_LOGW(TAG, "WRITE %d byte, vuot %d (PROTOCOL 8)", (int)strlen(json), VPH_MAX_WRITE);
+        strlcpy(err, "Lệnh quá dài", sizeof(err));
+    } else if (!cJSON_IsObject(root)) {
         strlcpy(err, "Lệnh sai định dạng", sizeof(err));
     } else if (cJSON_IsObject(set)) {
         // Ghi theo lo

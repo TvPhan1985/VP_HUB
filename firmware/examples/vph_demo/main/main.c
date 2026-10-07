@@ -1,4 +1,4 @@
-// vph_demo - firmware mau cho giao thuc VPH v1 (ESP32-C3 SuperMini, WS2812 o GPIO8).
+// vph_demo - firmware mau cho giao thuc VPH v1.1 (ESP32-C3 SuperMini, WS2812 o GPIO8).
 // Day la MAU CHUAN de chep khi lam du an moi: khai bao man hinh, dien VALUES, xu ly ghi.
 // Xem docs/QUY_TAC_THIET_BI_MOI.md va firmware/components/vph_ble/README.md.
 #include <math.h>
@@ -42,6 +42,7 @@ typedef struct {
 typedef struct {
     cfg_t cfg;
     float temp;
+    float hum;
     bool led;
     char color[8];
     int64_t beep_until;     // dang "bip": LED nhay trang den thoi diem nay
@@ -59,6 +60,7 @@ static app_t app = {
         .lo = 20, .hi = 35,
     },
     .temp = 28.0f,
+    .hum = 65.0f,
     .color = "green",
 };
 
@@ -148,30 +150,62 @@ static void led_update(int64_t now)
 static cJSON *build_overview(void)
 {
     cJSON *s = vph_screen("overview", "Tổng quan", "live");
+    vph_icon(s, "dashboard");       // icon cua tab o thanh dieu huong duoi
 
+    // So do chinh: the co icon, hai the lien nhau xep 2 cot; cham the nhiet do de xem bieu do
     cJSON *t = vph_field(s, "t", "Nhiệt độ", "num");
     vph_unit(t, "°C");
     vph_dp(t, 1);
     vph_readonly(t);
-    vph_hint(t, "big,trend");
+    vph_hint(t, "tile,trend");
+    vph_icon(t, "temp");
+    cJSON *h = vph_field(s, "h", "Độ ẩm", "num");
+    vph_unit(h, "%");
+    vph_dp(h, 1);
+    vph_readonly(h);
+    vph_hint(h, "tile");
+    vph_icon(h, "hum");
 
-    vph_field(s, "led", "Đèn LED", "bool");
+    // Tai chinh: the trang thai lon + 2 nut BAT/TAT, dong phu la mau dang chon
+    cJSON *led = vph_field(s, "led", "Đèn LED", "bool");
+    vph_hint(led, "hero,btns");
+    vph_icon(led, "light");
+    vph_sub(led, "color");
 
+    // Chon che do/mau: nut chon ca chieu ngang; chu thich giai thich khi bi khoa
     cJSON *color = vph_field(s, "color", "Màu đèn", "enum");
     static const char *const vals[] = {"red", "green", "blue", "white"};
     static const char *const labels[] = {"Đỏ", "Lục", "Lam", "Trắng"};
     vph_options(color, vals, labels, 4);
+    vph_hint(color, "seg");
     vph_enable_if(color, "led==true");
+    vph_desc(color, "Phải bật đèn trước khi đổi màu");
 
-    vph_field(s, "beep", "Bíp", "act");
+    // Bao dong: the do khi co loi; nut lenh cung nhom nam o goc the
+    cJSON *al = vph_field(s, "al", "Báo động", "flags");
+    static const char *const bits[] = {"Nhiệt độ thấp hơn ngưỡng", "Nhiệt độ cao hơn ngưỡng"};
+    vph_flag_labels(al, bits, 2);
+    vph_hint(al, "alarm");
+    vph_group(al, "al");
+    cJSON *beep = vph_field(s, "beep", "Bíp", "act");
+    vph_icon(beep, "bell");
+    vph_group(beep, "al");
 
     cJSON *clock = vph_field(s, "clock", "Giờ thiết bị", "text");
+    vph_icon(clock, "clock");
     vph_group(clock, "Thiết bị");
+    cJSON *up = vph_field(s, "up", "Thời gian chạy", "num");
+    vph_readonly(up);
+    vph_hint(up, "dur");            // so giay -> "2 giờ 5 phút"
+    vph_icon(up, "timer");
+    vph_group(up, "Thiết bị");
     cJSON *name = vph_field(s, "_name", "Tên thiết bị", "str");
     vph_maxlen(name, VPH_NAME_MAX);
+    vph_icon(name, "device");
     vph_group(name, "Thiết bị");
     cJSON *rb = vph_field(s, "_reboot", "Khởi động lại", "act");
     vph_confirm(rb, "Khởi động lại thiết bị?");
+    vph_icon(rb, "reset");
     vph_group(rb, "Thiết bị");
     return s;
 }
@@ -180,6 +214,7 @@ static cJSON *build_settings(void)
 {
     // Hai nguong rang buoc nhau (lo < hi) nen dung man batch: sua xong bam Luu mot lan
     cJSON *s = vph_screen("settings", "Cài đặt", "batch");
+    vph_icon(s, "settings");
 
     cJSON *lo = vph_field(s, "lo", "Ngưỡng thấp", "num");
     vph_unit(lo, "°C");
@@ -199,10 +234,17 @@ static cJSON *build_settings(void)
     vph_enable_if(on, "en==true");
     cJSON *off = vph_field(rep, "off", "Giờ tắt", "time");
     vph_enable_if(off, "en==true");
+    vph_desc(off, "Giờ tắt nhỏ hơn giờ bật = qua đêm");
     return s;
 }
 
 // ---------- VALUES ----------
+
+// Co bao dong: bit0 = thap hon nguong thap, bit1 = cao hon nguong cao
+static int alarm_bits(void)
+{
+    return (app.temp < app.cfg.lo ? 1 : 0) | (app.temp > app.cfg.hi ? 2 : 0);
+}
 
 static void fill_values(uint8_t screen, vph_out_t *o)
 {
@@ -212,11 +254,15 @@ static void fill_values(uint8_t screen, vph_out_t *o)
         // Cac truong dau trang, co mat trong VALUES cua moi man hinh
         vph_out_num(o, "t", app.temp, 1);
         vph_out_bool(o, "led", app.led);
+        vph_out_int(o, "al", alarm_bits());
         break;
     case SCR_OVERVIEW: {
         vph_out_num(o, "t", app.temp, 1);
+        vph_out_num(o, "h", app.hum, 1);
         vph_out_bool(o, "led", app.led);
         vph_out_str(o, "color", app.color);
+        vph_out_int(o, "al", alarm_bits());
+        vph_out_int(o, "up", (long)(esp_timer_get_time() / 1000000));
         time_t now = time(NULL);
         if (now > 1700000000) {
             struct tm tm;
@@ -383,10 +429,10 @@ void app_main(void)
     led_init();
     storage_load();
 
-    static const char *const hdr[] = {"t", "led", NULL};
+    static const char *const hdr[] = {"t", "led", "al", NULL};
     const vph_info_t info = {
         .model = "vphdemo",
-        .fw = "1.0.0",
+        .fw = "1.1.0",
         .hw = "esp32c3",
         .icon = "light",
         .hdr = hdr,
@@ -409,6 +455,7 @@ void app_main(void)
             next_sample = now + 1000000;
             phase += 0.05f;
             app.temp = 28.0f + 3.0f * sinf(phase) + ((int)(esp_random() % 21) - 10) / 50.0f;
+            app.hum = 65.0f + 8.0f * cosf(phase * 0.7f) + ((int)(esp_random() % 21) - 10) / 20.0f;
         }
         if (app.save_cfg) {
             app.save_cfg = false;

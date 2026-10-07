@@ -36,7 +36,7 @@ static const ble_uuid128_t UUID_RESULT = VPH_UUID(0x07);
 enum { CHR_INFO = 2, CHR_SELECT, CHR_SCHEMA, CHR_VALUES, CHR_WRITE, CHR_RESULT };
 
 #define VALUES_CAP      400     // lon hon 240 de goi qua co van gui duoc khi MTU cho phep (da canh bao)
-#define WRITE_CAP       512
+#define WRITE_CAP       512     // 1 attribute BLE toi da 512 byte; qua VPH_MAX_WRITE thi core tra "Lenh qua dai"
 #define WRITE_QUEUE_LEN 8
 #define NOTIFY_PERIOD_US    1000000
 #define REBOOT_DELAY_US     500000
@@ -305,9 +305,6 @@ void vph_poll(void)
     char *cmd;
     while (xQueueReceive(s_writes, &cmd, 0) == pdTRUE) {
         char result[VPH_MAX_RESULT + 40];
-        if (strlen(cmd) > VPH_MAX_WRITE) {
-            ESP_LOGW(TAG, "WRITE %d byte, vuot %d (PROTOCOL 8)", (int)strlen(cmd), VPH_MAX_WRITE);
-        }
         // Khong giu s_lock o day: callback cua project co the lau (ghi NVS) hoac goi lai vph_set_name
         int act = vph_core_handle_write(cmd, result, sizeof(result));
         free(cmd);
