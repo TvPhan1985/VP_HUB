@@ -85,6 +85,7 @@ void vph_group(cJSON *f, const char *name) { cJSON_AddStringToObject(f, "g", nam
 void vph_maxlen(cJSON *f, int max) { cJSON_AddNumberToObject(f, "max", max); }
 
 void vph_icon(cJSON *screen_or_field, const char *name) { cJSON_AddStringToObject(screen_or_field, "ic", name); }
+void vph_nav_menu(cJSON *screen) { cJSON_AddStringToObject(screen, "nav", "menu"); }
 void vph_desc(cJSON *f, const char *text) { cJSON_AddStringToObject(f, "d", text); }
 void vph_sub(cJSON *f, const char *field_id) { cJSON_AddStringToObject(f, "sub", field_id); }
 

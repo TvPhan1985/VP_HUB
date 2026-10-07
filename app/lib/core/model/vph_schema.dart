@@ -209,6 +209,9 @@ class VphScreen {
 
   /// Ten icon cua tab (PROTOCOL §5.6)
   final String? icon;
+
+  /// nav:"menu": man cai dat / thong tin, nam trong menu ⋮ thay vi lam tab
+  final bool menu;
   final bool batch;
   final List<VphField> fields;
   final VphRepeat? rep;
@@ -221,6 +224,7 @@ class VphScreen {
     required this.id,
     required this.title,
     this.icon,
+    this.menu = false,
     this.batch = false,
     this.fields = const [],
     this.rep,
@@ -261,6 +265,7 @@ class VphScreen {
       id: id,
       title: _str(_pick(j, 'l', 'title')) ?? id,
       icon: _str(j['ic']),
+      menu: j['nav'] == 'menu',
       batch: j['save'] == 'batch',
       fields: [if (f is List) for (final e in f) if (e is Map) VphField.fromJson(e)],
       rep: rep is Map ? VphRepeat.fromJson(rep) : null,

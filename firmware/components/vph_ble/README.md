@@ -107,6 +107,7 @@ UUID và GATT, quảng bá (UUID ở gói advertising, tên ở scan response), 
 | Muốn | Gọi |
 |---|---|
 | Icon cho tab / trường | `vph_icon(screen_or_field, "temp")` |
+| Màn cài đặt / thông tin nằm trong menu ⋮, không làm tab | `vph_nav_menu(screen)` |
 | Số đo chính thành thẻ, 2 thẻ một hàng | `vph_hint(f, "tile")` + `vph_icon` |
 | Vài số phụ gom một thẻ | `vph_hint(f, "mini")` cho các trường liền nhau |
 | Công tắc tải chính | `vph_hint(f, "hero,btns")`, `vph_sub(f, "mode")`, `vph_desc(f, "lý do khi bị khóa")` |

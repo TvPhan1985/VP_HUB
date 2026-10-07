@@ -21,7 +21,7 @@
    - Báo động → một trường `flags` có nhãn từng bit, đưa vào `hdr`.
    - Nút nguy hiểm (đốt lò, xóa lỗi, reboot, chạy motor) → có `c` xác nhận.
    - Chỉ dùng các kiểu ở PROTOCOL §5.2. **Cần kiểu mới → sửa PROTOCOL + app trước**, không tự chế kiểu ở firmware.
-   - **Giao diện v1.1** (PROTOCOL §5.4, §5.6): số đo chính dùng `tile` + `ic`; công tắc tải chính dùng `hero,btns`; chế độ dùng `seg`; báo động dùng `alarm`; mỗi màn có `ic`. Mẫu: `firmware/examples/vph_demo/main/main.c`.
+   - **Giao diện v1.1** (PROTOCOL §5.4, §5.6): số đo chính dùng `tile` + `ic`; công tắc tải chính dùng `hero,btns`; chế độ dùng `seg`; báo động dùng `alarm`; mỗi màn có `ic`; màn cài đặt ít dùng và màn thông tin thiết bị đặt `nav:"menu"` (`vph_nav_menu`) để nằm trong menu ⋮, chỉ màn dùng hằng ngày làm tab. Mẫu: `firmware/examples/vph_demo/main/main.c`.
 6. **Giữ đúng kích thước**: schema mỗi màn ≤ 1920 byte (`vph_ble` tự cắt trang 480 byte), VALUES (kể cả `hdr`) ≤ 240 byte. Có unit test kiểm tra. VALUES quá thì tách màn hoặc rút id.
 7. **Firmware tự kiểm tra hợp lệ** mọi lệnh ghi, sai thì từ chối, giữ cấu hình cũ, trả `err` tiếng Việt ngắn.
 8. **Cần giờ** (lịch, RTC) → `caps:["time"]`, xử lý `_time`. Đổi tên qua `_name`, khởi động lại qua `_reboot`.

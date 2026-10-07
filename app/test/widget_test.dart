@@ -52,6 +52,14 @@ Future<void> _goto(WidgetTester tester, String title) async {
   await tester.pumpAndSettle();
 }
 
+/// Mo mot man nav:"menu" tu menu ⋮
+Future<void> _openFromMenu(WidgetTester tester, String title) async {
+  await tester.tap(find.byType(PopupMenuButton<String>));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(PopupMenuItem<String>, title));
+  await tester.pumpAndSettle();
+}
+
 /// Nut (moi bien the cua FilledButton) chua dong chu [text]
 Finder _button(String text) =>
     find.ancestor(of: find.text(text), matching: find.byWidgetPredicate((w) => w is FilledButton));
@@ -88,7 +96,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       for (var i = 0; i < s.screens.length; i++) {
-        await _goto(tester, s.screens[i].title);
+        final inMenu = s.screens[i].menu;
+        if (inMenu) {
+          await _openFromMenu(tester, s.screens[i].title);
+        } else {
+          await _goto(tester, s.screens[i].title);
+        }
         expect(tester.takeException(), isNull, reason: 'tab ${s.screens[i].id}');
         expect(s.current, i);
         // Moi truong dang hien (khong bi `if` an) deu co nhan tren man hinh
@@ -96,6 +109,10 @@ void main() {
         for (final f in sc.fields) {
           if (f.ifCond != null || !f.known) continue;
           expect(find.textContaining(f.label), findsWidgets, reason: 'truong ${f.id}');
+        }
+        if (inMenu) {
+          await tester.pageBack();
+          await tester.pumpAndSettle();
         }
       }
       await _close(tester, rig);
@@ -223,6 +240,55 @@ void main() {
     expect(tester.widget<TabBar>(find.byType(TabBar)).isScrollable, isTrue);
     await _goto(tester, 'Màn 5');
     expect(rig.session.current, 5);
+    await _close(tester, rig);
+  });
+
+  testWidgets('man nav:"menu" khong lam tab, mo tu menu thanh trang rieng, thoat thi ve tab cu', (tester) async {
+    final rig = await _open(tester, 'demo_relay.json');
+    final s = rig.session;
+    // Chi 2 man thuong lam tab
+    expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 2);
+    expect(find.widgetWithText(Tab, 'Nâng cao'), findsNothing);
+    await _goto(tester, 'Lịch');
+    expect(s.current, 1);
+    await _openFromMenu(tester, 'Nâng cao');
+    expect(s.current, 2);
+    expect(find.byType(TabBar), findsNothing);
+    expect(find.text('Ngưỡng báo động'), findsOneWidget);
+    // Man batch trong trang rieng: sua -> hien thanh Luu -> gui 1 lenh set
+    final n = rig.demo.writes.length;
+    await tester.tap(find.byIcon(Icons.add_circle_outline).first);
+    await tester.pumpAndSettle();
+    expect(find.text(S.batchChanges(1)), findsOneWidget);
+    // Con thay doi ma quay lai thi hoi
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    expect(find.text(S.unsavedTitle), findsOneWidget);
+    await tester.tap(find.text(S.stay));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.save));
+    await tester.pumpAndSettle();
+    expect(rig.demo.writes.length, n + 1);
+    expect(rig.demo.writes.last, {
+      'set': {'al_lo': 11},
+    });
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    // Ve lai dung tab dang mo truoc do
+    expect(find.byType(TabBar), findsOneWidget);
+    expect(s.current, 1);
+    expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 1);
+    await _close(tester, rig);
+  });
+
+  testWidgets('moi man deu la menu thi van hien thanh tab', (tester) async {
+    final j = jsonDecode(_v10(2)) as Map<String, dynamic>;
+    for (final sc in j['screens'] as List) {
+      (sc as Map)['nav'] = 'menu';
+    }
+    final rig = await _openJson(tester, jsonEncode(j));
+    expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 2);
+    expect(tester.takeException(), isNull);
     await _close(tester, rig);
   });
 

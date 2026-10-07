@@ -94,6 +94,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `f` | Mảng trường (§5.1) |
 | `rep` | Khối lặp (§5.3), tùy chọn |
 | `ic` | Icon của tab (§5.6), tùy chọn (v1.1) |
+| `nav` | Vị trí của màn trong app, tùy chọn (v1.1). Không có = một **tab**. `"menu"` = màn cài đặt / thông tin ít dùng: không làm tab, app đưa vào **menu ⋮** ở góc trên, bấm thì mở thành trang riêng. Dữ liệu trên đường truyền không đổi (vẫn SELECT theo số thứ tự màn). Giá trị lạ → coi như tab |
 
 App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`, `fields`=`f`, `repeat`=`rep`.
 
@@ -293,6 +294,7 @@ void   vph_unit / vph_dp / vph_readonly / vph_nullable / vph_hint / vph_confirm 
 // v1.1: icon (dùng cho cả màn hình và trường), chú thích, dòng phụ, chữ 2 trạng thái của bool
 void   vph_icon / vph_desc / vph_sub (cJSON *screen_or_field, const char *s);
 void   vph_bool_labels(cJSON *f, const char *off, const char *on);
+void   vph_nav_menu(cJSON *screen);   // màn cài đặt/thông tin: nằm trong menu ⋮ thay vì làm tab
 void   vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
                       const char *const *icons, int n);
 void   vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);
@@ -368,4 +370,5 @@ Chuỗi này khoảng 1,3 KB (3 trang), vẫn dưới 1920 byte.
   - §5.4: gợi ý `tile`, `mini`, `hero`, `btns`, `seg`, `alarm`, `note`, `dur`. `alarm` áp được cho cả `bool` (lò nung chỉ có một cờ "khóa an toàn", không có bitmask).
   - §5.6: bộ tên icon chuẩn.
   - §8: WRITE tối đa 500 byte (trước 240), gửi bằng long write. Lý do: lưu 5 khung giờ một lần ≈ 300 byte bị chặn (SPEC §11.11). Firmware `vph_ble` 1.0.0 đã có bộ đệm 512 byte nên vẫn nhận được; adapter thiết bị đời cũ giữ giới hạn riêng.
-  - §10: hàm `vph_icon`, `vph_desc`, `vph_sub`, `vph_bool_labels`, `vph_options_ic`.
+  - §10: hàm `vph_icon`, `vph_desc`, `vph_sub`, `vph_bool_labels`, `vph_options_ic`, `vph_nav_menu`.
+  - §5: khóa `nav` của màn hình (`"menu"`). Lý do: các màn "Nâng cao", "Thiết bị" là cài đặt và thông tin, để chung hàng tab với màn dùng hằng ngày làm thanh tab chật và rối; người dùng yêu cầu đưa vào menu ⋮. App 1.0 bỏ qua khóa này nên vẫn hiện thành tab như cũ.

@@ -25,7 +25,8 @@ void main() {
     await _settle();
     expect(s.status, LinkStatus.ready);
     expect(s.info!.model, 'demorelay');
-    expect(s.screens.length, 2);
+    expect(s.screens.length, 4);
+    expect([for (final sc in s.screens) sc.menu], [false, false, true, true]);
     expect(s.values['t'], 28.4);
     expect(s.displayName, 'DEMO-RELAY');
 

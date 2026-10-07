@@ -632,6 +632,7 @@ TEST_CASE("v1.1 schema: ic, d, sub, opt cua bool, opt co icon", "[schema][v11]")
 {
     cJSON *s = vph_screen("o", "Tổng quan", "live");
     vph_icon(s, "dashboard");
+    vph_nav_menu(s);
     cJSON *t = vph_field(s, "t", "Nhiệt độ", "num");
     vph_hint(t, "tile,trend");
     vph_icon(t, "temp");
@@ -653,6 +654,7 @@ TEST_CASE("v1.1 schema: ic, d, sub, opt cua bool, opt co icon", "[schema][v11]")
     TEST_ASSERT_EQUAL(ESP_OK, vph_core_init(&info, one, 1, fill, on_write, NULL));
     cJSON *j = parse(vph_core_schema(0));
     TEST_ASSERT_EQUAL_STRING("dashboard", str_of(j, "ic"));
+    TEST_ASSERT_EQUAL_STRING("menu", str_of(j, "nav"));
     const cJSON *f = cJSON_GetObjectItemCaseSensitive(j, "f");
     const cJSON *jt = cJSON_GetArrayItem(f, 0);
     TEST_ASSERT_EQUAL_STRING("tile,trend", str_of(jt, "w"));

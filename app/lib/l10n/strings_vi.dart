@@ -41,7 +41,7 @@ class S {
   static const demoTitle = 'Thiết bị mẫu';
   static const demoHint = 'Thiết bị giả để xem giao diện mà không cần phần cứng. Số liệu tự đổi nhẹ mỗi giây, lệnh ghi luôn thành công.';
   static const demoRelay = 'Relay mẫu';
-  static const demoRelaySub = 'Tổng quan + màn Lịch có khung giờ lặp';
+  static const demoRelaySub = 'Tổng quan, Lịch có khung giờ lặp, 2 màn cài đặt trong menu ⋮';
   static const demoAll = 'Đủ mọi kiểu dữ liệu';
   static const demoAllSub = 'Mọi kiểu, mọi gợi ý hiển thị, điều kiện hiện/khóa, một kiểu lạ';
   static const openJson = 'Mở file JSON';

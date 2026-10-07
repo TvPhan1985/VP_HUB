@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
@@ -14,6 +15,23 @@ import 'info_screen.dart';
 
 enum _Leave { stay, discard, save }
 
+/// Hoi lai khi roi mot man batch con thay doi chua luu
+Future<_Leave> _askLeaveDialog(BuildContext context, DeviceSession s, int screen) async {
+  final r = await showDialog<_Leave>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text(S.unsavedTitle),
+      content: Text(S.unsavedBody(s.draftCount(screen))),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: const Text(S.stay)),
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: const Text(S.discard)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: const Text(S.save)),
+      ],
+    ),
+  );
+  return r ?? _Leave.stay;
+}
+
 /// Man hinh Thiet bi: ve hoan toan tu schema, khong biet thiet bi la loai gi
 class DeviceScreen extends StatefulWidget {
   final DeviceSession session;
@@ -25,8 +43,16 @@ class DeviceScreen extends StatefulWidget {
 
 class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMixin {
   TabController? _tabs;
+
+  /// Chi so (trong session.screens) cua cac man lam tab; man nav:"menu" nam trong menu ⋮
+  List<int> _tabIdx = const [];
+
+  /// Chi so man hinh cua tab dang mo
   int _shown = 0;
   bool _asking = false;
+
+  /// Dang mo mot man cua menu ⋮ thanh trang rieng
+  bool _inMenu = false;
   StreamSubscription<SessionMessage>? _msgSub;
 
   DeviceSession get s => widget.session;
@@ -58,36 +84,47 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
 
   /// Tao lai TabController khi so man hinh doi (ket noi xong, doc lai schema)
   void _syncTabs() {
-    final n = s.screens.length;
-    if (_tabs?.length == n) return;
+    final all = [for (var i = 0; i < s.screens.length; i++) i];
+    var idx = [for (final i in all) if (!s.screens[i].menu) i];
+    // Moi man deu la menu thi coi tat ca la tab, khong de man Thiet bi trong
+    if (idx.isEmpty) idx = all;
+    if (_tabs != null && listEquals(idx, _tabIdx)) return;
     _tabs?.dispose();
     _tabs = null;
-    if (n == 0) return;
-    _shown = s.current.clamp(0, n - 1);
-    _tabs = TabController(length: n, vsync: this, initialIndex: _shown)..addListener(_onTab);
+    _tabIdx = idx;
+    if (idx.isEmpty) return;
+    _shown = idx.contains(s.current) ? s.current : idx.first;
+    _tabs = TabController(length: idx.length, vsync: this, initialIndex: idx.indexOf(_shown))..addListener(_onTab);
+    // Man dang chon tren thiet bi khong phai tab (vd man dau la menu): chon lai tab dang hien
+    if (_shown != s.current && !_inMenu) Future.microtask(() => s.selectScreen(_shown));
   }
 
-  Future<_Leave> _askLeave(int screen) async {
-    final r = await showDialog<_Leave>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text(S.unsavedTitle),
-        content: Text(S.unsavedBody(s.draftCount(screen))),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: const Text(S.stay)),
-          TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: const Text(S.discard)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: const Text(S.save)),
-        ],
-      ),
-    );
-    return r ?? _Leave.stay;
+  Future<_Leave> _askLeave(int screen) => _askLeaveDialog(context, s, screen);
+
+  /// Mo mot man nav:"menu" thanh trang rieng; thoat ra thi chon lai tab dang mo
+  Future<void> _openMenuScreen(int i) async {
+    if (_inMenu || i >= s.screens.length) return;
+    if (s.draftCount(_shown) > 0) {
+      final r = await _askLeave(_shown);
+      if (r == _Leave.stay) return;
+      if (r == _Leave.discard) s.discardBatch(_shown);
+      if (r == _Leave.save && !await s.saveBatch(_shown)) return;
+    }
+    if (!mounted) return;
+    _inMenu = true;
+    final nav = Navigator.of(context);
+    unawaited(s.selectScreen(i));
+    await nav.push(MaterialPageRoute(builder: (_) => _MenuScreenPage(session: s, index: i)));
+    _inMenu = false;
+    s.discardBatch(i);
+    await s.selectScreen(_shown);
   }
 
   /// Dang co thay doi chua luu ma roi tab thi hoi lai (SPEC §4)
   Future<void> _onTab() async {
     final tabs = _tabs;
-    if (tabs == null || tabs.indexIsChanging || _asking) return;
-    final to = tabs.index, from = _shown;
+    if (tabs == null || tabs.indexIsChanging || _asking || _inMenu) return;
+    final to = _tabIdx[tabs.index], from = _shown;
     if (to == from) return;
     if (s.draftCount(from) > 0) {
       _asking = true;
@@ -98,7 +135,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
       _asking = false;
       if (!mounted || _tabs != tabs) return;
       if (!leave) {
-        tabs.index = from;
+        tabs.index = _tabIdx.indexOf(from);
         return;
       }
     }
@@ -194,7 +231,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                   Expanded(
                     child: TabBarView(
                       controller: tabs,
-                      children: [for (var i = 0; i < s.screens.length; i++) ScreenView(session: s, index: i)],
+                      children: [for (final i in _tabIdx) ScreenView(session: s, index: i)],
                     ),
                   ),
                 ],
@@ -223,7 +260,8 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
         final cs = Theme.of(context).colorScheme;
         final tabs = _tabs;
         final link = _link(cs);
-        final n = s.screens.length;
+        final n = _tabIdx.length;
+        final menuIdx = [for (var i = 0; i < s.screens.length; i++) if (!_tabIdx.contains(i)) i];
         // Thanh tab nam o tren, moi tab co icon + chu; tu 4 man tro len thi cuon ngang
         final showTabs = tabs != null && s.hasEverConnected && n >= 2;
         return PopScope(
@@ -243,6 +281,10 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
               actions: [
                 PopupMenuButton<String>(
                   onSelected: (v) {
+                    if (v.startsWith('scr:')) {
+                      _openMenuScreen(int.parse(v.substring(4)));
+                      return;
+                    }
                     switch (v) {
                       case 'info':
                         Navigator.of(context).push(MaterialPageRoute(builder: (_) => InfoScreen(session: s)));
@@ -254,6 +296,18 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                     }
                   },
                   itemBuilder: (_) => [
+                    // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
+                    for (final i in menuIdx)
+                      PopupMenuItem(
+                        value: 'scr:$i',
+                        enabled: s.hasEverConnected,
+                        child: Row(children: [
+                          Icon(screenIcon(s.screens[i].icon, i), size: 20),
+                          const SizedBox(width: 12),
+                          Flexible(child: Text(s.screens[i].title)),
+                        ]),
+                      ),
+                    if (menuIdx.isNotEmpty) const PopupMenuDivider(),
                     PopupMenuItem(value: 'info', enabled: s.info != null, child: const Text(S.menuInfo)),
                     PopupMenuItem(value: 'reload', enabled: s.ready, child: const Text(S.menuReload)),
                     const PopupMenuItem(value: 'disconnect', child: Text(S.menuDisconnect)),
@@ -267,7 +321,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                       isScrollable: n > 3,
                       tabAlignment: n > 3 ? TabAlignment.start : TabAlignment.fill,
                       tabs: [
-                        for (var i = 0; i < n; i++)
+                        for (final i in _tabIdx)
                           Tab(
                             icon: Icon(screenIcon(s.screens[i].icon, i)),
                             text: s.screens[i].title,
@@ -278,6 +332,82 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
             ),
             // Chua cho cho thanh dieu huong cua Android (man hinh tran vien)
             body: SafeArea(top: false, child: _body(context)),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Trang rieng cua mot man nav:"menu" (cai dat, thong tin thiet bi), mo tu menu ⋮
+class _MenuScreenPage extends StatelessWidget {
+  final DeviceSession session;
+  final int index;
+  const _MenuScreenPage({required this.session, required this.index});
+
+  Future<void> _leave(BuildContext context) async {
+    final nav = Navigator.of(context);
+    if (session.draftCount(index) > 0) {
+      final r = await _askLeaveDialog(context, session, index);
+      if (r == _Leave.stay) return;
+      if (r == _Leave.discard) session.discardBatch(index);
+      if (r == _Leave.save && !await session.saveBatch(index)) return;
+    }
+    nav.pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: session,
+      builder: (context, _) {
+        final s = session;
+        // Schema vua doc lai va khong con man nay
+        if (index >= s.screens.length) return Scaffold(appBar: AppBar());
+        final cs = Theme.of(context).colorScheme;
+        final lost = !s.ready;
+        final failed = s.status == LinkStatus.failed;
+        final drafts = s.draftCount(index);
+        return PopScope(
+          canPop: drafts == 0,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _leave(context);
+          },
+          child: Scaffold(
+            appBar: AppBar(title: Text(s.screens[index].title)),
+            body: SafeArea(
+              top: false,
+              child: Column(
+                children: [
+                  if (lost && !failed) const LinearProgressIndicator(minHeight: 2),
+                  if (lost)
+                    MaterialBanner(
+                      backgroundColor: cs.errorContainer,
+                      content: Text(
+                        failed ? S.lostGiveUp : S.lostRetrying,
+                        style: TextStyle(color: cs.onErrorContainer),
+                      ),
+                      actions: [
+                        if (failed) TextButton(onPressed: s.connect, child: const Text(S.retry)) else const SizedBox.shrink(),
+                      ],
+                    ),
+                  Expanded(
+                    child: Opacity(
+                      opacity: lost ? 0.5 : 1,
+                      child: IgnorePointer(ignoring: lost, child: ScreenView(session: s, index: index)),
+                    ),
+                  ),
+                  if (drafts > 0)
+                    BatchBar(
+                      count: drafts,
+                      saving: s.saving,
+                      enabled: s.ready,
+                      onCancel: () => s.discardBatch(index),
+                      onSave: () => s.saveBatch(index),
+                    ),
+                ],
+              ),
+            ),
           ),
         );
       },
