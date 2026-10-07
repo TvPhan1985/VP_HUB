@@ -3,12 +3,9 @@ import 'package:flutter/material.dart';
 import 'core/schema_cache.dart';
 import 'l10n/strings_vi.dart';
 import 'ui/screens/scan_screen.dart';
+import 'ui/theme.dart';
 
-ThemeData vpHubTheme(Brightness b) => ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF00796B), brightness: b),
-      cardTheme: const CardThemeData(margin: EdgeInsets.symmetric(horizontal: 4, vertical: 5)),
-    );
+export 'ui/theme.dart' show vpHubTheme;
 
 class VpHubApp extends StatelessWidget {
   final KvStore store;

@@ -6,6 +6,7 @@ import 'package:vphub/core/model/vph_value.dart';
 import 'kiln_schemas.dart';
 
 void main() {
+  v11Tests();
   group('INFO', () {
     test('doc du cac khoa', () {
       final i = VphInfo.fromJson({
@@ -194,6 +195,64 @@ void main() {
       expect(decimalsOf(0.5), 1);
       expect(decimalsOf(0.01), 2);
       expect(decimalsOf(0.05000000074505806), 2);
+    });
+  });
+}
+
+// ----- v1.1: khoa va goi y moi -----
+void v11Tests() {
+  group('Schema v1.1', () {
+    test('ic, d, sub, opt 3 phan tu, opt cua bool', () {
+      final s = VphScreen.tryParse('{"id":"o","l":"Tổng quan","ic":"dashboard","f":['
+          '{"id":"t","l":"Nhiệt độ","t":"num","w":"tile,trend","ic":"temp"},'
+          '{"id":"out","l":"Relay","t":"bool","w":"hero,btns","ic":"power","sub":"mode","d":"Chỉ ở chế độ Tay"},'
+          '{"id":"mode","l":"Chế độ","t":"enum","w":"seg","opt":[["manual","Tay","hand"],["auto","Tự động"]]},'
+          '{"id":"run","l":"Đốt lò","t":"bool","opt":["Dừng","Đang đốt"]}]}');
+      expect(s.error, isNull);
+      expect(s.icon, 'dashboard');
+      final t = s.field('t')!;
+      expect(t.icon, 'temp');
+      expect(t.hints, {'tile', 'trend'});
+      final out = s.field('out')!;
+      expect(out.sub, 'mode');
+      expect(out.desc, 'Chỉ ở chế độ Tay');
+      expect(out.boolLabels, isNull);
+      final mode = s.field('mode')!;
+      expect(mode.options[0].icon, 'hand');
+      expect(mode.options[1].icon, isNull);
+      expect(mode.optionLabel('auto'), 'Tự động');
+      expect(s.field('run')!.boolLabels, ['Dừng', 'Đang đốt']);
+      expect(s.field('run')!.options, isEmpty);
+    });
+
+    test('schema 1.0 khong co khoa moi van doc nhu cu', () {
+      final s = VphScreen.tryParse('{"id":"o","l":"A","f":[{"id":"t","l":"T","t":"num"}]}');
+      expect(s.icon, isNull);
+      final t = s.field('t')!;
+      expect(t.icon, isNull);
+      expect(t.desc, isNull);
+      expect(t.sub, isNull);
+      expect(t.hints, isEmpty);
+    });
+
+    test('khoa moi sai kieu thi bo qua, khong loi', () {
+      final s = VphScreen.tryParse('{"id":"o","l":"A","ic":5,"f":['
+          '{"id":"b","t":"bool","opt":[1,2],"ic":["x"],"d":7,"sub":{}},'
+          '{"id":"e","t":"enum","opt":[["a","A",9]]}]}');
+      expect(s.error, isNull);
+      expect(s.icon, isNull);
+      expect(s.field('b')!.boolLabels, isNull);
+      expect(s.field('b')!.icon, isNull);
+      expect(s.field('e')!.options.single.icon, isNull);
+    });
+
+    test('khoi lap giu ic/d va doi id cua sub', () {
+      final s = VphScreen.tryParse('{"id":"o","l":"A","f":[],"rep":{"n":2,"pfx":"s","f":['
+          '{"id":"en","t":"bool","w":"hero","sub":"on"},'
+          '{"id":"on","t":"time","ic":"clock","d":"Giờ bật"}]}}');
+      expect(s.field('s2_en')!.sub, 's2_on');
+      expect(s.field('s2_on')!.icon, 'clock');
+      expect(s.field('s2_on')!.desc, 'Giờ bật');
     });
   });
 }

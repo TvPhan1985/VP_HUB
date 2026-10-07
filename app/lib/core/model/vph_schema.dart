@@ -7,7 +7,10 @@ import 'vph_value.dart';
 class VphOption {
   final dynamic value;
   final String label;
-  const VphOption(this.value, this.label);
+
+  /// Ten icon (PROTOCOL §5.6), phan tu thu 3 cua opt
+  final String? icon;
+  const VphOption(this.value, this.label, [this.icon]);
 }
 
 dynamic _pick(Map j, String short, [String? long]) => j[short] ?? (long != null ? j[long] : null);
@@ -40,6 +43,18 @@ class VphField {
   final bool nullable;
   final String? group;
 
+  /// Ten icon `ic` (PROTOCOL §5.6)
+  final String? icon;
+
+  /// Dong chu thich `d`
+  final String? desc;
+
+  /// Id truong lam dong phu cua the hero
+  final String? sub;
+
+  /// Chu cho 2 trang thai [tat, bat] cua bool (opt 2 phan tu), null = mac dinh
+  final List<String>? boolLabels;
+
   const VphField({
     required this.id,
     required this.label,
@@ -58,6 +73,10 @@ class VphField {
     this.enCond,
     this.nullable = false,
     this.group,
+    this.icon,
+    this.desc,
+    this.sub,
+    this.boolLabels,
   });
 
   bool get known => knownTypes.contains(type);
@@ -82,12 +101,15 @@ class VphField {
     final opt = j['opt'];
     final options = <VphOption>[];
     final flagLabels = <String>[];
-    if (opt is List) {
+    List<String>? boolLabels;
+    if (opt is List && type == 'bool') {
+      if (opt.length >= 2 && opt[0] is String && opt[1] is String) boolLabels = [opt[0] as String, opt[1] as String];
+    } else if (opt is List) {
       for (final o in opt) {
         if (type == 'flags') {
           flagLabels.add('$o');
         } else if (o is List && o.isNotEmpty) {
-          options.add(VphOption(o[0], o.length > 1 ? '${o[1]}' : '${o[0]}'));
+          options.add(VphOption(o[0], o.length > 1 ? '${o[1]}' : '${o[0]}', o.length > 2 ? _str(o[2]) : null));
         } else if (o is! List) {
           options.add(VphOption(o, '$o'));
         }
@@ -117,6 +139,10 @@ class VphField {
       enCond: _str(j['en']),
       nullable: _flag(j['nul']),
       group: _str(j['g']),
+      icon: _str(j['ic']),
+      desc: _str(j['d']),
+      sub: _str(j['sub']),
+      boolLabels: boolLabels,
     );
   }
 
@@ -138,6 +164,10 @@ class VphField {
         ifCond: renameCond(ifCond, rename),
         enCond: renameCond(enCond, rename),
         nullable: nullable,
+        icon: icon,
+        desc: desc,
+        sub: sub == null ? null : (rename[sub] ?? sub),
+        boolLabels: boolLabels,
       );
 }
 
@@ -176,6 +206,9 @@ class VphRepGroup {
 class VphScreen {
   final String id;
   final String title;
+
+  /// Ten icon cua tab (PROTOCOL §5.6)
+  final String? icon;
   final bool batch;
   final List<VphField> fields;
   final VphRepeat? rep;
@@ -187,6 +220,7 @@ class VphScreen {
   VphScreen({
     required this.id,
     required this.title,
+    this.icon,
     this.batch = false,
     this.fields = const [],
     this.rep,
@@ -226,6 +260,7 @@ class VphScreen {
     return VphScreen(
       id: id,
       title: _str(_pick(j, 'l', 'title')) ?? id,
+      icon: _str(j['ic']),
       batch: j['save'] == 'batch',
       fields: [if (f is List) for (final e in f) if (e is Map) VphField.fromJson(e)],
       rep: rep is Map ? VphRepeat.fromJson(rep) : null,
