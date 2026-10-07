@@ -79,10 +79,13 @@ Thêm giao thức cũ khác trong tương lai = thêm 1 class transport. **UI kh
 
 ## 4. Màn hình Thiết bị (vẽ hoàn toàn từ schema)
 
-- **AppBar**: tên thiết bị, chấm trạng thái kết nối, menu (Thông tin thiết bị, Ngắt kết nối, Đọc lại schema).
+- **AppBar**: tên thiết bị, dòng phụ trạng thái kết nối ("Đã kết nối" xanh / "Đang kết nối lại…" vàng / "Mất kết nối" đỏ), menu (Thông tin thiết bị, Ngắt kết nối, Đọc lại schema).
+- **Điều hướng** (v1.1): 2–5 màn → `NavigationBar` dưới đáy, icon lấy từ `ic` của màn (không có thì theo vị trí: dashboard / schedule / tune / info / settings). Trên 5 màn → `TabBar` cuộn ngang ở trên.
 - **Thanh đầu trang** (`hdr`): các trường `hdr` hiện gọn trên mọi tab (số, đèn, cờ báo động đỏ).
 - **Tab** = mỗi màn hình trong schema (`l`). Đổi tab → `select(i)`.
 - Nội dung tab: trường theo thứ tự; `g` gom thành thẻ; `rep` mỗi lần lặp một thẻ; `if` ẩn/hiện; `en` cho/không cho sửa.
+- Gợi ý hiển thị v1.1 (PROTOCOL §5.4): `tile` (thẻ số đo, 2 cột), `mini` (ô nhỏ gom một thẻ), `hero` (thẻ trạng thái lớn), `btns` (2 nút BẬT/TẮT), `seg` (nút chọn cả chiều ngang, có icon), `alarm` (thẻ báo động), `note` (dòng cảnh báo), `dur` (giây → "2 giờ 5 phút"); khóa `ic`, `d`, `sub`. Giữ đúng thứ tự schema, chỉ gom trường liền nhau cùng kiểu.
+- Màu, bo góc, cỡ chữ gom ở `lib/ui/theme.dart`; bảng tên icon ở `lib/ui/render/icons.dart`.
 - Trường `w:"big"` → thẻ số lớn đầu tab. `w:"trend"` → biểu đồ đường dưới thẻ (lịch sử RAM 1 giờ, lấy mẫu mỗi notify).
 - **Màn `live`**: sửa xong gửi ngay; hiện vòng chờ nhỏ trên ô cho đến RESULT; lỗi → SnackBar đỏ hiện `err`, trả ô về giá trị thiết bị.
 - **Màn `batch`**: ô sửa được giữ giá trị tạm (viền màu khác), thanh dưới cùng hiện "Có N thay đổi — [Hủy] [Lưu]". Lưu → `writeBatch` → chờ RESULT → báo thành công/lỗi. Đang có thay đổi chưa lưu mà rời tab → hỏi lại.
@@ -169,3 +172,17 @@ _(Claude Code ghi thêm vào đây)_
 | Khởi động lại (có hỏi lại) | `_reboot` có `c` |
 | Lưu: chờ RESULT 3 s, báo tiếng Việt | Có |
 | Ghi chú "khung qua đêm" trên thẻ khung giờ | **Không có** (chỉ là chữ gợi ý; firmware vẫn xử lý qua đêm) |
+
+### Giao diện v1.1 (PLAN_GIAO_DIEN)
+25. **Thanh đầu trang bỏ bớt trường trùng**: trường `hdr` nào đang hiện ngay trong tab đang mở thì không hiện lại trên thanh đầu trang (tab Tổng quan của relay đã có thẻ nhiệt độ, độ ẩm, Relay… nên thanh này tự ẩn; sang tab khác nó hiện đủ).
+26. **Mặc định khi schema không có gợi ý**: ở màn đầu tiên, nếu không trường nào có `w`, tối đa 2 trường `num` chỉ đọc đầu tiên tự hiện dạng `tile`. Chỉ áp cho màn đầu.
+27. **`big` vẫn đưa lên đầu tab** như bản 1.0 (lò nung đang dùng); các gợi ý mới thì giữ đúng vị trí trong schema.
+28. **`tile` kèm `trend`**: biểu đồ đóng sẵn, chạm vào thẻ thì mở ngay dưới hàng thẻ, chạm lần nữa thì đóng (thẻ có icon biểu đồ nhỏ ở góc).
+29. **`mini`**: tối đa 4 ô một hàng; nhiều hơn thì xuống hàng, mỗi hàng 3 ô.
+30. **`hero` không có `btns`** và không chỉ đọc → công tắc nằm bên phải thẻ. Dòng `d` trong thẻ `hero` chỉ hiện khi trường đang bị khóa bởi `en`. Dòng phụ `sub` hiện "nhãn: giá trị" của trường được trỏ tới (số có đơn vị, `enum` hiện nhãn lựa chọn).
+31. **`alarm` cho `bool`** (ngoài `flags`): true → thẻ đỏ, tiêu đề là nhãn trường; trường `text` cùng nhóm thành gạch đầu dòng. Dùng cho "khóa an toàn" của lò.
+32. **Thông báo kết quả**: thành công → nền xanh 2 s ("Đã lưu", "Đã bật Relay", "Đã tắt Relay", "Chế độ: Tự động", "Đã gửi: …"); lỗi → nền đỏ 5 s, hiện nguyên `err`. Ô số, giờ, ngày ghi xong không báo (bấm ± liên tục sẽ bị nhảy thông báo).
+33. **Màn Quét**: mỗi thiết bị một thẻ, cột sóng 4 vạch thay số dBm (≥ −60: 4 vạch, ≥ −70: 3, ≥ −80: 2, còn lại 1). Thiết bị đã dùng mà đang thấy quanh đây có chấm xanh + cột sóng, và không lặp lại ở mục "Thiết bị gần đây".
+34. **WRITE 500 byte**: `VphTransport.maxWrite = 500`, lớp `FbpGattLink` tự dùng long write khi gói dài hơn MTU−3. Giải quyết ghi chú ở mục 11. Adapter relay C3 và lò nung giữ giới hạn riêng của firmware cũ.
+35. **Lò nung**: `pv` thêm `ic:"fire"`; `running` thành `hero` với chữ "Dừng / Đang đốt", dòng phụ là nhiệt độ đặt; `safety_latched` thành thẻ `alarm`, gom `safety_reason` và nút `safety_clear`.
+36. **Relay C3**: màn Tổng quan theo ví dụ PROTOCOL §11 (v1.1); giữ thêm đèn "Đã tắt còi" trong thẻ báo động khi còi đã tắt (app cũ hiện nút mờ "Đã tắt còi").

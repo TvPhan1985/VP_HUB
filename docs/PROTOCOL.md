@@ -93,6 +93,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `save` | `"live"`: mỗi thay đổi gửi ngay (công tắc, setpoint…). `"batch"`: app cho sửa nhiều ô rồi bấm **Lưu**, gửi một lệnh `set` duy nhất. Dùng `batch` khi các trường ràng buộc nhau (ví dụ ngưỡng bật < ngưỡng tắt) |
 | `f` | Mảng trường (§5.1) |
 | `rep` | Khối lặp (§5.3), tùy chọn |
+| `ic` | Icon của tab ở thanh điều hướng dưới (§5.6), tùy chọn (v1.1) |
 
 App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`, `fields`=`f`, `repeat`=`rep`.
 
@@ -118,16 +119,19 @@ App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`
 | `en` | Điều kiện **cho phép sửa** (§5.5) | |
 | `nul` | `1` = được phép `null` (app hiện thêm công tắc "Không giới hạn") | |
 | `g` | Tên nhóm: các trường cùng `g` liền nhau được gom vào một thẻ | |
+| `ic` | Icon của trường (thẻ số, thẻ trạng thái, nút), tên trong §5.6 (v1.1) | |
+| `d` | Dòng chú thích nhỏ dưới trường. Trường bị khóa do `en` sai thì chú thích hiện rõ hơn, để giải thích vì sao khóa (v1.1) | |
+| `sub` | Id một trường khác; giá trị của nó hiện làm dòng phụ của thẻ `hero` (vd thẻ Relay hiện "Chế độ: Tự động") (v1.1) | |
 
 ### 5.2 Kiểu dữ liệu
 
 | `t` | Giá trị trong VALUES | App hiển thị | Ghi chú |
 |---|---|---|---|
 | `num` | số hoặc `null` | ô số / bàn phím số + nút ± theo `st` | kiểu cũ `float`, `int` = `num` |
-| `bool` | `true/false` (chấp nhận `0/1`) | công tắc | |
+| `bool` | `true/false` (chấp nhận `0/1`) | công tắc | `opt` tùy chọn (v1.1): `["Dừng","Đang đốt"]` = chữ cho 2 trạng thái tắt / bật |
 | `text` | chuỗi | chữ chỉ đọc | trạng thái, thông báo |
 | `str` | chuỗi | ô nhập chữ | `max` = độ dài tối đa |
-| `enum` | chuỗi hoặc số | nút chọn (≤ 4 mục) hoặc danh sách thả | `opt`: `[["auto","Tự động"],["manual","Tay"]]` |
+| `enum` | chuỗi hoặc số | nút chọn (≤ 4 mục) hoặc danh sách thả | `opt`: `[["auto","Tự động"],["manual","Tay"]]`; phần tử thứ 3 tùy chọn là icon (v1.1): `["auto","Tự động","auto"]` |
 | `time` | `"HH:MM"` | bộ chọn giờ | |
 | `date` | `"YYYY-MM-DD"` hoặc `null` | bộ chọn ngày | dùng với `nul:1` |
 | `days` | số 0..127 | 7 nút T2 … CN | bit0 = Thứ 2 … bit6 = Chủ nhật, 127 = mọi ngày |
@@ -160,14 +164,37 @@ Khóa dài tương thích lò nung: `count`=`n`, `prefix`=`pfx`, `fields`=`f`; v
 | `gauge` | Đồng hồ kim (cần `min`,`max`) |
 | `warn` | Dùng kèm `led`: đèn màu **đỏ** khi bật (lỗi, khóa an toàn) thay vì xanh |
 
-Một trường có thể mang **nhiều gợi ý**, cách nhau dấu phẩy: `"w":"big,trend"`, `"w":"led,warn"`.
+
+Bổ sung v1.1 (thiết bị 1.0 không cần đổi gì; app 1.0 gặp các gợi ý này thì vẽ kiểu mặc định của `t`):
+
+| `w` | Áp cho | Hiển thị |
+|---|---|---|
+| `tile` | `num`, `text`, `enum` | Thẻ số đo: icon + nhãn + số to + đơn vị. **Các `tile` liền nhau xếp 2 cột**. Kèm `trend` thì chạm vào thẻ để mở biểu đồ |
+| `mini` | `num`, `text` | Ô số nhỏ. **Các `mini` liền nhau gom vào 1 thẻ**, chia cột đều (tối đa 4 ô một hàng) |
+| `hero` | `bool` | Thẻ trạng thái lớn: icon + "`l`: BẬT/TẮT" + dòng `sub`; nền xanh khi bật (kèm `warn` → đỏ) |
+| `btns` | `bool` | 2 nút **BẬT / TẮT** thay công tắc. Đi với `hero` thì nút nằm trong thẻ hero |
+| `seg` | `enum` | Nút chọn chiếm cả chiều ngang, có icon lấy từ `opt[2]` |
+| `alarm` | `flags`, `bool` | Thẻ báo động: `flags` ≠ 0 (hoặc `bool` = true) → nền đỏ, icon cảnh báo, gạch đầu dòng từng lỗi; ngược lại → "Không có báo động", dấu tích xanh. Các trường **liền sau, cùng nhóm `g`** được đặt vào trong thẻ: `act` thành nút ở góc phải, `bool` thành đèn, `text` thành một dòng gạch đầu dòng |
+| `note` | `bool`, `text` | Một dòng chữ màu cảnh báo (nhãn của trường `bool`, hoặc giá trị của trường `text`); dùng với `if` (vd "Cảm biến mất kết nối" khi `sok==false`) |
+| `dur` | `num` (giây) | Hiện "2 giờ 5 phút" / "5 phút 12 giây" |
+
+Một trường có thể mang **nhiều gợi ý**, cách nhau dấu phẩy: `"w":"big,trend"`, `"w":"led,warn"`, `"w":"tile,trend"`, `"w":"hero,btns"`.
 App chưa biết gợi ý nào thì hiển thị kiểu mặc định của `t`.
+App giữ **đúng thứ tự trường trong schema**, chỉ gom những trường liền nhau cùng kiểu (`tile`, `mini`, cùng `g`).
 
 ### 5.5 Điều kiện `if` / `en`
 
 Chuỗi dạng `"<id><op><giá trị>"`, `op` là `==` hoặc `!=`; nối nhiều điều kiện bằng `&&`. Giá trị so sánh với VALUES hiện tại (kể cả trường `hdr`).
 Ví dụ: `"if":"safety_latched==true"`, `"en":"mode==manual"`, `"if":"src!=schedule"`.
 Không có trường trong VALUES → coi điều kiện là **đúng** (hiện, cho sửa).
+
+### 5.6 Bộ icon chuẩn (v1.1)
+
+Tên cố định, app ánh xạ sang biểu tượng của mình. Dùng cho `ic` của màn hình, `ic` của trường và `opt[2]` của `enum`:
+
+`dashboard, schedule, settings, tune, info, device, temp, hum, water, soil, light, sun, fan, pump, motor, fire, heater, bolt, power, plug, speed, gauge, timer, clock, calendar, alarm, warning, mute, bell, hand, auto, sensor, wifi, ble, battery, chip, play, pause, stop, refresh, reset, check, save`
+
+Tên lạ → không hiện icon (không lỗi). Thêm icon mới = sửa danh sách này + app. Màn hình không có `ic` → app tự chọn icon theo vị trí tab.
 
 ---
 
@@ -219,7 +246,7 @@ Một object phẳng `{"id":giá_trị,...}` gồm: các trường của màn h�
 | INFO | 240 byte | đọc 1 gói kể cả khi MTU chỉ được 247 |
 | SCHEMA mỗi **trang** | **480 byte** | 1 attribute BLE tối đa 512 byte. Cả màn hình tối đa 4 trang = 1920 byte (§8.1) |
 | VALUES (mỗi màn hình, kể cả `hdr`) | **240 byte** | notify tối đa MTU−3 = 244 byte nếu điện thoại chỉ cho MTU 247. Dài hơn sẽ bị cắt, app không đọc được |
-| WRITE | 240 byte | |
+| WRITE | **500 byte** | v1.1 (trước là 240). Lệnh dài hơn MTU−3 thì app gửi bằng **long write** (prepared write, có phản hồi); NimBLE tự ghép. Dài hơn 500 → RESULT `"err":"Lệnh quá dài"` |
 | RESULT | 120 byte | |
 
 Chữ tiếng Việt có dấu tốn 2–3 byte/ký tự (ví dụ §11 đã là ~556 byte). VALUES quá 240 byte → **tách thành 2 màn hình**, hoặc rút id ngắn lại.
@@ -263,6 +290,11 @@ cJSON *vph_field(cJSON *screen_or_rep, const char *id, const char *label, const 
 void   vph_range(cJSON *f, double min, double max, double step);
 void   vph_unit / vph_dp / vph_readonly / vph_nullable / vph_hint / vph_confirm /
        vph_show_if / vph_enable_if / vph_group / vph_maxlen (cJSON *f, ...);
+// v1.1: icon (dùng cho cả màn hình và trường), chú thích, dòng phụ, chữ 2 trạng thái của bool
+void   vph_icon / vph_desc / vph_sub (cJSON *screen_or_field, const char *s);
+void   vph_bool_labels(cJSON *f, const char *off, const char *on);
+void   vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
+                      const char *const *icons, int n);
 void   vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);
 void   vph_flag_labels(cJSON *f, const char *const *labels, int n);
 cJSON *vph_repeat(cJSON *screen, int n, const char *pfx, const char *label);
@@ -292,7 +324,7 @@ bool vph_connected(void);
 
 ## 11. Ví dụ đầy đủ một màn hình
 
-SCHEMA:
+SCHEMA tối thiểu (v1.0, vẫn hợp lệ):
 ```json
 {"id":"overview","l":"Tổng quan","save":"live","f":[
  {"id":"t","l":"Nhiệt độ","t":"num","u":"°C","dp":1,"ro":1,"w":"trend"},
@@ -304,6 +336,24 @@ SCHEMA:
 ```
 VALUES: `{"t":28.4,"h":72.5,"mode":"auto","out":true,"alarm":0}`
 
+Cùng màn hình, viết theo v1.1 (**mẫu nên theo** cho thiết bị mới):
+```json
+{"id":"overview","l":"Tổng quan","ic":"dashboard","save":"live","f":[
+ {"id":"t","l":"Nhiệt độ","t":"num","u":"°C","dp":1,"ro":1,"w":"tile,trend","ic":"temp"},
+ {"id":"h","l":"Độ ẩm","t":"num","u":"%","dp":1,"ro":1,"w":"tile","ic":"hum"},
+ {"id":"ec","l":"EC","t":"num","ro":1,"w":"mini"},
+ {"id":"sal","l":"Độ mặn","t":"num","ro":1,"w":"mini"},
+ {"id":"tds","l":"TDS","t":"num","ro":1,"w":"mini"},
+ {"id":"sok","l":"Cảm biến chưa có dữ liệu hoặc mất kết nối","t":"bool","ro":1,"w":"note","if":"sok==false"},
+ {"id":"out","l":"Relay","t":"bool","w":"hero,btns","ic":"power","sub":"mode","en":"mode==manual","d":"Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+ {"id":"mode","l":"Chế độ","t":"enum","w":"seg","opt":[["manual","Tay","hand"],["auto","Tự động","auto"]]},
+ {"id":"alarm","l":"Báo động","t":"flags","w":"alarm","g":"al","opt":["Mất cảm biến","Chưa có giờ","Nhiệt độ ngoài ngưỡng","Độ ẩm ngoài ngưỡng"]},
+ {"id":"silence","l":"Tắt còi","t":"act","ic":"mute","g":"al","if":"alarm!=0&&muted!=true"},
+ {"id":"time","l":"Giờ thiết bị","t":"text","ic":"clock","g":"Trạng thái"},
+ {"id":"up","l":"Thời gian chạy","t":"num","u":"s","ro":1,"w":"dur","g":"Trạng thái"}]}
+```
+Chuỗi này khoảng 1,3 KB (3 trang), vẫn dưới 1920 byte.
+
 ---
 
 ## 12. Lịch sử thay đổi giao thức
@@ -312,3 +362,10 @@ VALUES: `{"t":28.4,"h":72.5,"mode":"auto","out":true,"alarm":0}`
   - §5.4: `w` nhận nhiều gợi ý cách nhau dấu phẩy. Lý do: nhiệt độ chính của lò cần vừa số to vừa biểu đồ (`big,trend`).
   - §5.4: gợi ý `warn` cho đèn `led`. Lý do: đèn "khóa an toàn"/"lỗi" bật thì phải đỏ, không phải xanh.
   - Làm rõ cách app hiểu (không đổi dữ liệu trên đường truyền): `c` trên `bool` chỉ hỏi khi bật; `if`/`en` trong mẫu `rep` trỏ tới trường cùng lần lặp nếu trùng id trong mẫu (xem SPEC §11).
+- **v1.1 (2026-10-07)**, giữ `pv:1`, tương thích hai chiều (thiết bị 1.0 mở bằng app 1.1 như cũ; app 1.0 mở thiết bị 1.1 thì bỏ qua khóa và gợi ý lạ, vẽ kiểu mặc định). Lý do chung: schema thiếu "từ vựng hiển thị" nên app vẽ ra toàn hàng "nhãn – giá trị", kém xa app viết riêng cho bộ relay C3.
+  - §5, §5.1: khóa `ic` (màn hình và trường), `d` (chú thích), `sub` (dòng phụ).
+  - §5.2: `opt` của `enum` nhận phần tử thứ 3 là icon; `bool` nhận `opt` 2 phần tử làm chữ cho trạng thái tắt / bật.
+  - §5.4: gợi ý `tile`, `mini`, `hero`, `btns`, `seg`, `alarm`, `note`, `dur`. `alarm` áp được cho cả `bool` (lò nung chỉ có một cờ "khóa an toàn", không có bitmask).
+  - §5.6: bộ tên icon chuẩn.
+  - §8: WRITE tối đa 500 byte (trước 240), gửi bằng long write. Lý do: lưu 5 khung giờ một lần ≈ 300 byte bị chặn (SPEC §11.11). Firmware `vph_ble` 1.0.0 đã có bộ đệm 512 byte nên vẫn nhận được; adapter thiết bị đời cũ giữ giới hạn riêng.
+  - §10: hàm `vph_icon`, `vph_desc`, `vph_sub`, `vph_bool_labels`, `vph_options_ic`.
