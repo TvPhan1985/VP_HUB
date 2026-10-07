@@ -80,7 +80,7 @@ Thêm giao thức cũ khác trong tương lai = thêm 1 class transport. **UI kh
 ## 4. Màn hình Thiết bị (vẽ hoàn toàn từ schema)
 
 - **AppBar**: tên thiết bị, dòng phụ trạng thái kết nối ("Đã kết nối" xanh / "Đang kết nối lại…" vàng / "Mất kết nối" đỏ), menu (Thông tin thiết bị, Ngắt kết nối, Đọc lại schema).
-- **Điều hướng** (v1.1): 2–5 màn → `NavigationBar` dưới đáy, icon lấy từ `ic` của màn (không có thì theo vị trí: dashboard / schedule / tune / info / settings). Trên 5 màn → `TabBar` cuộn ngang ở trên.
+- **Điều hướng** (v1.1): `TabBar` **ở trên** (dưới tên thiết bị), mỗi tab có icon + chữ; icon lấy từ `ic` của màn (không có thì theo vị trí: dashboard / schedule / tune / info / settings). Từ 4 màn trở lên thì thanh tab cuộn ngang. Người dùng yêu cầu để ở trên (2026-10-07), không dùng `NavigationBar` dưới đáy như bản nháp PLAN_GIAO_DIEN §4.2.
 - **Thanh đầu trang** (`hdr`): các trường `hdr` hiện gọn trên mọi tab (số, đèn, cờ báo động đỏ).
 - **Tab** = mỗi màn hình trong schema (`l`). Đổi tab → `select(i)`.
 - Nội dung tab: trường theo thứ tự; `g` gom thành thẻ; `rep` mỗi lần lặp một thẻ; `if` ẩn/hiện; `en` cho/không cho sửa.

@@ -46,9 +46,9 @@ Future<void> _close(WidgetTester tester, _Rig rig) async {
   await tester.pump();
 }
 
-/// Bam mot muc tren thanh dieu huong duoi day
+/// Bam mot tab tren thanh tab o tren
 Future<void> _goto(WidgetTester tester, String title) async {
-  await tester.tap(find.widgetWithText(NavigationDestination, title));
+  await tester.tap(find.widgetWithText(Tab, title));
   await tester.pumpAndSettle();
 }
 
@@ -209,19 +209,19 @@ void main() {
     expect(a.dy, b.dy);
     expect(c.dy, greaterThan(a.dy));
     expect(find.text('25.5 °C'), findsOneWidget);
-    // Khong co `ic`: thanh duoi van co icon theo vi tri
-    expect(find.byType(NavigationBar), findsOneWidget);
+    // Khong co `ic`: tab van co icon theo vi tri; thanh tab nam o tren, khong co thanh duoi
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(find.descendant(of: find.byType(TabBar), matching: find.byIcon(Icons.dashboard_outlined)), findsOneWidget);
+    expect(tester.getCenter(find.byType(TabBar)).dy, lessThan(a.dy));
     await _goto(tester, 'Màn 1');
     expect(rig.session.current, 1);
     await _close(tester, rig);
   });
 
-  testWidgets('tren 5 man: TabBar cuon ngang thay thanh duoi', (tester) async {
+  testWidgets('nhieu man: TabBar cuon ngang', (tester) async {
     final rig = await _openJson(tester, _v10(6));
-    expect(find.byType(NavigationBar), findsNothing);
-    expect(find.byType(TabBar), findsOneWidget);
-    await tester.tap(find.widgetWithText(Tab, 'Màn 5'));
-    await tester.pumpAndSettle();
+    expect(tester.widget<TabBar>(find.byType(TabBar)).isScrollable, isTrue);
+    await _goto(tester, 'Màn 5');
     expect(rig.session.current, 5);
     await _close(tester, rig);
   });
@@ -280,7 +280,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(rig.session.draftCount(1), 1);
     expect(find.text(S.batchChanges(1)), findsOneWidget);
-    expect(tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex, 1);
+    expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 1);
     // Nut Huy tren thanh duoi
     await tester.tap(find.text(S.cancel));
     await tester.pumpAndSettle();

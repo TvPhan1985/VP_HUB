@@ -93,7 +93,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `save` | `"live"`: mỗi thay đổi gửi ngay (công tắc, setpoint…). `"batch"`: app cho sửa nhiều ô rồi bấm **Lưu**, gửi một lệnh `set` duy nhất. Dùng `batch` khi các trường ràng buộc nhau (ví dụ ngưỡng bật < ngưỡng tắt) |
 | `f` | Mảng trường (§5.1) |
 | `rep` | Khối lặp (§5.3), tùy chọn |
-| `ic` | Icon của tab ở thanh điều hướng dưới (§5.6), tùy chọn (v1.1) |
+| `ic` | Icon của tab (§5.6), tùy chọn (v1.1) |
 
 App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`, `fields`=`f`, `repeat`=`rep`.
 

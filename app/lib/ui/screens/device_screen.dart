@@ -224,9 +224,8 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
         final tabs = _tabs;
         final link = _link(cs);
         final n = s.screens.length;
-        // 2..5 man: thanh dieu huong duoi day co icon; nhieu hon: TabBar cuon ngang o tren
-        final showTabs = tabs != null && s.hasEverConnected;
-        final bottomNav = showTabs && n >= 2 && n <= 5;
+        // Thanh tab nam o tren, moi tab co icon + chu; tu 4 man tro len thi cuon ngang
+        final showTabs = tabs != null && s.hasEverConnected && n >= 2;
         return PopScope(
           canPop: s.draftCount(_shown) == 0,
           onPopInvokedWithResult: (didPop, _) {
@@ -261,29 +260,24 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                   ],
                 ),
               ],
-              bottom: !showTabs || n <= 5
+              bottom: !showTabs
                   ? null
                   : TabBar(
                       controller: tabs,
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      tabs: [for (final sc in s.screens) Tab(text: sc.title)],
+                      isScrollable: n > 3,
+                      tabAlignment: n > 3 ? TabAlignment.start : TabAlignment.fill,
+                      tabs: [
+                        for (var i = 0; i < n; i++)
+                          Tab(
+                            icon: Icon(screenIcon(s.screens[i].icon, i)),
+                            text: s.screens[i].title,
+                            iconMargin: const EdgeInsets.only(bottom: 4),
+                          ),
+                      ],
                     ),
             ),
-            body: _body(context),
-            bottomNavigationBar: !bottomNav
-                ? null
-                : NavigationBar(
-                    selectedIndex: _shown.clamp(0, n - 1),
-                    onDestinationSelected: (i) => tabs.index = i,
-                    destinations: [
-                      for (var i = 0; i < n; i++)
-                        NavigationDestination(
-                          icon: Icon(screenIcon(s.screens[i].icon, i)),
-                          label: s.screens[i].title,
-                        ),
-                    ],
-                  ),
+            // Chua cho cho thanh dieu huong cua Android (man hinh tran vien)
+            body: SafeArea(top: false, child: _body(context)),
           ),
         );
       },

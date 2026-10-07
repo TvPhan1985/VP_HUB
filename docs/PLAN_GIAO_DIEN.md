@@ -107,7 +107,7 @@ Lưu ý: chuỗi này dài hơn bản cũ (~1,3 KB). Vẫn < 1920 byte. Khi làm
 - Cỡ chữ: số `tile` 28 đậm, số `mini` 18, tiêu đề `hero` 22 đậm.
 
 ### 4.2 Khung màn Thiết bị — `device_screen.dart`
-- Số màn ≤ 5 → **`NavigationBar` dưới đáy** với icon `ic` của màn (không có `ic` → icon theo vị trí: dashboard / schedule / tune / info). > 5 màn → giữ TabBar cuộn ngang.
+- **Đã đổi theo yêu cầu người dùng (2026-10-07): thanh tab để ở TRÊN** — `TabBar` có icon `ic` + chữ (không có `ic` → icon theo vị trí: dashboard / schedule / tune / info); từ 4 màn thì cuộn ngang. ~~Số màn ≤ 5 → `NavigationBar` dưới đáy~~.
 - AppBar: tên thiết bị + dòng phụ "Đã kết nối" (xanh) / "Đang kết nối lại…" (vàng) / "Mất kết nối" (đỏ), giống c3. Thanh `LinearProgressIndicator` mảnh khi đang kết nối lại.
 - Giữ nguyên logic hỏi lưu khi rời màn batch, banner mất kết nối.
 
