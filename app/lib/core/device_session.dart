@@ -282,6 +282,11 @@ class DeviceSession extends ChangeNotifier {
         _say(true, S.sent(f.label));
       } else {
         values = {...values, f.id: v};
+        if (f.type == 'bool') {
+          _say(true, asBool(v) == true ? S.turnedOn(f.label) : S.turnedOff(f.label));
+        } else if (f.type == 'enum') {
+          _say(true, S.changedTo(f.label, f.optionLabel(v) ?? '$v'));
+        }
       }
     } else {
       // Loi: bo gia tri tam, o tro ve gia tri thiet bi

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
 import '../../l10n/strings_vi.dart';
+import '../theme.dart';
 import 'field_widget.dart';
 
 /// Nhan cua cac bit dang bat trong mot truong flags
@@ -30,7 +31,7 @@ class FlagsField extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(c.value == null ? Icons.help_outline : Icons.check_circle,
-                color: c.value == null ? cs.outline : Colors.green, size: 20),
+                color: c.value == null ? Vp.idle(cs) : Vp.ok(cs), size: 20),
             const SizedBox(width: 6),
             Text(c.value == null ? S.noData : S.flagsNone),
           ],

@@ -55,6 +55,16 @@ void main() {
     test('man operation: pv big+trend, them program_info / safety_reason / safety_clear', () {
       final op = patched[0];
       expect(op.field('pv')!.hints, {'big', 'trend'});
+      expect(op.field('pv')!.icon, 'fire');
+      expect(op.icon, 'fire');
+      // v1.1: cong tac dot lo la the hero co chu rieng; khoa an toan la the bao dong gom ly do + nut xoa
+      final run = op.field('running')!;
+      expect(run.hint('hero'), isTrue);
+      expect(run.boolLabels, ['Dừng', 'Đang đốt']);
+      expect(run.sub, 'sv');
+      expect(run.confirm, isNotNull);
+      expect(op.field('safety_latched')!.hint('alarm'), isTrue);
+      expect({for (final id in ['safety_latched', 'safety_reason', 'safety_clear']) op.field(id)!.group}, {'safety'});
       expect(op.field('program_info')!.type, 'text');
       expect(op.field('program_info')!.ifCond, 'program_running==true');
       expect(op.field('safety_reason')!.ifCond, 'safety_latched==true');

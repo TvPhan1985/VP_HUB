@@ -7,7 +7,9 @@ import '../../core/transport/vph_transport.dart';
 import '../../l10n/strings_vi.dart';
 import '../render/batch_bar.dart';
 import '../render/header_bar.dart';
+import '../render/icons.dart';
 import '../render/screen_view.dart';
+import '../theme.dart';
 import 'info_screen.dart';
 
 enum _Leave { stay, discard, save }
@@ -48,8 +50,8 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text(m.text, style: TextStyle(color: m.ok ? null : cs.onError)),
-        backgroundColor: m.ok ? null : cs.error,
+        content: Text(m.text, style: TextStyle(color: m.ok ? Colors.white : cs.onError)),
+        backgroundColor: m.ok ? Vp.okSolid : cs.error,
         duration: Duration(seconds: m.ok ? 2 : 5),
       ));
   }
@@ -100,7 +102,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
         return;
       }
     }
-    _shown = to;
+    setState(() => _shown = to);
     await s.selectScreen(to);
   }
 
@@ -114,10 +116,12 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     nav.pop();
   }
 
-  Color _dotColor(ColorScheme cs) => switch (s.status) {
-        LinkStatus.ready => Colors.green,
-        LinkStatus.connecting || LinkStatus.loading || LinkStatus.reconnecting => Colors.amber,
-        _ => cs.error,
+  /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi
+  (String, Color) _link(ColorScheme cs) => switch (s.status) {
+        LinkStatus.ready => (S.linkOk, Vp.ok(cs)),
+        LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.busy(cs)),
+        LinkStatus.reconnecting => (S.linkRetry, Vp.busy(cs)),
+        _ => (S.linkLost, Vp.warn(cs)),
       };
 
   Widget _center(List<Widget> children) => Center(
@@ -154,6 +158,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     final needUpdate = (s.info?.pv ?? 1) > VphTransport.supportedPv;
     return Column(
       children: [
+        if (lost && s.status != LinkStatus.failed) const LinearProgressIndicator(minHeight: 2),
         if (lost)
           MaterialBanner(
             backgroundColor: cs.errorContainer,
@@ -217,6 +222,11 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
         _syncTabs();
         final cs = Theme.of(context).colorScheme;
         final tabs = _tabs;
+        final link = _link(cs);
+        final n = s.screens.length;
+        // 2..5 man: thanh dieu huong duoi day co icon; nhieu hon: TabBar cuon ngang o tren
+        final showTabs = tabs != null && s.hasEverConnected;
+        final bottomNav = showTabs && n >= 2 && n <= 5;
         return PopScope(
           canPop: s.draftCount(_shown) == 0,
           onPopInvokedWithResult: (didPop, _) {
@@ -224,15 +234,11 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
           },
           child: Scaffold(
             appBar: AppBar(
-              title: Row(
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(color: _dotColor(cs), shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(child: Text(s.displayName, overflow: TextOverflow.ellipsis)),
+                  Text(s.displayName, overflow: TextOverflow.ellipsis),
+                  Text(link.$1, style: TextStyle(fontSize: 12, color: link.$2)),
                 ],
               ),
               actions: [
@@ -255,16 +261,29 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                   ],
                 ),
               ],
-              bottom: tabs == null || !s.hasEverConnected
+              bottom: !showTabs || n <= 5
                   ? null
                   : TabBar(
                       controller: tabs,
-                      isScrollable: s.screens.length > 3,
-                      tabAlignment: s.screens.length > 3 ? TabAlignment.start : TabAlignment.fill,
+                      isScrollable: true,
+                      tabAlignment: TabAlignment.start,
                       tabs: [for (final sc in s.screens) Tab(text: sc.title)],
                     ),
             ),
             body: _body(context),
+            bottomNavigationBar: !bottomNav
+                ? null
+                : NavigationBar(
+                    selectedIndex: _shown.clamp(0, n - 1),
+                    onDestinationSelected: (i) => tabs.index = i,
+                    destinations: [
+                      for (var i = 0; i < n; i++)
+                        NavigationDestination(
+                          icon: Icon(screenIcon(s.screens[i].icon, i)),
+                          label: s.screens[i].title,
+                        ),
+                    ],
+                  ),
           ),
         );
       },

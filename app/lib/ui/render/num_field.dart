@@ -10,8 +10,18 @@ import 'field_widget.dart';
 String numText(VphField f, dynamic value, {bool withUnit = true}) {
   final x = asNum(value);
   if (x == null) return S.noData;
+  if (f.hint('dur')) return durText(x);
   final s = fmtNum(x, dp: f.decimals);
   return withUnit && f.unit != null ? '$s ${f.unit}' : s;
+}
+
+/// Goi y dur: so giay -> "2 giờ 5 phút" / "5 phút 12 giây"
+String durText(double seconds) {
+  final t = seconds.isFinite && seconds > 0 ? seconds.round() : 0;
+  final d = t ~/ 86400, h = (t % 86400) ~/ 3600, m = (t % 3600) ~/ 60;
+  if (d > 0) return S.durDH(d, h);
+  if (h > 0) return S.durHM(h, m);
+  return S.durMS(m, t % 60);
 }
 
 /// So gui di: so nguyen thi gui dang nguyen cho gon

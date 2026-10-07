@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/strings_vi.dart';
 import 'field_widget.dart';
+import 'icons.dart';
 
 /// enum: nut chon (<= 4 muc) hoac danh sach tha
 class EnumField extends StatelessWidget {
@@ -29,20 +30,32 @@ class EnumField extends StatelessWidget {
 
     dynamic valueOf(String key) => f.options.firstWhere((o) => '${o.value}' == key).value;
 
-    if (f.options.length <= 4) {
+    // Goi y seg: luon la nut chon, chiem ca chieu ngang, co icon
+    final seg = f.hint('seg');
+    if (seg || f.options.length <= 4) {
+      Widget? icon(String? name) {
+        final ic = vphIcon(name);
+        return ic == null ? null : Icon(ic, size: 18);
+      }
+
       return FieldRow(
         label: f.label,
         busy: c.busy,
         draft: c.draft,
         below: Padding(
-          padding: const EdgeInsets.only(top: 2, bottom: 2),
+          padding: EdgeInsets.only(top: seg ? 6 : 2, bottom: seg ? 6 : 2),
           child: SegmentedButton<String>(
             showSelectedIcon: false,
             emptySelectionAllowed: true,
-            style: const ButtonStyle(visualDensity: VisualDensity.compact),
+            expandedInsets: seg ? EdgeInsets.zero : null,
+            style: seg ? null : const ButtonStyle(visualDensity: VisualDensity.compact),
             segments: [
               for (final o in f.options)
-                ButtonSegment(value: '${o.value}', label: Text(o.label, overflow: TextOverflow.ellipsis)),
+                ButtonSegment(
+                  value: '${o.value}',
+                  icon: icon(o.icon),
+                  label: Text(o.label, overflow: TextOverflow.ellipsis),
+                ),
             ],
             selected: {if (known) cur!},
             onSelectionChanged: can

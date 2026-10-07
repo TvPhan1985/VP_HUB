@@ -1,20 +1,30 @@
 {
   "info": {
-    "proto": "vph", "pv": 1, "model": "demorelay", "name": "DEMO-RELAY", "fw": "1.0.0", "hw": "demo",
-    "hdr": ["t", "h", "out", "alarm"], "caps": ["time"], "icon": "relay"
+    "proto": "vph", "pv": 1, "model": "demorelay", "name": "DEMO-RELAY", "fw": "1.1.0", "hw": "demo",
+    "hdr": ["t", "h", "out", "mode", "alarm"], "caps": ["time"], "icon": "relay"
   },
   "screens": [
-    {"id": "overview", "l": "Tổng quan", "save": "live", "f": [
-      {"id": "t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "trend"},
-      {"id": "h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1},
-      {"id": "mode", "l": "Chế độ", "t": "enum", "opt": [["manual", "Tay"], ["auto", "Tự động"]]},
-      {"id": "out", "l": "Relay", "t": "bool", "en": "mode==manual"},
-      {"id": "alarm", "l": "Báo động", "t": "flags",
+    {"id": "overview", "l": "Tổng quan", "ic": "dashboard", "save": "live", "f": [
+      {"id": "t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
+      {"id": "h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
+      {"id": "ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "sal", "l": "Độ mặn", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "sok", "l": "Cảm biến chưa có dữ liệu hoặc mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "out", "l": "Relay", "t": "bool", "w": "hero,btns", "ic": "power", "sub": "mode", "en": "mode==manual",
+       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+      {"id": "mode", "l": "Chế độ", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
+      {"id": "alarm", "l": "Báo động", "t": "flags", "w": "alarm", "g": "al",
        "opt": ["Mất cảm biến", "Chưa có giờ", "Nhiệt độ ngoài ngưỡng", "Độ ẩm ngoài ngưỡng"]},
-      {"id": "silence", "l": "Tắt còi", "t": "act", "if": "alarm!=0"}
+      {"id": "silence", "l": "Tắt còi", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
+      {"id": "muted", "l": "Đã tắt còi", "t": "bool", "ro": 1, "w": "led", "ic": "mute", "g": "al", "if": "alarm!=0&&muted==true"},
+      {"id": "time", "l": "Giờ thiết bị", "t": "text", "ic": "clock", "g": "Trạng thái"},
+      {"id": "tok", "l": "Thiết bị chưa có giờ", "t": "bool", "ro": 1, "w": "note", "g": "Trạng thái", "if": "tok==false"},
+      {"id": "up", "l": "Thời gian chạy", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Trạng thái"}
     ]},
-    {"id": "auto", "l": "Lịch", "save": "batch", "f": [
-      {"id": "src", "l": "Nguồn tự động", "t": "enum",
+    {"id": "auto", "l": "Lịch", "ic": "schedule", "save": "batch", "f": [
+      {"id": "src", "l": "Nguồn tự động", "t": "enum", "w": "seg",
+       "d": "Kết hợp: chỉ bật khi đang trong khung giờ VÀ cảm biến yêu cầu bật.",
        "opt": [["schedule", "Lịch"], ["sensor", "Cảm biến"], ["both", "Kết hợp"]]},
       {"id": "on_at", "l": "Bật khi độ ẩm dưới", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
       {"id": "off_at", "l": "Tắt khi độ ẩm trên", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"}
@@ -23,11 +33,12 @@
       {"id": "en", "l": "Bật", "t": "bool"},
       {"id": "days", "l": "Thứ", "t": "days", "en": "en==true"},
       {"id": "on", "l": "Giờ bật", "t": "time", "en": "en==true"},
-      {"id": "off", "l": "Giờ tắt", "t": "time", "en": "en==true"}
+      {"id": "off", "l": "Giờ tắt", "t": "time", "en": "en==true", "d": "Giờ tắt nhỏ hơn giờ bật = qua đêm"}
     ]}}
   ],
   "values": {
-    "t": 28.4, "h": 72.5, "mode": "manual", "out": true, "alarm": 2,
+    "t": 28.4, "h": 72.5, "ec": 120, "sal": 40, "tds": 60, "sok": true, "tok": false,
+    "mode": "manual", "out": true, "alarm": 2, "muted": false, "time": "2026-10-07 09:15", "up": 7512,
     "src": "both", "on_at": 70, "off_at": 80,
     "s1_en": true, "s1_days": 127, "s1_on": "08:00", "s1_off": "17:00",
     "s2_en": false, "s2_days": 31, "s2_on": "19:00", "s2_off": "21:30",

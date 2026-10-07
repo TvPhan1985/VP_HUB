@@ -18,7 +18,10 @@ class HeaderBar extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final items = <Widget>[];
+    final cur = session.current < session.screens.length ? session.screens[session.current] : null;
     for (final id in hdr) {
+      // Truong dang hien ngay trong tab nay thi khong lap lai o thanh dau trang
+      if (cur?.field(id) != null) continue;
       final f = session.fieldById(id);
       final v = session.values[id];
       final label = f?.label ?? id;

@@ -29,6 +29,9 @@ class S {
   static String sendFailed(Object e) => 'Gửi lỗi: ${_short(e)}';
   static String selectFailed(Object e) => 'Không đổi được màn hình: ${_short(e)}';
   static String sent(String label) => 'Đã gửi: $label';
+  static String turnedOn(String label) => 'Đã bật $label';
+  static String turnedOff(String label) => 'Đã tắt $label';
+  static String changedTo(String label, String value) => '$label: $value';
 
   static const protoDemo = 'Thiết bị mẫu (không có phần cứng)';
   static const protoKiln = 'Đời cũ: lò nung (adapter kiln_v0)';
@@ -53,7 +56,10 @@ class S {
   static const scanning = 'Đang quét thiết bị...';
   static const noDevices = 'Chưa thấy thiết bị nào quanh đây.\nBấm "Quét" để tìm lại.';
   static const knownDevices = 'Thiết bị đã dùng';
-  static const nearby = 'Thiết bị quanh đây';
+  static const nearby = 'Thiết bị gần đây';
+  static const seenNow = 'Đang ở quanh đây';
+  static const scanEmptyTitle = 'Chưa thấy thiết bị nào';
+  static const scanEmptyHint = 'Bật nguồn thiết bị, để điện thoại ở gần rồi bấm "Quét".';
   static const tagVph = 'VPH';
   static const tagLegacy = 'Đời cũ';
   static const forget = 'Xóa khỏi danh sách';
@@ -70,6 +76,15 @@ class S {
 
   // ----- Man Thiet bi -----
   static const connecting = 'Đang kết nối...';
+  static const linkOk = 'Đã kết nối';
+  static const linkRetry = 'Đang kết nối lại…';
+  static const onCaps = 'BẬT';
+  static const offCaps = 'TẮT';
+  static const alarmNone = 'Không có báo động';
+  static const showTrend = 'Chạm để xem biểu đồ';
+  static String durDH(int d, int h) => '$d ngày $h giờ';
+  static String durHM(int h, int m) => '$h giờ $m phút';
+  static String durMS(int m, int s) => '$m phút $s giây';
   static const loadingSchema = 'Đang đọc giao diện từ thiết bị...';
   static const connectFailed = 'Không kết nối được';
   static const lostRetrying = 'Mất kết nối, đang thử lại…';
@@ -124,7 +139,7 @@ class S {
 
   // ----- Gioi thieu -----
   static const aboutBody =
-      'Một app cho mọi thiết bị ESP32 của Phận: quét, đọc, điều khiển qua BLE. Giao diện tự vẽ từ schema do thiết bị gửi lên (giao thức VPH v1), nên thiết bị mới không cần app mới.';
+      'Một app cho mọi thiết bị ESP32 của Phận: quét, đọc, điều khiển qua BLE. Giao diện tự vẽ từ schema do thiết bị gửi lên (giao thức VPH v1.1), nên thiết bị mới không cần app mới.';
   static const aboutSupported = 'Thiết bị hỗ trợ';
   static const aboutSupportedList =
       '• Mọi thiết bị nói giao thức VPH v1\n• Bộ relay ESP32-C3 (firmware cũ)\n• Bộ điều khiển lò nung MAX31856 (firmware cũ)';

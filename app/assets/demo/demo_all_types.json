@@ -41,6 +41,26 @@
       {"id": "hold", "l": "Giữ nhiệt", "t": "bool"},
       {"id": "s", "l": "Thời gian giữ", "t": "num", "u": "phút", "min": 0, "max": 600, "st": 5, "if": "hold==true"}
     ]}},
+    {"id": "hints", "l": "Gợi ý mới", "ic": "dashboard", "save": "live", "f": [
+      {"id": "n_t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
+      {"id": "n_h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
+      {"id": "n_st", "l": "Giai đoạn", "t": "text", "w": "tile", "ic": "fire"},
+      {"id": "n_ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_sal", "l": "Độ mặn", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_sok", "l": "Cảm biến mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "n_sok==false"},
+      {"id": "n_out", "l": "Bơm", "t": "bool", "w": "hero,btns", "ic": "pump", "sub": "n_mode", "en": "n_mode==manual",
+       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+      {"id": "n_mode", "l": "Chế độ bơm", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
+      {"id": "n_burn", "l": "Đốt lò", "t": "bool", "w": "hero,warn", "ic": "fire", "opt": ["Dừng", "Đang đốt"], "sub": "n_t"},
+      {"id": "n_al", "l": "Báo động bơm", "t": "flags", "w": "alarm", "g": "nal", "opt": ["Cạn nước", "Quá dòng", "Mất pha"]},
+      {"id": "n_sil", "l": "Tắt chuông", "t": "act", "ic": "mute", "g": "nal", "if": "n_al!=0"},
+      {"id": "n_lock", "l": "Khóa an toàn", "t": "bool", "ro": 1, "w": "alarm", "g": "nlk"},
+      {"id": "n_why", "l": "Lý do", "t": "text", "g": "nlk", "if": "n_lock==true"},
+      {"id": "n_fan", "l": "Quạt", "t": "bool", "w": "btns", "ic": "fan", "g": "Khác"},
+      {"id": "n_up", "l": "Thời gian chạy", "t": "num", "u": "s", "ro": 1, "w": "dur", "ic": "timer", "g": "Khác"},
+      {"id": "n_icx", "l": "Icon lạ", "t": "text", "ic": "khong_co_icon_nay", "d": "Tên icon lạ thì không hiện icon", "g": "Khác"}
+    ]},
     {"id": "legacy", "title": "Khóa dài", "fields": [
       {"id": "old_pv", "label": "Temperature", "type": "float", "unit": "°C", "readonly": true},
       {"id": "old_sv", "label": "Setpoint", "type": "float", "unit": "°C", "min": 0, "max": 1200, "step": 1},
@@ -62,6 +82,9 @@
     "p2_t": 600, "p2_r": 60, "p2_hold": false, "p2_s": 0,
     "p3_t": 0, "p3_r": 0, "p3_hold": false, "p3_s": 0,
     "p4_t": 0, "p4_r": 0, "p4_hold": false, "p4_s": 0,
+    "n_t": 31.2, "n_h": 64.5, "n_st": "Giữ nhiệt", "n_ec": 120, "n_sal": 40, "n_tds": 60, "n_sok": false,
+    "n_out": false, "n_mode": "auto", "n_burn": true, "n_al": 3, "n_lock": true, "n_why": "Quá nhiệt 1250 °C",
+    "n_fan": true, "n_up": 7512, "n_icx": "abc",
     "old_pv": 25.4, "old_sv": 100, "old_cnt": 42, "step1_t": 200, "step2_t": 400
   }
 }

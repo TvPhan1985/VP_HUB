@@ -12,6 +12,7 @@ import '../../core/transport/transport_registry.dart';
 import '../../core/transport/uuids.dart';
 import '../../l10n/strings_vi.dart';
 import '../device_icon.dart';
+import '../theme.dart';
 import 'about_screen.dart';
 import 'demo_screen.dart';
 import 'device_screen.dart';
@@ -178,6 +179,85 @@ class _ScanScreenState extends State<ScanScreen> {
             style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
       );
 
+  /// Mot thiet bi la mot the: icon, ten, nhan giao thuc, cot song
+  Widget _deviceCard(
+    BuildContext context, {
+    required IconData icon,
+    required String name,
+    required String detail,
+    required bool legacy,
+    required VoidCallback onTap,
+    required Widget trailing,
+    int? rssi,
+    bool seen = false,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.fromLTRB(Vp.pad, Vp.gap / 2, Vp.pad, Vp.gap / 2),
+      clipBehavior: Clip.antiAlias,
+      child: ListTile(
+        contentPadding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        leading: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CircleAvatar(
+              backgroundColor: cs.primaryContainer,
+              foregroundColor: cs.onPrimaryContainer,
+              child: Icon(icon),
+            ),
+            if (seen)
+              Positioned(
+                right: -1,
+                bottom: -1,
+                child: Tooltip(
+                  message: S.seenNow,
+                  child: Container(
+                    width: 13,
+                    height: 13,
+                    decoration: BoxDecoration(
+                      color: Vp.ok(cs),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: cs.surface, width: 2),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        subtitle: Row(children: [
+          _tag(context, legacy),
+          const SizedBox(width: 8),
+          Flexible(child: Text(detail, overflow: TextOverflow.ellipsis)),
+        ]),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (rssi != null) SignalBars(rssi: rssi),
+            trailing,
+          ],
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+
+  Widget _empty(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 72, 32, 24),
+      child: Column(
+        children: [
+          Icon(Icons.bluetooth_searching, size: 88, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+          const SizedBox(height: 16),
+          Text(_scanning ? S.scanning : S.scanEmptyTitle, style: theme.textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Text(S.scanEmptyHint, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+        ],
+      ),
+    );
+  }
+
   Widget _notice(IconData icon, String text, String button, VoidCallback onTap) => Card(
         margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
         child: Padding(
@@ -196,6 +276,10 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     final known = _known.list();
+    // Thiet bi da dung ma dang thay quanh day: danh dau tai cho, khong lap lai o muc "gan day"
+    final seen = {for (final r in _results) r.device.remoteId.str: r};
+    final knownIds = {for (final d in known) d.id};
+    final fresh = [for (final r in _results) if (!knownIds.contains(r.device.remoteId.str)) r];
     return Scaffold(
       appBar: AppBar(
         title: const Text(S.appName),
@@ -245,14 +329,14 @@ class _ScanScreenState extends State<ScanScreen> {
           if (known.isNotEmpty) ...[
             _section(context, S.knownDevices),
             for (final d in known)
-              ListTile(
-                leading: Icon(deviceIcon(d.icon)),
-                title: Text(d.name),
-                subtitle: Row(children: [
-                  _tag(context, d.legacy),
-                  const SizedBox(width: 8),
-                  Flexible(child: Text(d.model, overflow: TextOverflow.ellipsis)),
-                ]),
+              _deviceCard(
+                context,
+                icon: deviceIcon(d.icon),
+                name: d.name,
+                detail: d.model,
+                legacy: d.legacy,
+                rssi: seen[d.id]?.rssi,
+                seen: seen.containsKey(d.id),
                 trailing: IconButton(
                   tooltip: S.forget,
                   icon: const Icon(Icons.delete_outline),
@@ -264,21 +348,22 @@ class _ScanScreenState extends State<ScanScreen> {
                 onTap: () => _openKnown(d),
               ),
           ],
-          _section(context, S.nearby),
-          if (_results.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(_scanning ? S.scanning : S.noDevices, textAlign: TextAlign.center),
-            ),
-          for (final r in _results)
-            ListTile(
-              leading: Icon(deviceIcon(iconForKind(_kindOf(r)))),
-              title: Text(_nameOf(r)),
-              subtitle: Row(children: [
-                _tag(context, _kindOf(r) != TransportKind.vph),
-                const SizedBox(width: 8),
-                Flexible(child: Text('${r.device.remoteId.str}  ${S.rssi(r.rssi)}', overflow: TextOverflow.ellipsis)),
-              ]),
+          if (fresh.isNotEmpty || known.isNotEmpty) _section(context, S.nearby),
+          if (fresh.isEmpty)
+            known.isEmpty
+                ? _empty(context)
+                : Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(_scanning ? S.scanning : S.noDevices, textAlign: TextAlign.center),
+                  ),
+          for (final r in fresh)
+            _deviceCard(
+              context,
+              icon: deviceIcon(iconForKind(_kindOf(r))),
+              name: _nameOf(r),
+              detail: r.device.remoteId.str,
+              legacy: _kindOf(r) != TransportKind.vph,
+              rssi: r.rssi,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _open(r.device, _nameOf(r), legacyHint: _kindOf(r) != TransportKind.vph),
             ),
@@ -288,6 +373,42 @@ class _ScanScreenState extends State<ScanScreen> {
         onPressed: _scanning ? _stopScan : _scan,
         icon: Icon(_scanning ? Icons.stop : Icons.search),
         label: Text(_scanning ? S.stopScan : S.scan),
+      ),
+    );
+  }
+}
+
+/// Cot song 4 vach theo RSSI (>= -60: 4 vach, >= -70: 3, >= -80: 2, con lai 1)
+class SignalBars extends StatelessWidget {
+  final int rssi;
+  const SignalBars({super.key, required this.rssi});
+
+  static int level(int rssi) => rssi >= -60 ? 4 : (rssi >= -70 ? 3 : (rssi >= -80 ? 2 : 1));
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final n = level(rssi);
+    return Tooltip(
+      message: S.rssi(rssi),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            for (var i = 0; i < 4; i++)
+              Container(
+                width: 4,
+                height: 6.0 + i * 4,
+                margin: const EdgeInsets.only(left: 2),
+                decoration: BoxDecoration(
+                  color: i < n ? cs.primary : cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(1),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

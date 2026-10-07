@@ -72,9 +72,30 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       }
     }
   }
+  const icons = {
+    'operation': 'fire',
+    'pid': 'tune',
+    'alarm': 'alarm',
+    'calibration': 'gauge',
+    'autotune': 'auto',
+    'program': 'schedule',
+    'program_steps': 'timer',
+  };
+  if (icons.containsKey(id)) s['ic'] = icons[id];
   if (id == 'operation') {
     for (final f in fields) {
-      if (f is Map && f['id'] == 'pv') f['w'] = 'big,trend';
+      if (f is! Map) continue;
+      if (f['id'] == 'pv') {
+        f['w'] = 'big,trend';
+        f['ic'] = 'fire';
+      }
+      // Cong tac dot lo thanh the trang thai lon, dong phu la nhiet do dat
+      if (f['id'] == 'running') {
+        f['w'] = 'hero';
+        f['ic'] = 'fire';
+        f['opt'] = ['Dừng', 'Đang đốt'];
+        f['sub'] = 'sv';
+      }
     }
     bool has(String fid) => fields.any((f) => f is Map && f['id'] == fid);
     void add(Map<String, dynamic> f) {
@@ -89,20 +110,31 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       'readonly': true,
       'if': 'program_running==true',
     });
-    add({'id': 'safety_latched', 'label': 'Khóa an toàn', 'type': 'bool', 'readonly': true, 'w': 'led,warn'});
+    // Khoa an toan thanh the bao dong, gom ly do va nut xoa loi (cung nhom)
+    add({
+      'id': 'safety_latched',
+      'label': 'Khóa an toàn',
+      'type': 'bool',
+      'readonly': true,
+      'w': 'alarm,led,warn',
+      'g': 'safety',
+    });
     add({
       'id': 'safety_reason',
       'label': 'Lý do khóa',
       'type': 'text',
       'readonly': true,
       'if': 'safety_latched==true',
+      'g': 'safety',
     });
     add({
       'id': 'safety_clear',
       'label': 'Xóa lỗi',
       'type': 'act',
+      'ic': 'reset',
       'if': 'safety_latched==true',
       'c': 'Xóa khóa an toàn và cho lò chạy lại?',
+      'g': 'safety',
     });
   }
   if (id == 'program_steps' && rep is Map<String, dynamic>) rep['cnt'] = 'program_step_count';

@@ -131,14 +131,29 @@ void main() {
     expect(r.err, 'Thiết bị không phản hồi');
   });
 
-  test('lenh qua 240 byte bi tu choi truoc khi gui', () async {
+  test('lenh qua 500 byte bi tu choi truoc khi gui', () async {
     final dev = FakeVphDevice(info: _info(), schemas: [_small, _small]);
     final t = VphTransport(dev.link, SchemaCache(MemoryStore()));
     await t.open();
     await t.start();
-    final r = await t.writeBatch({for (var i = 0; i < 30; i++) 'truong_$i': 123456});
+    final r = await t.writeBatch({for (var i = 0; i < 60; i++) 'truong_$i': 123456});
     expect(r.ok, isFalse);
     expect(dev.commands, isEmpty);
+  });
+
+  test('v1.1: luu 5 khung gio mot lan (hon 240 byte) gui duoc trong MOT lenh set', () async {
+    final dev = FakeVphDevice(info: _info(), schemas: [_small, _small]);
+    final t = VphTransport(dev.link, SchemaCache(MemoryStore()));
+    await t.open();
+    await t.start();
+    final set = <String, dynamic>{
+      for (var i = 1; i <= 5; i++) ...{'s${i}_en': true, 's${i}_days': 127, 's${i}_on': '08:00', 's${i}_off': '17:30'},
+    };
+    final r = await t.writeBatch(set);
+    expect(r.ok, isTrue);
+    expect(dev.commands.single['set'], set);
+    final sent = dev.link.written(kVphWrite).single;
+    expect(utf8.encode(sent).length, inInclusiveRange(241, 500));
   });
 
   test('VALUES: select doc ngay, notify gop, goi hong duoc dem', () async {
