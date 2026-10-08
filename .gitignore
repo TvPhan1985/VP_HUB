@@ -13,3 +13,4 @@ android/key.properties
 *.iml
 .claude/
 release/*.apk
+release/*.zip

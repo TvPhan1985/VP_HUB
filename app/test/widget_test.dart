@@ -557,4 +557,54 @@ void main() {
     expect(theme.colorScheme.primary, const Color(0xFF0284C7));
     await _close(tester, rig);
   });
+
+  // Hai file mau cua bo quy chuan (docs/mau): mo duoc, moi man ve du, dung linh vuc
+  for (final (file, dom, bar) in [
+    ('mau_nong_nghiep.json', 'agri', const Color(0xFF14532D)),
+    ('mau_cong_nghiep.json', 'ind', const Color(0xFF0F172A)),
+  ]) {
+    testWidgets('file mau $file: ve du moi man, linh vuc $dom', (tester) async {
+      final src = File('../docs/mau/$file').readAsStringSync();
+      final rig = await _openJson(tester, src);
+      final s = rig.session;
+      expect(s.info!.domain, dom);
+      expect(Theme.of(tester.element(find.byType(AppBar).first)).appBarTheme.backgroundColor, bar);
+      // Mau phai dung quy chuan: moi man co icon, khong co kieu / man loi
+      for (final sc in s.screens) {
+        expect(sc.error, isNull, reason: sc.id);
+        expect(sc.icon, isNotNull, reason: sc.id);
+        expect(sc.fields.every((f) => f.known), isTrue, reason: sc.id);
+      }
+      expect(s.screens.any((sc) => sc.menu), isTrue);
+      for (var i = 0; i < s.screens.length; i++) {
+        final sc = s.screens[i];
+        if (sc.menu) {
+          await _openFromMenu(tester, sc.title);
+        } else {
+          await _goto(tester, sc.title);
+        }
+        expect(tester.takeException(), isNull, reason: sc.id);
+        expect(s.current, i);
+        for (final f in sc.fields) {
+          // The bao dong khi khong co bao dong hien "No active alarms" thay cho nhan
+          if (f.ifCond != null || f.hint('alarm')) continue;
+          expect(find.textContaining(f.label), findsWidgets, reason: 'truong ${f.id}');
+        }
+        if (sc.menu) {
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+        }
+      }
+      // Gia tri mau phai vua goi VALUES 240 byte cua tung man (kem hdr)
+      final j = jsonDecode(src) as Map<String, dynamic>;
+      final values = j['values'] as Map<String, dynamic>;
+      final hdr = (j['info']['hdr'] as List).cast<String>();
+      for (final sc in s.screens) {
+        final ids = {...hdr, for (final f in sc.fields) f.id, for (final g in sc.repGroups) for (final f in g.fields) f.id};
+        final pkt = jsonEncode({for (final id in ids) if (values.containsKey(id)) id: values[id]});
+        expect(utf8.encode(pkt).length, lessThanOrEqualTo(240), reason: 'VALUES man ${sc.id}');
+      }
+      await _close(tester, rig);
+    });
+  }
 }

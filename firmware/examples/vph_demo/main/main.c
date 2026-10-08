@@ -149,17 +149,17 @@ static void led_update(int64_t now)
 
 static cJSON *build_overview(void)
 {
-    cJSON *s = vph_screen("overview", "Tổng quan", "live");
+    cJSON *s = vph_screen("overview", "Overview", "live");
     vph_icon(s, "dashboard");       // icon cua tab o thanh dieu huong duoi
 
     // So do chinh: the co icon, hai the lien nhau xep 2 cot; cham the nhiet do de xem bieu do
-    cJSON *t = vph_field(s, "t", "Nhiệt độ", "num");
+    cJSON *t = vph_field(s, "t", "Temperature", "num");
     vph_unit(t, "°C");
     vph_dp(t, 1);
     vph_readonly(t);
     vph_hint(t, "tile,trend");
     vph_icon(t, "temp");
-    cJSON *h = vph_field(s, "h", "Độ ẩm", "num");
+    cJSON *h = vph_field(s, "h", "Humidity", "num");
     vph_unit(h, "%");
     vph_dp(h, 1);
     vph_readonly(h);
@@ -167,74 +167,74 @@ static cJSON *build_overview(void)
     vph_icon(h, "hum");
 
     // Tai chinh: the trang thai lon + 2 nut BAT/TAT, dong phu la mau dang chon
-    cJSON *led = vph_field(s, "led", "Đèn LED", "bool");
+    cJSON *led = vph_field(s, "led", "LED", "bool");
     vph_hint(led, "hero,btns");
     vph_icon(led, "light");
     vph_sub(led, "color");
 
     // Chon che do/mau: nut chon ca chieu ngang; chu thich giai thich khi bi khoa
-    cJSON *color = vph_field(s, "color", "Màu đèn", "enum");
+    cJSON *color = vph_field(s, "color", "LED color", "enum");
     static const char *const vals[] = {"red", "green", "blue", "white"};
-    static const char *const labels[] = {"Đỏ", "Lục", "Lam", "Trắng"};
+    static const char *const labels[] = {"Red", "Green", "Blue", "White"};
     vph_options(color, vals, labels, 4);
     vph_hint(color, "seg");
     vph_enable_if(color, "led==true");
-    vph_desc(color, "Phải bật đèn trước khi đổi màu");
+    vph_desc(color, "Turn the LED on before changing color");
 
     // Bao dong: the do khi co loi; nut lenh cung nhom nam o goc the
-    cJSON *al = vph_field(s, "al", "Báo động", "flags");
-    static const char *const bits[] = {"Nhiệt độ thấp hơn ngưỡng", "Nhiệt độ cao hơn ngưỡng"};
+    cJSON *al = vph_field(s, "al", "Alarm", "flags");
+    static const char *const bits[] = {"Temperature below threshold", "Temperature above threshold"};
     vph_flag_labels(al, bits, 2);
     vph_hint(al, "alarm");
     vph_group(al, "al");
-    cJSON *beep = vph_field(s, "beep", "Bíp", "act");
+    cJSON *beep = vph_field(s, "beep", "Beep", "act");
     vph_icon(beep, "bell");
     vph_group(beep, "al");
 
-    cJSON *clock = vph_field(s, "clock", "Giờ thiết bị", "text");
+    cJSON *clock = vph_field(s, "clock", "Device time", "text");
     vph_icon(clock, "clock");
-    vph_group(clock, "Thiết bị");
-    cJSON *up = vph_field(s, "up", "Thời gian chạy", "num");
+    vph_group(clock, "Device");
+    cJSON *up = vph_field(s, "up", "Uptime", "num");
     vph_readonly(up);
-    vph_hint(up, "dur");            // so giay -> "2 giờ 5 phút"
+    vph_hint(up, "dur");            // so giay -> "2 h 5 min"
     vph_icon(up, "timer");
-    vph_group(up, "Thiết bị");
-    cJSON *name = vph_field(s, "_name", "Tên thiết bị", "str");
+    vph_group(up, "Device");
+    cJSON *name = vph_field(s, "_name", "Device name", "str");
     vph_maxlen(name, VPH_NAME_MAX);
     vph_icon(name, "device");
-    vph_group(name, "Thiết bị");
-    cJSON *rb = vph_field(s, "_reboot", "Khởi động lại", "act");
-    vph_confirm(rb, "Khởi động lại thiết bị?");
+    vph_group(name, "Device");
+    cJSON *rb = vph_field(s, "_reboot", "Restart", "act");
+    vph_confirm(rb, "Restart the device?");
     vph_icon(rb, "reset");
-    vph_group(rb, "Thiết bị");
+    vph_group(rb, "Device");
     return s;
 }
 
 static cJSON *build_settings(void)
 {
     // Hai nguong rang buoc nhau (lo < hi) nen dung man batch: sua xong bam Luu mot lan
-    cJSON *s = vph_screen("settings", "Cài đặt", "batch");
+    cJSON *s = vph_screen("settings", "Settings", "batch");
     vph_icon(s, "settings");
 
-    cJSON *lo = vph_field(s, "lo", "Ngưỡng thấp", "num");
+    cJSON *lo = vph_field(s, "lo", "Low threshold", "num");
     vph_unit(lo, "°C");
     vph_range(lo, 0, 100, 0.5);
-    vph_group(lo, "Ngưỡng nhiệt độ");
-    cJSON *hi = vph_field(s, "hi", "Ngưỡng cao", "num");
+    vph_group(lo, "Temperature thresholds");
+    cJSON *hi = vph_field(s, "hi", "High threshold", "num");
     vph_unit(hi, "°C");
     vph_range(hi, 0, 100, 0.5);
-    vph_group(hi, "Ngưỡng nhiệt độ");
+    vph_group(hi, "Temperature thresholds");
 
     // Khoi lap: chi mo ta mau mot lan, app tu sinh s1_en .. s3_off
-    cJSON *rep = vph_repeat(s, SLOT_COUNT, "s", "Khung");
-    vph_field(rep, "en", "Bật", "bool");
-    cJSON *days = vph_field(rep, "days", "Thứ", "days");
+    cJSON *rep = vph_repeat(s, SLOT_COUNT, "s", "Slot");
+    vph_field(rep, "en", "Enabled", "bool");
+    cJSON *days = vph_field(rep, "days", "Days", "days");
     vph_enable_if(days, "en==true");
-    cJSON *on = vph_field(rep, "on", "Giờ bật", "time");
+    cJSON *on = vph_field(rep, "on", "On time", "time");
     vph_enable_if(on, "en==true");
-    cJSON *off = vph_field(rep, "off", "Giờ tắt", "time");
+    cJSON *off = vph_field(rep, "off", "Off time", "time");
     vph_enable_if(off, "en==true");
-    vph_desc(off, "Giờ tắt nhỏ hơn giờ bật = qua đêm");
+    vph_desc(off, "Off time earlier than on time = overnight");
     return s;
 }
 
@@ -317,7 +317,7 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
 {
     if (!strcmp(id, "led")) {
         if (!json_bool(v, &app.led)) {
-            strlcpy(err, "Giá trị phải là bật hoặc tắt", err_len);
+            strlcpy(err, "Value must be on or off", err_len);
             return VPH_ERR_REJECT;
         }
         return VPH_OK;
@@ -325,11 +325,11 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
     if (!strcmp(id, "color")) {
         const char *c = cJSON_IsString(v) ? v->valuestring : "";
         if (strcmp(c, "red") && strcmp(c, "green") && strcmp(c, "blue") && strcmp(c, "white")) {
-            strlcpy(err, "Màu không hợp lệ", err_len);
+            strlcpy(err, "Invalid color", err_len);
             return VPH_ERR_REJECT;
         }
         if (!app.led) {
-            strlcpy(err, "Phải bật đèn trước khi đổi màu", err_len);
+            strlcpy(err, "Turn the LED on before changing color", err_len);
             return VPH_ERR_REJECT;
         }
         strlcpy(app.color, c, sizeof(app.color));
@@ -342,7 +342,7 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
     if (!strcmp(id, "_name")) {
         // Component da kiem tra ten hop le; o day chi luu de lan sau khoi dong con giu
         if (storage_save_name(v->valuestring) != ESP_OK) {
-            strlcpy(err, "Không lưu được tên", err_len);
+            strlcpy(err, "Could not save the name", err_len);
             return VPH_ERR_REJECT;
         }
         return VPH_OK;
@@ -377,35 +377,35 @@ static int on_batch(const cJSON *set, char *err, size_t err_len)
                 sl->days = (uint8_t)it->valuedouble;
             } else if (!strcmp(what, "on") || !strcmp(what, "off")) {
                 if (!cJSON_IsString(it) || !valid_hhmm(it->valuestring)) {
-                    strlcpy(err, "Giờ phải dạng HH:MM", err_len);
+                    strlcpy(err, "Time must be HH:MM", err_len);
                     return VPH_ERR_REJECT;
                 }
                 strlcpy(what[1] == 'n' ? sl->on : sl->off, it->valuestring, sizeof(sl->on));
             } else {
-                snprintf(err, err_len, "Không có trường %s", id);
+                snprintf(err, err_len, "Unknown field %s", id);
                 return VPH_ERR_REJECT;
             }
         } else {
-            snprintf(err, err_len, "Không có trường %s", id);
+            snprintf(err, err_len, "Unknown field %s", id);
             return VPH_ERR_REJECT;
         }
         continue;
     bad_value:
-        snprintf(err, err_len, "Giá trị của %s không hợp lệ", id);
+        snprintf(err, err_len, "Invalid value for %s", id);
         return VPH_ERR_REJECT;
     }
     // Kiem tra rang buoc tren ca cau hinh moi, sai thi giu nguyen cau hinh cu
     if (c.lo < 0 || c.hi > 100) {
-        strlcpy(err, "Ngưỡng phải trong khoảng 0-100 °C", err_len);
+        strlcpy(err, "Threshold must be within 0-100 °C", err_len);
         return VPH_ERR_REJECT;
     }
     if (!(c.lo < c.hi)) {
-        strlcpy(err, "Ngưỡng thấp phải nhỏ hơn ngưỡng cao", err_len);
+        strlcpy(err, "Low threshold must be below high threshold", err_len);
         return VPH_ERR_REJECT;
     }
     for (int i = 0; i < SLOT_COUNT; i++) {
         if (c.slots[i].en && c.slots[i].days == 0) {
-            snprintf(err, err_len, "Khung %d đang bật nhưng chưa chọn thứ nào", i + 1);
+            snprintf(err, err_len, "Slot %d is enabled but no day is selected", i + 1);
             return VPH_ERR_REJECT;
         }
     }
@@ -432,9 +432,10 @@ void app_main(void)
     static const char *const hdr[] = {"t", "led", "al", NULL};
     const vph_info_t info = {
         .model = "vphdemo",
-        .fw = "1.1.0",
+        .fw = "1.2.0",
         .hw = "esp32c3",
         .icon = "light",
+        .domain = "ind",            // linh vuc: "ind" cong nghiep | "agri" nong nghiep (app chon bo giao dien)
         .hdr = hdr,
         .caps = VPH_CAP_TIME,
         .name_prefix = "VPH-DEMO",

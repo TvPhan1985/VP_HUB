@@ -1,0 +1,35 @@
+{
+  "info": {
+    "proto": "vph", "pv": 1, "model": "mauind", "name": "BOILER-3F0C", "fw": "1.0.0", "hw": "esp32c3",
+    "hdr": ["press", "run", "fault"], "icon": "heater", "dom": "ind"
+  },
+  "screens": [
+    {"id": "monitor", "l": "Monitor", "ic": "dashboard", "save": "live", "f": [
+      {"id": "press", "l": "Pressure", "t": "num", "u": "bar", "dp": 2, "ro": 1, "w": "big,trend", "ic": "gauge"},
+      {"id": "temp", "l": "Temperature", "t": "num", "u": "°C", "dp": 0, "ro": 1, "w": "tile", "ic": "temp"},
+      {"id": "flow", "l": "Flow", "t": "num", "u": "L/min", "dp": 0, "ro": 1, "w": "tile", "ic": "water"},
+      {"id": "run", "l": "Burner", "t": "bool", "w": "hero", "ic": "fire", "opt": ["Stopped", "Running"], "sub": "sp",
+       "c": "Start the burner?"},
+      {"id": "sp", "l": "Pressure setpoint", "t": "num", "u": "bar", "min": 0, "max": 10, "st": 0.1, "dp": 1},
+      {"id": "fault", "l": "Safety lock", "t": "bool", "ro": 1, "w": "alarm", "g": "safety"},
+      {"id": "why", "l": "Reason", "t": "text", "g": "safety", "if": "fault==true"},
+      {"id": "clear", "l": "Clear fault", "t": "act", "ic": "reset", "g": "safety", "if": "fault==true",
+       "c": "Clear the safety lock and allow the burner to run again?"},
+      {"id": "hours", "l": "Run time", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Status"}
+    ]},
+    {"id": "limits", "l": "Limits", "ic": "tune", "save": "batch", "f": [
+      {"id": "p_lo", "l": "Low pressure", "t": "num", "u": "bar", "min": 0, "max": 10, "st": 0.1, "dp": 1, "g": "Alarm thresholds"},
+      {"id": "p_hi", "l": "High pressure", "t": "num", "u": "bar", "min": 0, "max": 10, "st": 0.1, "dp": 1, "g": "Alarm thresholds"},
+      {"id": "t_hi", "l": "High temperature", "t": "num", "u": "°C", "min": 0, "max": 200, "st": 1, "dp": 0, "g": "Alarm thresholds"}
+    ]},
+    {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
+      {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters"},
+      {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "c": "Restart the device?"}
+    ]}
+  ],
+  "values": {
+    "press": 4.25, "temp": 88, "flow": 120, "run": true, "sp": 4.5, "fault": false, "why": "", "hours": 93600,
+    "p_lo": 2.0, "p_hi": 6.0, "t_hi": 120, "_name": "BOILER-3F0C", "fw": "1.0.0"
+  }
+}

@@ -66,3 +66,7 @@ tools/.venv/Scripts/python tools/serial_log.py --port COM5 --seconds 20 --reset
 Làm thiết bị mới: đọc `docs/QUY_TAC_THIET_BI_MOI.md` và `firmware/components/vph_ble/README.md`.
 
 Kế hoạch thực hiện và nhật ký: `docs/PLAN.md`.
+
+## Bắt đầu một dự án thiết bị mới
+
+Đọc `docs/QUY_TAC_THIET_BI_MOI.md` (quy chuẩn). Cần mang đi chỗ khác thì chạy `tools/.venv/Scripts/python tools/make_kit.py` để tạo `release/VPH_KIT_<bản>.zip` (quy chuẩn, giao thức, file mẫu, component `vph_ble`, firmware mẫu, APK).

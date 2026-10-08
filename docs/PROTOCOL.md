@@ -13,7 +13,7 @@ Thiết bị nào làm đúng file này thì app VP Hub **tự quét thấy, t�
 
 1. **Một UUID dịch vụ duy nhất cho mọi thiết bị**: `5b390001-5578-4ab2-9265-4b994a7bc724`. Không bao giờ đổi. Thiết bị phân biệt nhau bằng `model` trong INFO, không bằng UUID.
 2. **App không biết trước thiết bị có gì.** Mọi màn hình, nhãn, đơn vị, giới hạn, danh sách chọn đều do firmware gửi lên. Thêm/bớt trường ở firmware → app tự hiện theo.
-3. **Firmware là nơi kiểm tra hợp lệ cuối cùng.** App chỉ kiểm tra sơ bộ theo `min/max`. Sai thì firmware trả lỗi tiếng Việt qua RESULT, app hiện nguyên văn.
+3. **Firmware là nơi kiểm tra hợp lệ cuối cùng.** App chỉ kiểm tra sơ bộ theo `min/max`. Sai thì firmware trả câu báo lỗi qua RESULT, app hiện nguyên văn (từ app 1.2: chữ thiết bị gửi lên viết tiếng Anh, xem `QUY_TAC_THIET_BI_MOI.md` §5).
 4. **Giới hạn kích thước** (§8) là luật cứng, firmware phải tự kiểm tra lúc khởi động và có test.
 5. **Không làm việc nặng trong callback GATT** (ghi NVS, quảng bá lại, chờ cảm biến). Chuyển sang task chính qua queue.
 6. Schema lưu sẵn trong app (adapter thiết bị cũ, demo) không bị giới hạn kích thước vì không đi qua BLE.
@@ -229,7 +229,7 @@ Firmware áp **tất cả** lên bản sao cấu hình → kiểm tra hợp lệ
 {"q":13,"ok":0,"err":"Ngưỡng bật phải nhỏ hơn ngưỡng tắt"}
 ```
 - Firmware trả RESULT cho **mọi** lệnh ghi trong vòng **1 giây**. App chờ tối đa **3 giây**, quá thì báo "Thiết bị không phản hồi".
-- `err` tiếng Việt có dấu, ≤ 80 byte. Id không biết → `"err":"Không có trường <id>"`.
+- `err` ≤ 80 byte (UTF-8; từ app 1.2 nên viết tiếng Anh). Id không biết → `"err":"Không có trường <id>"`.
 
 ---
 

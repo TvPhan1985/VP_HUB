@@ -1,0 +1,51 @@
+{
+  "info": {
+    "proto": "vph", "pv": 1, "model": "mauagri", "name": "FARM-A1B2", "fw": "1.0.0", "hw": "esp32c3",
+    "hdr": ["soil", "pump", "alarm"], "caps": ["time"], "icon": "pump", "dom": "agri"
+  },
+  "screens": [
+    {"id": "overview", "l": "Overview", "ic": "dashboard", "save": "live", "f": [
+      {"id": "soil", "l": "Soil moisture", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "soil"},
+      {"id": "temp", "l": "Air temperature", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile", "ic": "temp"},
+      {"id": "flow", "l": "Flow", "t": "num", "u": "L/min", "dp": 1, "ro": 1, "w": "mini"},
+      {"id": "tank", "l": "Tank level", "t": "num", "u": "%", "dp": 0, "ro": 1, "w": "mini"},
+      {"id": "sok", "l": "Soil sensor disconnected", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "pump", "l": "Pump", "t": "bool", "w": "hero,btns", "ic": "pump", "sub": "mode", "en": "mode==manual",
+       "opt": ["Stopped", "Irrigating"], "d": "Manual switching is available in Manual mode only"},
+      {"id": "mode", "l": "Mode", "t": "enum", "w": "seg", "opt": [["manual", "Manual", "hand"], ["auto", "Auto", "auto"]]},
+      {"id": "alarm", "l": "Alarm", "t": "flags", "w": "alarm", "g": "al", "opt": ["Sensor lost", "Clock not set", "Tank empty"]},
+      {"id": "silence", "l": "Silence", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0"},
+      {"id": "time", "l": "Device time", "t": "text", "ic": "clock", "g": "Status"},
+      {"id": "up", "l": "Uptime", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Status"}
+    ]},
+    {"id": "sched", "l": "Irrigation", "ic": "schedule", "save": "batch", "f": [
+      {"id": "on_at", "l": "Start below", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "g": "Soil moisture thresholds"},
+      {"id": "off_at", "l": "Stop above", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "g": "Soil moisture thresholds",
+       "d": "Between the two thresholds the pump keeps its current state."}
+    ],
+    "rep": {"n": 3, "pfx": "s", "l": "Slot", "f": [
+      {"id": "en", "l": "Enabled", "t": "bool"},
+      {"id": "days", "l": "Days", "t": "days", "en": "en==true"},
+      {"id": "on", "l": "Start time", "t": "time", "en": "en==true"},
+      {"id": "dur", "l": "Duration", "t": "num", "u": "min", "min": 1, "max": 240, "st": 1, "en": "en==true"}
+    ]}},
+    {"id": "setup", "l": "Settings", "ic": "tune", "nav": "menu", "save": "batch", "f": [
+      {"id": "al_en", "l": "Tank-empty alarm", "t": "bool", "g": "Alarm"},
+      {"id": "al_lvl", "l": "Tank low level", "t": "num", "u": "%", "min": 0, "max": 50, "st": 1, "g": "Alarm", "en": "al_en==true"}
+    ]},
+    {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
+      {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters"},
+      {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "c": "Restart the device?"}
+    ]}
+  ],
+  "values": {
+    "soil": 62.0, "temp": 29.5, "flow": 15.2, "tank": 80, "sok": true, "pump": true, "mode": "manual",
+    "alarm": 0, "time": "2026-10-08 09:15", "up": 7512,
+    "on_at": 55, "off_at": 75,
+    "s1_en": true, "s1_days": 127, "s1_on": "06:00", "s1_dur": 15,
+    "s2_en": false, "s2_days": 31, "s2_on": "17:00", "s2_dur": 10,
+    "s3_en": false, "s3_days": 96, "s3_on": "12:00", "s3_dur": 5,
+    "al_en": true, "al_lvl": 15, "_name": "FARM-A1B2", "fw": "1.0.0"
+  }
+}
