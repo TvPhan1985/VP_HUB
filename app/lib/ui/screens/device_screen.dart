@@ -24,12 +24,12 @@ Future<_Leave> _askLeaveDialog(BuildContext context, DeviceSession s, int screen
   final r = await showDialog<_Leave>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text(S.unsavedTitle),
+      title: Text(S.unsavedTitle),
       content: Text(S.unsavedBody(s.draftCount(screen))),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: const Text(S.stay)),
-        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: const Text(S.discard)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: const Text(S.save)),
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: Text(S.stay)),
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: Text(S.discard)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: Text(S.save)),
       ],
     ),
   );
@@ -234,7 +234,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.check_circle, color: Vp.ok(cs)),
-                    title: const Text(S.alarmNone),
+                    title: Text(S.alarmNone),
                   ),
                 for (final a in list)
                   Container(
@@ -264,7 +264,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     final link = _link();
     final i = s.info;
     final sub = i == null ? (s.transport?.protoLabel ?? S.appName) : '${i.model} · ${S.infoFw} ${i.fw}';
-    final theme = themeEntry(context);
+    final theme = themeEntry(context), language = languageEntry(context);
     void push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
     return AppDrawer(
       avatar: Text(AppDrawer.initials(s.displayName)),
@@ -291,7 +291,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
           ),
           DrawerEntry(icon: Icons.sync, label: S.menuReload, enabled: s.ready, onTap: s.reloadSchema),
         ]),
-        DrawerSection(S.secApp, [?theme]),
+        DrawerSection(S.secApp, [?theme, ?language]),
         DrawerSection(S.secSupport, [
           DrawerEntry(icon: Icons.menu_book_outlined, label: S.menuAbout, onTap: () => push(const AboutScreen())),
           DrawerEntry(icon: Icons.logout, label: S.menuDisconnect, danger: true, onTap: _disconnect),
@@ -318,8 +318,8 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
           const SizedBox(height: 8),
           Text(s.error ?? '', textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          FilledButton.icon(onPressed: s.connect, icon: const Icon(Icons.refresh), label: const Text(S.retry)),
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text(S.back)),
+          FilledButton.icon(onPressed: s.connect, icon: const Icon(Icons.refresh), label: Text(S.retry)),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(S.back)),
         ]);
       }
       return _center([
@@ -329,7 +329,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
       ]);
     }
     final tabs = _tabs;
-    if (tabs == null) return _center([const Text(S.noScreens)]);
+    if (tabs == null) return _center([Text(S.noScreens)]);
     final lost = s.status != LinkStatus.ready;
     final needUpdate = (s.info?.pv ?? 1) > VphTransport.supportedPv;
     return Column(
@@ -356,14 +356,14 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
             ),
             actions: [
               if (s.status == LinkStatus.failed)
-                TextButton(onPressed: s.connect, child: const Text(S.retry))
+                TextButton(onPressed: s.connect, child: Text(S.retry))
               else
                 const SizedBox.shrink(),
             ],
           ),
         if (needUpdate)
           MaterialBanner(
-            content: const Text(S.needUpdate),
+            content: Text(S.needUpdate),
             leading: const Icon(Icons.system_update),
             actions: const [SizedBox.shrink()],
           ),
@@ -506,7 +506,7 @@ class _MenuScreenPage extends StatelessWidget {
                         style: TextStyle(color: failed ? cs.onErrorContainer : cs.onTertiaryContainer),
                       ),
                       actions: [
-                        if (failed) TextButton(onPressed: s.connect, child: const Text(S.retry)) else const SizedBox.shrink(),
+                        if (failed) TextButton(onPressed: s.connect, child: Text(S.retry)) else const SizedBox.shrink(),
                       ],
                     ),
                   Expanded(

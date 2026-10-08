@@ -10,7 +10,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text(S.menuAbout)),
+      appBar: AppBar(title: Text(S.menuAbout)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -25,11 +25,11 @@ class AboutScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          const Text(S.aboutBody),
+          Text(S.aboutBody),
           const SizedBox(height: 16),
           Text(S.aboutSupported, style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
-          const Text(S.aboutSupportedList),
+          Text(S.aboutSupportedList),
         ],
       ),
     );

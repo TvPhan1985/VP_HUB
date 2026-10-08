@@ -30,7 +30,7 @@ Một app Android cho mọi thiết bị ESP32 của Phận, qua BLE. Giao diệ
 Bật **Gỡ lỗi USB** trên điện thoại, cắm cáp, rồi:
 
 ```powershell
-adb install -r release/VPHub_1.2.0.apk
+adb install -r release/VPHub_1.2.1.apk
 ```
 
 Hoặc chép file APK vào điện thoại và mở để cài. Lần đầu mở app, bấm **Cho phép** quyền "Thiết bị ở gần" (Bluetooth).

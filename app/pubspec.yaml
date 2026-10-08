@@ -2,7 +2,7 @@ name: vphub
 description: "VP Hub - quet, doc, dieu khien moi thiet bi ESP32 qua BLE (giao thuc VPH v1)."
 publish_to: 'none'
 
-version: 1.2.0+3
+version: 1.2.1+4
 
 environment:
   sdk: ^3.13.4

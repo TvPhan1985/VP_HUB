@@ -74,8 +74,8 @@ Future<double?> showNumberDialog(BuildContext context, VphField f, double? curre
             onSubmitted: (_) => submit(),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text(S.cancel)),
-            FilledButton(onPressed: submit, child: const Text(S.ok)),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
+            FilledButton(onPressed: submit, child: Text(S.ok)),
           ],
         );
       },

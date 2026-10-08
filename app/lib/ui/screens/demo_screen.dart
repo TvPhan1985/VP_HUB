@@ -9,8 +9,10 @@ import '../../core/transport/demo_transport.dart';
 import '../../l10n/strings.dart';
 import 'device_screen.dart';
 
-const String kDemoRelayAsset = 'assets/demo/demo_relay.json';
-const String kDemoAllTypesAsset = 'assets/demo/demo_all_types.json';
+/// File thiet bi mau theo ngon ngu dang dung
+String demoRelayAsset() => Lang.isVi ? 'assets/demo/demo_relay.vi.json' : 'assets/demo/demo_relay.json';
+String demoAllTypesAsset() =>
+    Lang.isVi ? 'assets/demo/demo_all_types.vi.json' : 'assets/demo/demo_all_types.json';
 
 /// Che do thu (SPEC §6): thiet bi gia tu assets/demo hoac tu file JSON tren dien thoai
 class DemoScreen extends StatelessWidget {
@@ -54,28 +56,28 @@ class DemoScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text(S.demoTitle)),
+      appBar: AppBar(title: Text(S.demoTitle)),
       body: ListView(
         padding: const EdgeInsets.all(12),
         children: [
-          const Padding(padding: EdgeInsets.fromLTRB(4, 4, 4, 12), child: Text(S.demoHint)),
+          Padding(padding: EdgeInsets.fromLTRB(4, 4, 4, 12), child: Text(S.demoHint)),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.power_settings_new),
-                  title: const Text(S.demoRelay),
-                  subtitle: const Text(S.demoRelaySub),
+                  title: Text(S.demoRelay),
+                  subtitle: Text(S.demoRelaySub),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _open(context, S.demoRelay, () => rootBundle.loadString(kDemoRelayAsset)),
+                  onTap: () => _open(context, S.demoRelay, () => rootBundle.loadString(demoRelayAsset())),
                 ),
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.widgets_outlined),
-                  title: const Text(S.demoAll),
-                  subtitle: const Text(S.demoAllSub),
+                  title: Text(S.demoAll),
+                  subtitle: Text(S.demoAllSub),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () => _open(context, S.demoAll, () => rootBundle.loadString(kDemoAllTypesAsset)),
+                  onTap: () => _open(context, S.demoAll, () => rootBundle.loadString(demoAllTypesAsset())),
                 ),
               ],
             ),
@@ -83,8 +85,8 @@ class DemoScreen extends StatelessWidget {
           Card(
             child: ListTile(
               leading: const Icon(Icons.folder_open),
-              title: const Text(S.openJson),
-              subtitle: const Text(S.openJsonSub),
+              title: Text(S.openJson),
+              subtitle: Text(S.openJsonSub),
               onTap: () => _pick(context),
             ),
           ),

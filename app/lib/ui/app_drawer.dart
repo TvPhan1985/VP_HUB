@@ -212,10 +212,41 @@ DrawerEntry? themeEntry(BuildContext context) {
   );
 }
 
+/// Muc "Language" cua menu he thong; null khi app khong co ThemeScope
+DrawerEntry? languageEntry(BuildContext context) {
+  final ctl = ThemeScope.maybeOf(context);
+  if (ctl == null) return null;
+  return DrawerEntry(
+    icon: Icons.language,
+    label: S.menuLanguage,
+    value: Lang.nameOf(ctl.lang),
+    onTap: () => showDialog<void>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(S.menuLanguage),
+        children: [
+          for (final c in const [Lang.en, Lang.vi])
+            ListTile(
+              leading: Icon(
+                c == ctl.lang ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                color: c == ctl.lang ? Theme.of(ctx).colorScheme.primary : null,
+              ),
+              title: Text(Lang.nameOf(c)),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                ctl.setLang(c);
+              },
+            ),
+        ],
+      ),
+    ),
+  );
+}
+
 Future<void> showThemeDialog(BuildContext context, ThemeController ctl) => showDialog<void>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text(S.menuTheme),
+        title: Text(S.menuTheme),
         children: [
           for (final m in const [ThemeMode.system, ThemeMode.light, ThemeMode.dark])
             ListTile(

@@ -12,7 +12,37 @@ import 'transport.dart';
 import 'uuids.dart';
 
 const int kC3Slots = 5;
-const String kC3SchemaAsset = 'assets/legacy/c3relay_v1.json';
+/// Schema luu san cua relay C3, theo ngon ngu dang dung
+String c3SchemaAsset() => Lang.isVi ? 'assets/legacy/c3relay_v1.vi.json' : 'assets/legacy/c3relay_v1.json';
+
+/// Ban tieng Viet cua cac loi kiem tra CONFIG (c3BuildConfig tra loi tieng Anh)
+const Map<String, String> _c3ErrVi = {
+  'Name must be 1-20 characters': 'Tên phải dài 1-20 ký tự',
+  'Name must use ASCII characters only': 'Tên chỉ dùng ký tự ASCII',
+  'Invalid auto source': 'Nguồn tự động sai',
+  'Date must be YYYY-MM-DD': 'Ngày phải dạng YYYY-MM-DD',
+  'Start date must be before end date': 'Ngày bắt đầu phải trước ngày kết thúc',
+  'Time must be HH:MM': 'Giờ phải dạng HH:MM',
+  'Invalid weekdays': 'Thứ trong tuần sai',
+  'Invalid sensor type': 'Loại cảm biến sai',
+  'Invalid threshold type': 'Kiểu ngưỡng sai',
+  'Invalid threshold': 'Ngưỡng không hợp lệ',
+  'On when low: on threshold must be below off threshold': 'Bật khi thấp: ngưỡng bật phải nhỏ hơn ngưỡng tắt',
+  'On when high: on threshold must be above off threshold': 'Bật khi cao: ngưỡng bật phải lớn hơn ngưỡng tắt',
+  'Modbus address must be 1-247': 'Địa chỉ Modbus phải 1-247',
+  'Start register must be 0-65535': 'Thanh ghi đầu phải 0-65535',
+  'Register count must be 1-10': 'Số thanh ghi phải 1-10',
+  'Humidity / temperature index exceeds register count': 'Vị trí độ ẩm / nhiệt độ vượt quá số thanh ghi',
+  'Scale divisor must be greater than 0': 'Hệ số chia phải lớn hơn 0',
+  'Poll interval must be 1-3600 s': 'Chu kỳ đọc phải 1-3600 giây',
+  'Invalid alarm threshold': 'Ngưỡng báo động không hợp lệ',
+  'Alarm: low temperature must be below high temperature': 'Báo động: nhiệt độ thấp phải nhỏ hơn nhiệt độ cao',
+  'Alarm: low humidity must be below high humidity': 'Báo động: độ ẩm thấp phải nhỏ hơn độ ẩm cao',
+  'Nothing to save': 'Không có gì để lưu',
+  'Name must not contain " or \\': 'Tên không được chứa " hoặc \\',
+};
+
+String? c3ErrText(String? err) => Lang.isVi ? (_c3ErrVi[err] ?? err) : err;
 
 final RegExp _hhmm = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
 final RegExp _ymd = RegExp(r'^\d{4}-\d{2}-\d{2}$');
@@ -229,7 +259,7 @@ class C3RelayTransport implements DeviceTransport {
       {Future<String> Function()? loadSchema,
       int Function()? epochNow,
       this.resultTimeout = const Duration(seconds: 3)})
-      : _loadSchema = loadSchema ?? (() => rootBundle.loadString(kC3SchemaAsset)),
+      : _loadSchema = loadSchema ?? (() => rootBundle.loadString(c3SchemaAsset())),
         _epochNow = epochNow ?? (() => DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
   @override
@@ -322,7 +352,7 @@ class C3RelayTransport implements DeviceTransport {
           await link.write(chr, utf8.encode(jsonEncode(body)));
           return await c.future.timeout(resultTimeout);
         } on TimeoutException {
-          return const VphResult.fail(S.noResponse);
+          return VphResult.fail(S.noResponse);
         } catch (e) {
           return VphResult.fail(S.sendFailed(e));
         } finally {
@@ -345,7 +375,7 @@ class C3RelayTransport implements DeviceTransport {
   @override
   Future<VphResult> writeBatch(Map<String, dynamic> set) async {
     final b = c3BuildConfig(set, _cfgFlat);
-    if (b.json == null) return VphResult.fail(b.err);
+    if (b.json == null) return VphResult.fail(c3ErrText(b.err));
     final len = utf8.encode(jsonEncode(b.json)).length;
     if (len > maxConfig) return VphResult.fail(S.writeTooLong(len, maxConfig));
     final r = await _writeAndWait(kC3Config, b.json!);
@@ -356,7 +386,7 @@ class C3RelayTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     final p = _pending;
-    if (p != null && !p.isCompleted) p.complete(const VphResult.fail(S.linkLost));
+    if (p != null && !p.isCompleted) p.complete(VphResult.fail(S.linkLost));
     await link.disconnect();
     await _values.close();
   }

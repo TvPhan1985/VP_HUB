@@ -44,4 +44,4 @@ Chỉ khi cần **kiểu dữ liệu hoặc gợi ý hiển thị mới** dùng 
 
 ## Chữ hiển thị (từ app 1.2)
 
-App VP Hub hiển thị **tiếng Anh**, từ ngữ chuyên nghiệp. Nhãn (`l`), nhóm (`g`), chú thích (`d`), câu hỏi xác nhận (`c`), nhãn `opt` và chuỗi `err` mà firmware gửi lên nên viết tiếng Anh cho đồng bộ (vd `Temperature`, `Setpoint`, `Alarm thresholds`). App không dịch chữ của thiết bị. Tên màn hình viết kiểu thường (`Overview`); app tự đổi thành chữ in hoa trên thanh tab.
+App VP Hub hiển thị **tiếng Anh** (mặc định) hoặc tiếng Việt do người dùng chọn. Nhãn (`l`), nhóm (`g`), chú thích (`d`), câu hỏi xác nhận (`c`), nhãn `opt` và chuỗi `err` mà firmware gửi lên nên viết tiếng Anh cho đồng bộ (vd `Temperature`, `Setpoint`, `Alarm thresholds`). App không dịch chữ của thiết bị. Tên màn hình viết kiểu thường (`Overview`); app tự đổi thành chữ in hoa trên thanh tab.

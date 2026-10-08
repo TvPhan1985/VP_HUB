@@ -1,0 +1,90 @@
+{
+  "info": {
+    "proto": "vph", "pv": 1, "model": "demoall", "name": "DEMO-ALL", "fw": "0.9.0", "hw": "demo",
+    "hdr": ["pv", "run", "fault", "warn"], "caps": ["time"], "icon": "sensor"
+  },
+  "screens": [
+    {"id": "live", "l": "Kiểu dữ liệu", "save": "live", "f": [
+      {"id": "pv", "l": "Nhiệt độ lò", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "big,trend"},
+      {"id": "sv", "l": "Nhiệt độ đặt", "t": "num", "u": "°C", "min": 0, "max": 1200, "st": 5, "dp": 0},
+      {"id": "press", "l": "Áp suất", "t": "num", "u": "bar", "dp": 2, "ro": 1, "min": 0, "max": 10, "w": "gauge"},
+      {"id": "limit", "l": "Giới hạn công suất", "t": "num", "u": "%", "min": 10, "max": 100, "st": 10, "nul": 1},
+      {"id": "run", "l": "Đang chạy", "t": "bool", "c": "Bật thiết bị?"},
+      {"id": "door", "l": "Cửa đóng", "t": "bool", "ro": 1, "w": "led"},
+      {"id": "fault", "l": "Lỗi", "t": "bool", "ro": 1, "w": "led,warn"},
+      {"id": "state", "l": "Trạng thái", "t": "text"},
+      {"id": "note", "l": "Ghi chú dài", "t": "text"},
+      {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20},
+      {"id": "mode", "l": "Chế độ", "t": "enum", "opt": [["off", "Tắt"], ["manual", "Tay"], ["auto", "Tự động"]]},
+      {"id": "baud", "l": "Tốc độ", "t": "enum", "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [115200, "115200"]]},
+      {"id": "fan", "l": "Quạt (chỉ khi chế độ Tay)", "t": "bool", "en": "mode==manual"},
+      {"id": "boost", "l": "Tăng tốc (ẩn khi Tắt)", "t": "act", "if": "mode!=off&&run==true"},
+      {"id": "start", "l": "Giờ bắt đầu", "t": "time"},
+      {"id": "until", "l": "Chạy đến ngày", "t": "date", "nul": 1},
+      {"id": "wdays", "l": "Ngày chạy", "t": "days"},
+      {"id": "warn", "l": "Cảnh báo", "t": "flags", "opt": ["Quá nhiệt", "Mất cảm biến", "Cửa mở"]},
+      {"id": "reset", "l": "Xóa cảnh báo", "t": "act", "c": "Xóa toàn bộ cảnh báo?", "if": "warn!=0"},
+      {"id": "alien", "l": "Kiểu lạ", "t": "xyz"},
+      {"id": "odd", "l": "Gợi ý lạ", "t": "num", "u": "V", "ro": 1, "w": "hologram"}
+    ]},
+    {"id": "groups", "l": "Nhóm & lặp", "save": "batch", "f": [
+      {"id": "kp", "l": "Kp", "t": "num", "min": 0, "max": 100, "st": 0.1, "g": "PID"},
+      {"id": "ki", "l": "Ki", "t": "num", "min": 0, "max": 10, "st": 0.01, "g": "PID"},
+      {"id": "kd", "l": "Kd", "t": "num", "min": 0, "max": 500, "st": 1, "g": "PID"},
+      {"id": "lo", "l": "Ngưỡng thấp", "t": "num", "u": "°C", "min": -40, "max": 120, "st": 0.5, "g": "Báo động"},
+      {"id": "hi", "l": "Ngưỡng cao", "t": "num", "u": "°C", "min": -40, "max": 120, "st": 0.5, "g": "Báo động"},
+      {"id": "steps", "l": "Số bước", "t": "num", "min": 1, "max": 4, "st": 1}
+    ],
+    "rep": {"n": 4, "pfx": "p", "l": "Bước", "cnt": "steps", "f": [
+      {"id": "t", "l": "Nhiệt độ đích", "t": "num", "u": "°C", "min": 0, "max": 1200, "st": 10},
+      {"id": "r", "l": "Thời gian tăng", "t": "num", "u": "phút", "min": 0, "max": 600, "st": 5},
+      {"id": "hold", "l": "Giữ nhiệt", "t": "bool"},
+      {"id": "s", "l": "Thời gian giữ", "t": "num", "u": "phút", "min": 0, "max": 600, "st": 5, "if": "hold==true"}
+    ]}},
+    {"id": "hints", "l": "Gợi ý mới", "ic": "dashboard", "save": "live", "f": [
+      {"id": "n_t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
+      {"id": "n_h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
+      {"id": "n_st", "l": "Giai đoạn", "t": "text", "w": "tile", "ic": "fire"},
+      {"id": "n_ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_sal", "l": "Độ mặn", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "n_sok", "l": "Cảm biến mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "n_sok==false"},
+      {"id": "n_out", "l": "Bơm", "t": "bool", "w": "hero,btns", "ic": "pump", "sub": "n_mode", "en": "n_mode==manual",
+       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+      {"id": "n_mode", "l": "Chế độ bơm", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
+      {"id": "n_burn", "l": "Đốt lò", "t": "bool", "w": "hero,warn", "ic": "fire", "opt": ["Dừng", "Đang đốt"], "sub": "n_t"},
+      {"id": "n_al", "l": "Báo động bơm", "t": "flags", "w": "alarm", "g": "nal", "opt": ["Cạn nước", "Quá dòng", "Mất pha"]},
+      {"id": "n_sil", "l": "Tắt chuông", "t": "act", "ic": "mute", "g": "nal", "if": "n_al!=0"},
+      {"id": "n_lock", "l": "Khóa an toàn", "t": "bool", "ro": 1, "w": "alarm", "g": "nlk"},
+      {"id": "n_why", "l": "Lý do", "t": "text", "g": "nlk", "if": "n_lock==true"},
+      {"id": "n_fan", "l": "Quạt", "t": "bool", "w": "btns", "ic": "fan", "g": "Khác"},
+      {"id": "n_up", "l": "Thời gian chạy", "t": "num", "u": "s", "ro": 1, "w": "dur", "ic": "timer", "g": "Khác"},
+      {"id": "n_icx", "l": "Icon lạ", "t": "text", "ic": "khong_co_icon_nay", "d": "Tên icon lạ thì không hiện icon", "g": "Khác"}
+    ]},
+    {"id": "legacy", "title": "Khóa dài", "fields": [
+      {"id": "old_pv", "label": "Temperature", "type": "float", "unit": "°C", "readonly": true},
+      {"id": "old_sv", "label": "Setpoint", "type": "float", "unit": "°C", "min": 0, "max": 1200, "step": 1},
+      {"id": "old_cnt", "label": "Counter", "type": "int", "readonly": true}
+    ],
+    "repeat": {"count": 2, "prefix": "step", "fields": [
+      {"id": "t", "label": "Target", "type": "float", "unit": "°C", "min": 0, "max": 1200, "step": 5}
+    ]}},
+    {"l": "Màn hỏng (thiếu id)", "f": [{"id": "x", "t": "num"}]}
+  ],
+  "values": {
+    "pv": 152.3, "sv": 150, "press": 3.42, "limit": null, "run": true, "door": true, "fault": false,
+    "state": "Đang gia nhiệt", "note": "Bước 2/4: đang tăng tới 600 °C, còn 35 phút",
+    "_name": "DEMO-ALL", "mode": "manual", "baud": 9600, "fan": false,
+    "start": "08:30", "until": null, "wdays": 31, "warn": 5,
+    "alien": "abc", "odd": 3.3,
+    "kp": 12.5, "ki": 0.25, "kd": 40, "lo": 10, "hi": 45.5, "steps": 2,
+    "p1_t": 300, "p1_r": 30, "p1_hold": true, "p1_s": 20,
+    "p2_t": 600, "p2_r": 60, "p2_hold": false, "p2_s": 0,
+    "p3_t": 0, "p3_r": 0, "p3_hold": false, "p3_s": 0,
+    "p4_t": 0, "p4_r": 0, "p4_hold": false, "p4_s": 0,
+    "n_t": 31.2, "n_h": 64.5, "n_st": "Giữ nhiệt", "n_ec": 120, "n_sal": 40, "n_tds": 60, "n_sok": false,
+    "n_out": false, "n_mode": "auto", "n_burn": true, "n_al": 3, "n_lock": true, "n_why": "Quá nhiệt 1250 °C",
+    "n_fan": true, "n_up": 7512, "n_icx": "abc",
+    "old_pv": 25.4, "old_sv": 100, "old_cnt": 42, "step1_t": 200, "step2_t": 400
+  }
+}

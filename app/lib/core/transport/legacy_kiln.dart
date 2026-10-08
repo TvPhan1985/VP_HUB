@@ -39,6 +39,46 @@ const Map<String, String> _kilnLabels = {
   's': 'Hold time',
 };
 
+/// Ban tieng Viet cua cac nhan o tren va nhan them trong patchKilnSchema
+const Map<String, String> _kilnVi = {
+  'Operation': 'Vận hành',
+  'Alarm': 'Cảnh báo',
+  'Calibration': 'Hiệu chuẩn',
+  'Auto-tune': 'Tự dò PID',
+  'Program': 'Chương trình',
+  'Steps': 'Các bước',
+  'Temperature': 'Nhiệt độ',
+  'Setpoint': 'Nhiệt độ đặt',
+  'Burner': 'Đốt lò',
+  'Deviation alarm': 'Cảnh báo lệch nhiệt',
+  'Sensor offset': 'Bù sai số cảm biến',
+  'Status': 'Trạng thái',
+  'Run auto-tune': 'Chạy tự dò',
+  'Apply result': 'Áp dụng kết quả',
+  'Use multi-step program': 'Dùng chương trình nhiều bước',
+  'Step count': 'Số bước',
+  'Run program': 'Chạy chương trình',
+  'Progress': 'Tiến trình',
+  'Target temperature': 'Nhiệt độ đích',
+  'Ramp time': 'Thời gian tăng',
+  'Hold time': 'Thời gian giữ',
+  'Start firing the kiln?': 'Bật đốt lò?',
+  'Run the firing program? The kiln will start heating.': 'Chạy chương trình nhiệt? Lò sẽ bắt đầu đốt.',
+  'Run PID auto-tune? The kiln will heat for the test.': 'Chạy tự dò PID? Lò sẽ đốt để thử.',
+  'Apply the auto-tune result to PID?': 'Áp dụng kết quả tự dò vào PID?',
+  'Step': 'Bước',
+  'Stopped': 'Dừng',
+  'Firing': 'Đang đốt',
+  'Sensor': 'Cảm biến',
+  'Safety lock': 'Khóa an toàn',
+  'Lock reason': 'Lý do khóa',
+  'Clear fault': 'Xóa lỗi',
+  'Clear the safety lock and allow the kiln to run again?': 'Xóa khóa an toàn và cho lò chạy lại?',
+  'min': 'phút',
+};
+
+String _l(String en) => Lang.isVi ? (_kilnVi[en] ?? en) : en;
+
 const Map<String, String> _kilnConfirm = {
   'running': 'Start firing the kiln?',
   'program_running': 'Run the firing program? The kiln will start heating.',
@@ -48,8 +88,9 @@ const Map<String, String> _kilnConfirm = {
 
 void _patchField(Map<String, dynamic> f) {
   final id = f['id'];
-  if (_kilnLabels.containsKey(id)) f['label'] = _kilnLabels[id];
-  if (_kilnConfirm.containsKey(id)) f['c'] = _kilnConfirm[id];
+  if (_kilnLabels.containsKey(id)) f['label'] = _l(_kilnLabels[id]!);
+  if (_kilnConfirm.containsKey(id)) f['c'] = _l(_kilnConfirm[id]!);
+  if (f['unit'] == 'min') f['unit'] = _l('min');
 }
 
 /// Va schema lo nung (LEGACY L2). Ham thuan, khong sua [raw].
@@ -57,14 +98,14 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
   final s = jsonDecode(jsonEncode(raw)) as Map<String, dynamic>;
   final id = s['id'];
   s['save'] = 'live';
-  if (_kilnTitles.containsKey(id)) s['title'] = _kilnTitles[id];
+  if (_kilnTitles.containsKey(id)) s['title'] = _l(_kilnTitles[id]!);
   final fields = s['fields'] is List ? s['fields'] as List : (s['fields'] = <dynamic>[]);
   for (final f in fields) {
     if (f is Map<String, dynamic>) _patchField(f);
   }
   final rep = s['repeat'];
   if (rep is Map<String, dynamic>) {
-    rep['label'] = 'Step';
+    rep['label'] = _l('Step');
     if (rep['fields'] is List) {
       for (final f in rep['fields'] as List) {
         if (f is Map<String, dynamic>) _patchField(f);
@@ -92,7 +133,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (f['id'] == 'running') {
         f['w'] = 'hero';
         f['ic'] = 'fire';
-        f['opt'] = ['Stopped', 'Firing'];
+        f['opt'] = [_l('Stopped'), _l('Firing')];
         f['sub'] = 'sv';
       }
     }
@@ -101,10 +142,10 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (!has(f['id'] as String)) fields.add(f);
     }
 
-    add({'id': 'sensor_ok', 'label': 'Sensor', 'type': 'bool', 'readonly': true, 'w': 'led'});
+    add({'id': 'sensor_ok', 'label': _l('Sensor'), 'type': 'bool', 'readonly': true, 'w': 'led'});
     add({
       'id': 'program_info',
-      'label': 'Program',
+      'label': _l('Program'),
       'type': 'text',
       'readonly': true,
       'if': 'program_running==true',
@@ -112,7 +153,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     // Khoa an toan thanh the bao dong, gom ly do va nut xoa loi (cung nhom)
     add({
       'id': 'safety_latched',
-      'label': 'Safety lock',
+      'label': _l('Safety lock'),
       'type': 'bool',
       'readonly': true,
       'w': 'alarm,led,warn',
@@ -120,7 +161,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_reason',
-      'label': 'Lock reason',
+      'label': _l('Lock reason'),
       'type': 'text',
       'readonly': true,
       'if': 'safety_latched==true',
@@ -128,11 +169,11 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_clear',
-      'label': 'Clear fault',
+      'label': _l('Clear fault'),
       'type': 'act',
       'ic': 'reset',
       'if': 'safety_latched==true',
-      'c': 'Clear the safety lock and allow the kiln to run again?',
+      'c': _l('Clear the safety lock and allow the kiln to run again?'),
       'g': 'safety',
     });
   }
@@ -302,7 +343,7 @@ class KilnTransport implements DeviceTransport {
         if (f == null || f.type == 'act' || _momentary.contains(id)) return const VphResult.ok();
         final expected = f.type == 'bool' ? (asBool(v) ?? false) : v;
         final tol = f.type == 'num' ? ((f.step ?? 0.1) / 2 + 0.011).clamp(0.06, 1e9).toDouble() : 1e-6;
-        return await _verify(id, expected, tol) ? const VphResult.ok() : const VphResult.fail(S.kilnNotAccepted);
+        return await _verify(id, expected, tol) ? const VphResult.ok() : VphResult.fail(S.kilnNotAccepted);
       });
 
   /// Khong co RESULT: xem VALUES trong 2 giay toi co dung gia tri vua ghi khong

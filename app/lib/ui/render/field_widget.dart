@@ -95,11 +95,11 @@ Future<bool> confirmDialog(BuildContext context, String question) async {
   final yes = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text(S.confirmTitle),
+      title: Text(S.confirmTitle),
       content: Text(question),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text(S.cancel)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text(S.ok)),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.cancel)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(S.ok)),
       ],
     ),
   );
@@ -292,15 +292,15 @@ class OnOffButtons extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: can && !on ? () => c.onChanged(true) : null,
             icon: const Icon(Icons.power),
-            label: const Text(S.onCaps),
+            label: Text(S.onCaps),
           ),
         ),
         const SizedBox(width: Vp.gap),
         Expanded(
-          child: FilledButton.tonalIcon(
+          child: FilledButton.icon(
             onPressed: can && on ? () => c.onChanged(false) : null,
             icon: const Icon(Icons.power_off),
-            label: const Text(S.offCaps),
+            label: Text(S.offCaps),
           ),
         ),
       ],

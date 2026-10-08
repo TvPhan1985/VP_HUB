@@ -130,4 +130,4 @@ _(ghi vào đây)_
 | 8 | 22:30 | 22:50 | Icon, APK debug + release (`release/VPHub_1.0.0.apk`), README |
 | 9–10 | 22:50 | 23:20 | `vph_ble` (lõi + NimBLE), `test_app` 24 test, `vph_demo`; cả hai build thành công với ESP-IDF v5.5.5 |
 | U1–U7 | 2026-10-07 | 2026-10-07 | `docs/PLAN_GIAO_DIEN.md`: PROTOCOL v1.1, widget mới, NavigationBar, màn Quét, WRITE 500 byte, `vph_ble` 1.1.0. 88 test app + 27 test Unity trên chip qua; `release/VPHub_1.1.0.apk` đã cài; `vph_demo` 1.1.0 đang nằm trên board COM5 (xem `docs/TEST_ON_HW.md`) |
-| UI 1.2 | 2026-10-08 | 2026-10-08 | Làm lại giao diện theo PDF quy chuẩn (Top App Bar + tab trên + Navigation Drawer + bảng màu sáng/tối WCAG), chữ app sang tiếng Anh; SPEC §11 mục 38–44; 94 test qua; `release/VPHub_1.2.0.apk` |
+| UI 1.2 | 2026-10-08 | 2026-10-08 | Làm lại giao diện theo PDF quy chuẩn (Top App Bar + tab trên + Navigation Drawer + bảng màu sáng/tối WCAG), chữ app sang tiếng Anh; SPEC §11 mục 38–44; 94 test qua; `release/VPHub_1.2.0.apk`. 1.2.1: thêm chọn ngôn ngữ Anh/Việt, nút OFF cùng màu nút ON (SPEC §11 mục 45–46), 96 test qua, `release/VPHub_1.2.1.apk` |

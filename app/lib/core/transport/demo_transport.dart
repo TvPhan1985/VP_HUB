@@ -37,7 +37,7 @@ class DemoTransport implements DeviceTransport {
     } catch (e) {
       throw FormatException(S.demoBadJson('$e'));
     }
-    if (j is! Map || j['screens'] is! List) throw const FormatException(S.demoNoScreens);
+    if (j is! Map || j['screens'] is! List) throw FormatException(S.demoNoScreens);
     final rawScreens = j['screens'] as List;
     final screens = [for (var i = 0; i < rawScreens.length; i++) VphScreen.tryFromMap(rawScreens[i], index: i)];
     final infoJson = <String, dynamic>{

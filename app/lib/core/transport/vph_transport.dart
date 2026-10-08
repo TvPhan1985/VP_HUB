@@ -146,7 +146,7 @@ class VphTransport implements DeviceTransport {
       await link.write(kVphWrite, payload);
       return await c.future.timeout(resultTimeout);
     } on TimeoutException {
-      return const VphResult.fail(S.noResponse);
+      return VphResult.fail(S.noResponse);
     } catch (e) {
       return VphResult.fail(S.sendFailed(e));
     } finally {
@@ -157,7 +157,7 @@ class VphTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     for (final c in _pending.values) {
-      if (!c.isCompleted) c.complete(const VphResult.fail(S.linkLost));
+      if (!c.isCompleted) c.complete(VphResult.fail(S.linkLost));
     }
     _pending.clear();
     await link.disconnect();

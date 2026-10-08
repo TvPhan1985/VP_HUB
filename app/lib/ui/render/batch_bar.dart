@@ -35,14 +35,14 @@ class BatchBar extends StatelessWidget {
                   style: TextStyle(color: cs.onTertiaryContainer, fontWeight: FontWeight.w600),
                 ),
               ),
-              TextButton(onPressed: saving ? null : onCancel, child: const Text(S.cancel)),
+              TextButton(onPressed: saving ? null : onCancel, child: Text(S.cancel)),
               const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: saving || !enabled ? null : onSave,
                 icon: saving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.save, size: 18),
-                label: const Text(S.save),
+                label: Text(S.save),
               ),
             ],
           ),

@@ -467,4 +467,70 @@ void main() {
     expect(d.scaffoldBackgroundColor, isNot(const Color(0xFF000000)));
     expect(d.colorScheme.onSurface, isNot(const Color(0xFFFFFFFF)));
   });
+
+  testWidgets('menu Language: doi Anh -> Viet ap dung ngay ca man dang mo va luu lai', (tester) async {
+    addTearDown(() => Lang.code = Lang.en);
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(900, 5000);
+    addTearDown(tester.view.reset);
+    final store = MemoryStore();
+    final ctl = ThemeController(store);
+    expect(ctl.lang, Lang.en);
+    final rig = _Rig();
+    rig.session = DeviceSession(
+      connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
+    );
+    await rig.session.connect();
+    await tester.pumpWidget(ThemeScope(
+      controller: ctl,
+      child: MaterialApp(theme: vpHubTheme(Brightness.light), home: DeviceScreen(session: rig.session)),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Connected'), findsOneWidget);
+    expect(_button('ON'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Language'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tiếng Việt'));
+    await tester.pumpAndSettle();
+    expect(ctl.lang, Lang.vi);
+    expect(store.getString('lang'), 'vi');
+    // Chu cua app tren man dang mo doi ngay
+    expect(find.text('Đã kết nối'), findsOneWidget);
+    expect(find.text('Connected'), findsNothing);
+    expect(_button('BẬT'), findsOneWidget);
+    expect(_button('TẮT'), findsOneWidget);
+    // Mo lai app: van la tieng Viet
+    Lang.code = Lang.en;
+    expect(ThemeController(store).lang, Lang.vi);
+    expect(Lang.isVi, isTrue);
+    await _close(tester, rig);
+  });
+
+  test('schema luu san ban tieng Viet va tieng Anh co cung cau truc', () {
+    // Bo het chu hien thi, chi giu id / kieu / goi y / dieu kien
+    dynamic strip(dynamic j, [String? key]) {
+      if (j is Map) {
+        return {
+          for (final e in j.entries)
+            if (!const {'l', 'd', 'c', 'g', 'title', 'label', 'state', 'note', 'n_st', 'n_why'}.contains(e.key))
+              e.key: strip(e.value, e.key as String),
+        };
+      }
+      if (j is List) {
+        // opt: giu gia tri va icon, bo nhan
+        if (key == 'opt') return [for (final o in j) o is List ? [o[0], if (o.length > 2) o[2]] : null];
+        return [for (final e in j) strip(e, key)];
+      }
+      if (key == 'u' && j == 'phút') return 'min';
+      return j;
+    }
+
+    for (final f in ['assets/legacy/c3relay_v1', 'assets/demo/demo_relay', 'assets/demo/demo_all_types']) {
+      final en = jsonDecode(File('$f.json').readAsStringSync());
+      final vi = jsonDecode(File('$f.vi.json').readAsStringSync());
+      expect(jsonEncode(strip(vi)), jsonEncode(strip(en)), reason: f);
+    }
+  });
 }

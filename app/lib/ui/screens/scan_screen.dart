@@ -188,7 +188,7 @@ class _ScanScreenState extends State<ScanScreen> {
 
   /// Menu he thong cua man Quet: trang thai Bluetooth o tren, roi Thiet bi / Cai dat app / Ho tro
   Widget _drawer(BuildContext context) {
-    final theme = themeEntry(context);
+    final theme = themeEntry(context), language = languageEntry(context);
     Future<void> push(Widget page) async {
       await _stopScan();
       if (!context.mounted) return;
@@ -208,6 +208,7 @@ class _ScanScreenState extends State<ScanScreen> {
         ]),
         DrawerSection(S.secApp, [
           ?theme,
+          ?language,
           DrawerEntry(
             icon: Icons.bluetooth_connected,
             label: S.menuAuto,
