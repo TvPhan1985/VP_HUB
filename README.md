@@ -70,3 +70,7 @@ Kế hoạch thực hiện và nhật ký: `docs/PLAN.md`.
 ## Bắt đầu một dự án thiết bị mới
 
 Đọc `docs/QUY_TAC_THIET_BI_MOI.md` (quy chuẩn). Cần mang đi chỗ khác thì chạy `tools/.venv/Scripts/python tools/make_kit.py` để tạo `release/VPH_KIT_<bản>.zip` (quy chuẩn, giao thức, file mẫu, component `vph_ble`, firmware mẫu, APK).
+
+## Bản phát hành (release)
+
+`release/VPHub_<bản>.apk` là bản **release**, ký bằng khóa riêng `app/android/vphub-release.jks` (mật khẩu trong `app/android/key.properties`). Hai file này **không nằm trong git** — phải tự sao lưu; mất khóa thì máy đã cài không cập nhật đè được nữa. Build: `cd app; flutter build apk --release`. Thiếu `key.properties` thì Gradle ký tạm bằng khóa debug.
