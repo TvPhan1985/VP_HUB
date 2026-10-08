@@ -10,7 +10,8 @@ import '../../core/schema_cache.dart';
 import '../../core/transport/fbp_gatt_link.dart';
 import '../../core/transport/transport_registry.dart';
 import '../../core/transport/uuids.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
+import '../app_drawer.dart';
 import '../device_icon.dart';
 import '../theme.dart';
 import 'about_screen.dart';
@@ -175,9 +176,55 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Widget _section(BuildContext context, String title) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.primary)),
+        child: Text(
+          title.toUpperCase(),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.8,
+              ),
+        ),
       );
+
+  /// Menu he thong cua man Quet: trang thai Bluetooth o tren, roi Thiet bi / Cai dat app / Ho tro
+  Widget _drawer(BuildContext context) {
+    final theme = themeEntry(context);
+    Future<void> push(Widget page) async {
+      await _stopScan();
+      if (!context.mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    }
+
+    return AppDrawer(
+      avatar: const Icon(Icons.hub, size: 24),
+      title: S.appName,
+      subtitle: S.appTagline,
+      status: !_adapterOn ? S.btOffShort : (_scanning ? S.scanning : S.btReady),
+      statusColor: !_adapterOn ? Vp.barStop : (_scanning ? Vp.barCaution : Vp.barOk),
+      sections: [
+        DrawerSection(S.secDevices, [
+          DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, selected: true, onTap: () {}),
+          DrawerEntry(icon: Icons.science_outlined, label: S.menuDemo, onTap: () => push(const DemoScreen())),
+        ]),
+        DrawerSection(S.secApp, [
+          ?theme,
+          DrawerEntry(
+            icon: Icons.bluetooth_connected,
+            label: S.menuAuto,
+            value: _known.autoConnect ? S.on : S.off,
+            keepOpen: true,
+            onTap: () async {
+              await _known.setAutoConnect(!_known.autoConnect);
+              if (mounted) setState(() {});
+            },
+          ),
+        ]),
+        DrawerSection(S.secSupport, [
+          DrawerEntry(icon: Icons.menu_book_outlined, label: S.menuAbout, onTap: () => push(const AboutScreen())),
+        ]),
+      ],
+    );
+  }
 
   /// Mot thiet bi la mot the: icon, ten, nhan giao thuc, cot song
   Widget _deviceCard(
@@ -253,6 +300,12 @@ class _ScanScreenState extends State<ScanScreen> {
           Text(_scanning ? S.scanning : S.scanEmptyTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           Text(S.scanEmptyHint, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: _scanning ? _stopScan : _scan,
+            icon: Icon(_scanning ? Icons.stop : Icons.search),
+            label: Text(_scanning ? S.stopScan : S.scan),
+          ),
         ],
       ),
     );
@@ -281,36 +334,25 @@ class _ScanScreenState extends State<ScanScreen> {
     final knownIds = {for (final d in known) d.id};
     final fresh = [for (final r in _results) if (!knownIds.contains(r.device.remoteId.str)) r];
     return Scaffold(
+      drawer: _drawer(context),
       appBar: AppBar(
+        leading: const MenuButton(),
         title: const Text(S.appName),
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (v) async {
-              switch (v) {
-                case 'demo':
-                  await _stopScan();
-                  if (!context.mounted) return;
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const DemoScreen()));
-                case 'auto':
-                  await _known.setAutoConnect(!_known.autoConnect);
-                  if (mounted) setState(() {});
-                case 'about':
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AboutScreen()));
-              }
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(value: 'demo', child: Text(S.menuDemo)),
-              CheckedPopupMenuItem(value: 'auto', checked: _known.autoConnect, child: const Text(S.menuAuto)),
-              const PopupMenuItem(value: 'about', child: Text(S.menuAbout)),
-            ],
+          // Top Action Item: quet tim thiet bi
+          IconButton(
+            tooltip: _scanning ? S.stopScan : S.scan,
+            icon: Icon(_scanning ? Icons.stop_circle_outlined : Icons.search),
+            onPressed: _scanning ? _stopScan : _scan,
           ),
+          const SizedBox(width: 4),
         ],
         bottom: _scanning
-            ? const PreferredSize(preferredSize: Size.fromHeight(4), child: LinearProgressIndicator())
+            ? const PreferredSize(preferredSize: Size.fromHeight(3), child: LinearProgressIndicator(minHeight: 3))
             : null,
       ),
       body: ListView(
-        padding: const EdgeInsets.only(bottom: 96),
+        padding: const EdgeInsets.only(bottom: 24),
         children: [
           if (!_adapterOn)
             _notice(Icons.bluetooth_disabled, S.btOff, S.btTurnOn, () async {
@@ -368,11 +410,6 @@ class _ScanScreenState extends State<ScanScreen> {
               onTap: () => _open(r.device, _nameOf(r), legacyHint: _kindOf(r) != TransportKind.vph),
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _scanning ? _stopScan : _scan,
-        icon: Icon(_scanning ? Icons.stop : Icons.search),
-        label: Text(_scanning ? S.stopScan : S.scan),
       ),
     );
   }

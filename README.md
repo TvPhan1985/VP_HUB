@@ -30,7 +30,7 @@ Một app Android cho mọi thiết bị ESP32 của Phận, qua BLE. Giao diệ
 Bật **Gỡ lỗi USB** trên điện thoại, cắm cáp, rồi:
 
 ```powershell
-adb install -r release/VPHub_1.1.0.apk
+adb install -r release/VPHub_1.2.0.apk
 ```
 
 Hoặc chép file APK vào điện thoại và mở để cài. Lần đầu mở app, bấm **Cho phép** quyền "Thiết bị ở gần" (Bluetooth).
@@ -52,7 +52,7 @@ flutter build apk --release    # chưa có keystore thì ký bằng khóa debug
 
 ## Thử giao diện không cần phần cứng
 
-Màn Quét → menu ⋮ → **Thiết bị mẫu**: có 2 thiết bị giả, và mục **Mở file JSON** để thử schema của thiết bị mới mà không build lại app. Định dạng file: `app/assets/demo/README.md`.
+Màn Quét → nút [≡] → **Demo Devices**: có 2 thiết bị giả, và mục **Mở file JSON** để thử schema của thiết bị mới mà không build lại app. Định dạng file: `app/assets/demo/README.md`.
 
 ## Firmware
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 
 /// Thanh duoi cung cua man batch: "Co N thay doi — [Huy] [Luu]"
 class BatchBar extends StatelessWidget {

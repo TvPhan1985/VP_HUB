@@ -52,3 +52,14 @@ Chưa thử trên phần cứng:
 - [ ] Bộ relay C3 firmware cũ qua adapter với giao diện mới (board relay đang chạy `vph_demo`).
 - [ ] Bộ lò nung firmware cũ với thẻ `hero` / `alarm` mới.
 - [ ] `_name`, `_reboot`, mất kết nối / kết nối lại trên `vph_demo`.
+
+## 2026-10-08 — app 1.2.0 (giao diện theo quy chuẩn Top Navigation & Theme System)
+
+| Bước | Kết quả |
+|---|---|
+| `flutter analyze`, `flutter test` | sạch, 94 test qua |
+| Cài `release/VPHub_1.2.0.apk` lên điện thoại ZY32MCZVB2 | `Success` |
+| Màn Quét: Top App Bar, nút [≡], nút Scan, Drawer (Devices / App Settings / Support) | đúng |
+| Thiết bị mẫu Demo Relay: tab in hoa ở trên, chuông có số 1, thẻ tile / hero / alarm, Drawer có Advanced + Device | đúng |
+| Theme: System default (máy đang tối) → Light → trả lại System default | đổi ngay, không cần mở lại app |
+| Chưa thử | kết nối thiết bị thật với bản 1.2 (relay C3, lò nung); bật/tắt relay thật |

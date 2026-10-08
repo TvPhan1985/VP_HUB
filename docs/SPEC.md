@@ -18,7 +18,7 @@ Một app Android duy nhất để **quét, đọc, điều khiển** mọi thi�
 | Quản lý trạng thái | `ChangeNotifier` (giống 2 app cũ), không thêm thư viện |
 | Package | `vn.phan.vphub`, tên hiển thị **VP Hub** |
 | Android tối thiểu | API 23 (Android 6) |
-| Ngôn ngữ giao diện | **Tiếng Việt** (chữ trong code gom vào `lib/l10n/strings_vi.dart`) |
+| Ngôn ngữ giao diện | **Tiếng Anh**, từ ngữ chuyên nghiệp (chữ trong code gom vào `lib/l10n/strings.dart`); đổi từ tiếng Việt ở bản 1.2 |
 
 Quyền Android: `BLUETOOTH_SCAN` (`neverForLocation`), `BLUETOOTH_CONNECT`; Android ≤ 11: `BLUETOOTH`, `BLUETOOTH_ADMIN`, `ACCESS_FINE_LOCATION` (`maxSdkVersion 30`). Lấy theo `AndroidManifest.xml` của app lò nung.
 
@@ -29,7 +29,7 @@ Quyền Android: `BLUETOOTH_SCAN` (`neverForLocation`), `BLUETOOTH_CONNECT`; And
 ```
 lib/
   main.dart, app.dart
-  l10n/strings_vi.dart
+  l10n/strings.dart
   core/
     model/        vph_info.dart, vph_schema.dart (Screen, Field, Repeat, Cond), vph_value.dart
     transport/
@@ -187,3 +187,15 @@ _(Claude Code ghi thêm vào đây)_
 35. **Lò nung**: `pv` thêm `ic:"fire"`; `running` thành `hero` với chữ "Dừng / Đang đốt", dòng phụ là nhiệt độ đặt; `safety_latched` thành thẻ `alarm`, gom `safety_reason` và nút `safety_clear`.
 36. **Relay C3**: màn Tổng quan theo ví dụ PROTOCOL §11 (v1.1); giữ thêm đèn "Đã tắt còi" trong thẻ báo động khi còi đã tắt (app cũ hiện nút mờ "Đã tắt còi").
 37. **Màn trong menu ⋮** (`nav:"menu"`, PROTOCOL §5): màn có khóa này không làm tab; tên và icon của nó hiện ở đầu menu ⋮ của màn Thiết bị, bấm thì mở thành trang riêng (có nút quay lại, thanh Lưu của màn batch, hỏi lại khi còn thay đổi chưa lưu). Vào trang thì app SELECT màn đó, thoát ra thì SELECT lại tab đang mở. Nếu **mọi** màn đều là `menu` thì coi tất cả là tab (không để màn Thiết bị trống). Relay C3: "Nâng cao" và "Thiết bị" nằm trong menu, còn 2 tab "Tổng quan", "Lịch & tự động".
+
+### Giao diện 1.2 theo "Quy chuẩn thiết kế app Công - Nông nghiệp" (PDF trong docs/, 2026-10-08)
+
+Các mục dưới đây thay cho mô tả cũ ở §3, §4 và mục 25, 37 khi có khác nhau.
+
+38. **Bố cục chung**: Top App Bar cao 56dp, nút menu [≡] góc trái, tên thiết bị + dòng trạng thái kết nối, nút tác vụ góc phải. Ngay dưới là thanh tab cuộn ngang (Scrollable Tabs), chữ **in hoa**, không icon; tab đang chọn có nền xanh mờ và gạch chân. Thanh đầu, thanh tab và menu hệ thống luôn nền xám đậm (`#0F172A` / `#1E293B`) ở cả hai chế độ sáng/tối như hình mẫu của quy chuẩn. Trang con (màn `nav:"menu"`, Device Information, About, Demo Devices) dùng mũi tên quay lại thay cho [≡].
+39. **Menu hệ thống (Navigation Drawer)** thay menu ⋮: rộng 82% màn hình, tối đa 320dp; nền phía sau phủ `rgba(0,0,0,0.5)`; chạm vùng mờ hoặc vuốt trái để đóng. Khối trên cùng: avatar (2 chữ đầu của tên thiết bị), tên, `model · Firmware x.y.z`, chấm + chữ trạng thái kết nối. Màn Thiết bị có 3 nhóm: **DEVICE** (Device List, các màn `nav:"menu"` của thiết bị, Device Information, Reload Schema), **APP SETTINGS** (Theme), **SUPPORT** (About, Disconnect chữ đỏ). Màn Quét: **DEVICES** (Device List, Demo Devices), **APP SETTINGS** (Theme, Auto-connect on Launch), **SUPPORT** (About). App không có tài khoản người dùng nên khối hồ sơ hiện thiết bị đang kết nối; không có mục Ngôn ngữ (app chỉ có tiếng Anh theo CLAUDE.md) và không có đổi đơn vị đo (đơn vị do thiết bị gửi).
+40. **Nút tác vụ góc phải**: màn Thiết bị có chuông thông báo kèm số báo động đang bật; bấm mở danh sách "Active Alarms". Số báo động = số bit đang bật của mọi trường `flags` + số trường `bool` có gợi ý `alarm` (hoặc `warn` mà không phải `hero`) đang bật — tính từ schema, không theo model. Màn Quét: nút Scan / Stop (thay nút nổi dưới đáy); khi chưa thấy thiết bị nào có thêm nút Scan giữa màn.
+41. **Bảng màu** (`lib/ui/theme.dart`, đúng mã trong mục 5-6 của quy chuẩn): sáng — nền `#F8F9FA`, thẻ `#FFFFFF`, chữ `#1E293B`, chữ phụ `#64748B`, màu nhấn `#0284C7`, tốt `#15803D`; tối — nền `#0F172A`, thẻ `#1E293B`, chữ `#F1F5F9`, chữ phụ `#94A3B8`, màu nhấn `#38BDF8`, tốt `#22C55E`. Cảnh báo: `#FEF3C7`/`#92400E` (sáng), `#451A03`/`#FDE047` (tối) — dùng cho dòng `note`, băng "đang kết nối lại", thanh thay đổi chưa lưu. Dừng khẩn: `#FEE2E2`/`#991B1B` (sáng), `#450A0A`/`#FCA5A5` (tối) — dùng cho thẻ báo động, lỗi, băng mất kết nối. Không dùng đen thuần / trắng thuần ở chế độ tối. Màu đỏ / vàng / xanh giữ nguyên nghĩa ở cả hai chế độ.
+42. **Đổi giao diện**: Theme = System default (mặc định, theo hệ điều hành, đổi ngay không cần mở lại app) / Light / Dark; lưu trong kho của app (khóa `theme`).
+43. **Thẻ nội dung** theo hình mẫu: thẻ nền phẳng có viền 1px, bo góc 12. Thẻ `hero`: tên + nhãn trạng thái (chip) ở góc phải, dòng phụ `sub` nằm trong khối nền xám có vạch màu bên trái. Thẻ `big`: khối có vạch màu, nhãn nhỏ ở trên, số 40pt đậm canh trái. Thẻ `tile`: nhãn nhỏ màu chữ phụ, số đậm màu nhấn, canh giữa.
+44. **Chữ tiếng Anh**: toàn bộ chữ của app, schema lưu sẵn của relay C3 (`assets/legacy/c3relay_v1.json`), nhãn vá cho lò nung và 2 thiết bị mẫu đổi sang tiếng Anh. Chữ do thiết bị tự gửi (schema của thiết bị VPH, chuỗi `err`) app hiện nguyên văn, không dịch.

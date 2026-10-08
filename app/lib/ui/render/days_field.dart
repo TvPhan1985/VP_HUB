@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import 'field_widget.dart';
 
 /// days: bitmask 0..127, bit0 = Thu 2 ... bit6 = Chu nhat -> 7 nut T2..CN

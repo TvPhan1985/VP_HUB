@@ -210,7 +210,7 @@ class VphScreen {
   /// Ten icon cua tab (PROTOCOL §5.6)
   final String? icon;
 
-  /// nav:"menu": man cai dat / thong tin, nam trong menu ⋮ thay vi lam tab
+  /// nav:"menu": man cai dat / thong tin, nam trong menu he thong (Navigation Drawer) thay vi lam tab
   final bool menu;
   final bool batch;
   final List<VphField> fields;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../theme.dart';
 import 'field_widget.dart';
 import 'icons.dart';
@@ -81,21 +81,27 @@ class _Tile extends StatelessWidget {
         child: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (ic != null) ...[
-                      Icon(ic, size: 32, color: has ? cs.primary : Vp.idle(cs)),
+                      Icon(ic, size: 26, color: has ? cs.primary : Vp.idle(cs)),
                       const SizedBox(height: 4),
                     ],
-                    Text(field.label, textAlign: TextAlign.center),
+                    Text(field.label,
+                        textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                    const SizedBox(height: 2),
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         displayValue(field, value),
-                        style: const TextStyle(fontSize: Vp.tileNumber, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: Vp.tileNumber,
+                          fontWeight: FontWeight.w700,
+                          color: has ? cs.primary : Vp.idle(cs),
+                        ),
                       ),
                     ),
                   ],
@@ -128,6 +134,7 @@ class MiniStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final fs = fields;
+    final cs = Theme.of(context).colorScheme;
     // Toi da 4 o mot hang; nhieu hon thi moi hang 3 o
     final per = fs.length <= 4 ? fs.length : 3;
     final rows = <Widget>[];
@@ -142,12 +149,13 @@ class MiniStrip extends StatelessWidget {
                   ? const SizedBox.shrink()
                   : Column(
                       children: [
-                        Text(row[k].label, style: const TextStyle(fontSize: 12), textAlign: TextAlign.center),
+                        Text(row[k].label,
+                            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant), textAlign: TextAlign.center),
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
                             displayValue(row[k], session.valueOf(screen, row[k].id)),
-                            style: const TextStyle(fontSize: Vp.miniNumber, fontWeight: FontWeight.w600),
+                            style: const TextStyle(fontSize: Vp.miniNumber, fontWeight: FontWeight.w700),
                           ),
                         ),
                       ],

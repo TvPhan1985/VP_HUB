@@ -1,67 +1,67 @@
 {
   "screens": [
-    {"id": "overview", "l": "Tổng quan", "ic": "dashboard", "save": "live", "f": [
-      {"id": "t", "l": "Nhiệt độ", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
-      {"id": "h", "l": "Độ ẩm", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
+    {"id": "overview", "l": "Overview", "ic": "dashboard", "save": "live", "f": [
+      {"id": "t", "l": "Temperature", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
+      {"id": "h", "l": "Humidity", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
       {"id": "ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
-      {"id": "sal", "l": "Độ mặn", "t": "num", "ro": 1, "w": "mini"},
+      {"id": "sal", "l": "Salinity", "t": "num", "ro": 1, "w": "mini"},
       {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
-      {"id": "sok", "l": "Cảm biến chưa có dữ liệu hoặc mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "sok", "l": "Sensor has no data or is disconnected", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
       {"id": "out", "l": "Relay", "t": "bool", "w": "hero,btns", "ic": "power", "sub": "mode", "en": "mode==manual",
-       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
-      {"id": "mode", "l": "Chế độ", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
-      {"id": "alarm", "l": "Báo động", "t": "flags", "w": "alarm", "g": "al",
-       "opt": ["Mất cảm biến", "Chưa có giờ", "Nhiệt độ ngoài ngưỡng", "Độ ẩm ngoài ngưỡng"]},
-      {"id": "silence", "l": "Tắt còi", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
-      {"id": "muted", "l": "Đã tắt còi", "t": "bool", "ro": 1, "w": "led", "ic": "mute", "g": "al", "if": "alarm!=0&&muted==true"},
-      {"id": "time", "l": "Giờ thiết bị", "t": "text", "ic": "clock", "g": "Trạng thái"},
-      {"id": "tok", "l": "Thiết bị chưa có giờ", "t": "bool", "ro": 1, "w": "note", "g": "Trạng thái", "if": "tok==false"},
-      {"id": "up", "l": "Thời gian chạy", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Trạng thái"}
+       "d": "Manual switching is available in Manual mode only"},
+      {"id": "mode", "l": "Mode", "t": "enum", "w": "seg", "opt": [["manual", "Manual", "hand"], ["auto", "Auto", "auto"]]},
+      {"id": "alarm", "l": "Alarm", "t": "flags", "w": "alarm", "g": "al",
+       "opt": ["Sensor lost", "Clock not set", "Temperature out of range", "Humidity out of range"]},
+      {"id": "silence", "l": "Silence", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
+      {"id": "muted", "l": "Buzzer silenced", "t": "bool", "ro": 1, "w": "led", "ic": "mute", "g": "al", "if": "alarm!=0&&muted==true"},
+      {"id": "time", "l": "Device time", "t": "text", "ic": "clock", "g": "Status"},
+      {"id": "tok", "l": "Device clock is not set", "t": "bool", "ro": 1, "w": "note", "g": "Status", "if": "tok==false"},
+      {"id": "up", "l": "Uptime", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Status"}
     ]},
-    {"id": "auto", "l": "Lịch & tự động", "ic": "schedule", "save": "batch", "f": [
-      {"id": "src", "l": "Nguồn tự động", "t": "enum", "w": "seg",
-       "d": "Lịch: bật khi đang trong một khung giờ. Cảm biến: bật/tắt theo ngưỡng, không quan tâm giờ. Kết hợp: chỉ bật khi đang trong khung giờ VÀ cảm biến yêu cầu bật.",
-       "opt": [["schedule", "Lịch"], ["sensor", "Cảm biến"], ["both", "Kết hợp"]]},
-      {"id": "date_from", "l": "Từ ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
-      {"id": "date_to", "l": "Đến ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
-      {"id": "sen_type", "l": "Đo theo", "t": "enum", "opt": [["hum", "Độ ẩm"], ["temp", "Nhiệt độ"]],
-       "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
-      {"id": "sen_act", "l": "Kiểu ngưỡng", "t": "enum", "opt": [["low", "Bật khi thấp"], ["high", "Bật khi cao"]],
-       "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
-      {"id": "on_at", "l": "Ngưỡng bật", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
-      {"id": "off_at", "l": "Ngưỡng tắt", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến",
-       "d": "Giá trị nằm giữa hai ngưỡng thì relay giữ nguyên trạng thái."}
+    {"id": "auto", "l": "Schedule & Auto", "ic": "schedule", "save": "batch", "f": [
+      {"id": "src", "l": "Auto source", "t": "enum", "w": "seg",
+       "d": "Schedule: on while inside a time slot. Sensor: on/off by thresholds, regardless of time. Combined: on only while inside a time slot AND the sensor calls for it.",
+       "opt": [["schedule", "Schedule"], ["sensor", "Sensor"], ["both", "Combined"]]},
+      {"id": "date_from", "l": "Start date", "t": "date", "nul": 1, "g": "Date range"},
+      {"id": "date_to", "l": "End date", "t": "date", "nul": 1, "g": "Date range"},
+      {"id": "sen_type", "l": "Measured value", "t": "enum", "opt": [["hum", "Humidity"], ["temp", "Temperature"]],
+       "if": "src!=schedule", "g": "Sensor thresholds"},
+      {"id": "sen_act", "l": "Threshold type", "t": "enum", "opt": [["low", "On when low"], ["high", "On when high"]],
+       "if": "src!=schedule", "g": "Sensor thresholds"},
+      {"id": "on_at", "l": "On threshold", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds"},
+      {"id": "off_at", "l": "Off threshold", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds",
+       "d": "Between the two thresholds the relay keeps its current state."}
     ],
-    "rep": {"n": 5, "pfx": "s", "l": "Khung", "f": [
-      {"id": "en", "l": "Bật", "t": "bool"},
-      {"id": "days", "l": "Thứ", "t": "days"},
-      {"id": "on", "l": "Giờ bật", "t": "time"},
-      {"id": "off", "l": "Giờ tắt", "t": "time", "d": "Giờ tắt nhỏ hơn giờ bật = qua đêm"}
+    "rep": {"n": 5, "pfx": "s", "l": "Slot", "f": [
+      {"id": "en", "l": "Enabled", "t": "bool"},
+      {"id": "days", "l": "Days", "t": "days"},
+      {"id": "on", "l": "On time", "t": "time"},
+      {"id": "off", "l": "Off time", "t": "time", "d": "Off time earlier than on time = overnight"}
     ]}},
-    {"id": "advanced", "l": "Nâng cao", "ic": "tune", "nav": "menu", "save": "batch", "f": [
-      {"id": "mb_addr", "l": "Địa chỉ", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Cảm biến Modbus RTU",
+    {"id": "advanced", "l": "Advanced", "ic": "tune", "nav": "menu", "save": "batch", "f": [
+      {"id": "mb_addr", "l": "Address", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Modbus RTU sensor",
        "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [38400, "38400"], [57600, "57600"], [115200, "115200"]]},
-      {"id": "mb_fc", "l": "Mã hàm", "t": "enum", "opt": [[3, "03 Holding"], [4, "04 Input"]], "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_start", "l": "Thanh ghi đầu", "t": "num", "min": 0, "max": 65535, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_count", "l": "Số thanh ghi", "t": "num", "min": 1, "max": 10, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_idx_h", "l": "Vị trí độ ẩm", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_idx_t", "l": "Vị trí nhiệt độ", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_scale", "l": "Hệ số chia", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Cảm biến Modbus RTU",
-       "d": "Giá trị thật = thanh ghi / hệ số"},
-      {"id": "mb_period", "l": "Chu kỳ đọc", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "al_en", "l": "Bật báo động nhiệt độ / độ ẩm", "t": "bool", "g": "Ngưỡng báo động"},
-      {"id": "al_t_lo", "l": "Nhiệt độ thấp", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
-      {"id": "al_t_hi", "l": "Nhiệt độ cao", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
-      {"id": "al_h_lo", "l": "Độ ẩm thấp", "t": "num", "u": "%", "dp": 1, "g": "Ngưỡng báo động"},
-      {"id": "al_h_hi", "l": "Độ ẩm cao", "t": "num", "u": "%", "dp": 1, "g": "Ngưỡng báo động"}
+      {"id": "mb_fc", "l": "Function code", "t": "enum", "opt": [[3, "03 Holding"], [4, "04 Input"]], "g": "Modbus RTU sensor"},
+      {"id": "mb_start", "l": "Start register", "t": "num", "min": 0, "max": 65535, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_count", "l": "Register count", "t": "num", "min": 1, "max": 10, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_idx_h", "l": "Humidity index", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_idx_t", "l": "Temperature index", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_scale", "l": "Scale divisor", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Modbus RTU sensor",
+       "d": "Actual value = register / divisor"},
+      {"id": "mb_period", "l": "Poll interval", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "al_en", "l": "Temperature / humidity alarm", "t": "bool", "g": "Alarm thresholds"},
+      {"id": "al_t_lo", "l": "Low temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_t_hi", "l": "High temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_h_lo", "l": "Low humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_h_hi", "l": "High humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"}
     ]},
-    {"id": "device", "l": "Thiết bị", "ic": "device", "nav": "menu", "save": "live", "f": [
-      {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20, "ic": "device",
-       "d": "Tối đa 20 ký tự không dấu"},
+    {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
+      {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device",
+       "d": "Up to 20 ASCII characters"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Khởi động lại thiết bị", "t": "act", "ic": "reset",
-       "c": "Khởi động lại thiết bị? Thiết bị sẽ ngắt kết nối vài giây rồi app tự kết nối lại."}
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset",
+       "c": "Restart the device? It will disconnect for a few seconds, then the app reconnects automatically."}
     ]}
   ]
 }

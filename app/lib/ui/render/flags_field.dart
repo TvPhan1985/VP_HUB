@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../theme.dart';
 import 'field_widget.dart';
 

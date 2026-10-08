@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import 'field_widget.dart';
 
 /// text: chu chi doc (trang thai, thong bao)

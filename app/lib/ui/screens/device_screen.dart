@@ -4,13 +4,17 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
+import '../../core/model/vph_value.dart';
 import '../../core/transport/vph_transport.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
+import '../app_drawer.dart';
 import '../render/batch_bar.dart';
+import '../render/flags_field.dart' show activeFlags;
 import '../render/header_bar.dart';
 import '../render/icons.dart';
 import '../render/screen_view.dart';
 import '../theme.dart';
+import 'about_screen.dart';
 import 'info_screen.dart';
 
 enum _Leave { stay, discard, save }
@@ -32,6 +36,48 @@ Future<_Leave> _askLeaveDialog(BuildContext context, DeviceSession s, int screen
   return r ?? _Leave.stay;
 }
 
+/// Cac bao dong dang bat cua thiet bi (cho chuong thong bao tren Top App Bar):
+/// moi bit cua truong flags, va cac bool co goi y alarm / den warn dang bat
+List<String> activeAlarms(DeviceSession s) {
+  final out = <String>[];
+  final seen = <String>{};
+  for (final sc in s.screens) {
+    for (final f in sc.fields) {
+      if (!seen.add(f.id)) continue;
+      final v = s.values[f.id];
+      if (f.type == 'flags') {
+        if (v != null) out.addAll(activeFlags(f, v));
+      } else if (f.type == 'bool' && (f.hint('alarm') || (f.hint('warn') && !f.hint('hero'))) && asBool(v) == true) {
+        out.add(f.label);
+      }
+    }
+  }
+  return out;
+}
+
+/// Thanh tab tren (Top Navigation Tabs): cuon ngang, chu in hoa, nam ngay duoi Top App Bar
+class TopTabs extends StatelessWidget implements PreferredSizeWidget {
+  final TabController controller;
+  final List<String> titles;
+  const TopTabs({super.key, required this.controller, required this.titles});
+
+  @override
+  Size get preferredSize => const Size.fromHeight(44);
+
+  @override
+  Widget build(BuildContext context) => Container(
+        height: 44,
+        width: double.infinity,
+        color: Vp.barTabs,
+        child: TabBar(
+          controller: controller,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          tabs: [for (final t in titles) Tab(height: 44, text: t.toUpperCase())],
+        ),
+      );
+}
+
 /// Man hinh Thiet bi: ve hoan toan tu schema, khong biet thiet bi la loai gi
 class DeviceScreen extends StatefulWidget {
   final DeviceSession session;
@@ -44,14 +90,14 @@ class DeviceScreen extends StatefulWidget {
 class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMixin {
   TabController? _tabs;
 
-  /// Chi so (trong session.screens) cua cac man lam tab; man nav:"menu" nam trong menu ⋮
+  /// Chi so (trong session.screens) cua cac man lam tab; man nav:"menu" nam trong menu he thong
   List<int> _tabIdx = const [];
 
   /// Chi so man hinh cua tab dang mo
   int _shown = 0;
   bool _asking = false;
 
-  /// Dang mo mot man cua menu ⋮ thanh trang rieng
+  /// Dang mo mot man cua menu he thong thanh trang rieng
   bool _inMenu = false;
   StreamSubscription<SessionMessage>? _msgSub;
 
@@ -153,13 +199,106 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     nav.pop();
   }
 
-  /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi
-  (String, Color) _link(ColorScheme cs) => switch (s.status) {
-        LinkStatus.ready => (S.linkOk, Vp.ok(cs)),
-        LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.busy(cs)),
-        LinkStatus.reconnecting => (S.linkRetry, Vp.busy(cs)),
-        _ => (S.linkLost, Vp.warn(cs)),
+  /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi (mau tren nen thanh dam)
+  (String, Color) _link() => switch (s.status) {
+        LinkStatus.ready => (S.linkOk, Vp.barOk),
+        LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.barCaution),
+        LinkStatus.reconnecting => (S.linkRetry, Vp.barCaution),
+        _ => (S.linkLost, Vp.barStop),
       };
+
+  void _disconnect() {
+    s.drafts.clear();
+    Navigator.of(context).pop();
+  }
+
+  void _showAlarms() {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => ListenableBuilder(
+        listenable: s,
+        builder: (ctx, _) {
+          final cs = Theme.of(ctx).colorScheme;
+          final list = activeAlarms(s);
+          return SafeArea(
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text(S.alarmsTitle, style: Theme.of(ctx).textTheme.titleMedium),
+                ),
+                if (list.isEmpty)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.check_circle, color: Vp.ok(cs)),
+                    title: const Text(S.alarmNone),
+                  ),
+                for (final a in list)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, size: 20, color: cs.onErrorContainer),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(a, style: TextStyle(color: cs.onErrorContainer, fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  /// Menu he thong: thong tin thiet bi + ket noi o tren, roi cac nhom Thiet bi / Cai dat app / Ho tro
+  Widget _drawer(BuildContext context, List<int> menuIdx) {
+    final link = _link();
+    final i = s.info;
+    final sub = i == null ? (s.transport?.protoLabel ?? S.appName) : '${i.model} · ${S.infoFw} ${i.fw}';
+    final theme = themeEntry(context);
+    void push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    return AppDrawer(
+      avatar: Text(AppDrawer.initials(s.displayName)),
+      title: s.displayName,
+      subtitle: sub,
+      status: link.$1,
+      statusColor: link.$2,
+      sections: [
+        DrawerSection(S.secDevice, [
+          DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, onTap: _leaveScreen),
+          // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
+          for (final m in menuIdx)
+            DrawerEntry(
+              icon: screenIcon(s.screens[m].icon, m),
+              label: s.screens[m].title,
+              enabled: s.hasEverConnected,
+              onTap: () => _openMenuScreen(m),
+            ),
+          DrawerEntry(
+            icon: Icons.info_outline,
+            label: S.menuInfo,
+            enabled: s.info != null,
+            onTap: () => push(InfoScreen(session: s)),
+          ),
+          DrawerEntry(icon: Icons.sync, label: S.menuReload, enabled: s.ready, onTap: s.reloadSchema),
+        ]),
+        DrawerSection(S.secApp, [?theme]),
+        DrawerSection(S.secSupport, [
+          DrawerEntry(icon: Icons.menu_book_outlined, label: S.menuAbout, onTap: () => push(const AboutScreen())),
+          DrawerEntry(icon: Icons.logout, label: S.menuDisconnect, danger: true, onTap: _disconnect),
+        ]),
+      ],
+    );
+  }
 
   Widget _center(List<Widget> children) => Center(
         child: Padding(
@@ -198,13 +337,22 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
         if (lost && s.status != LinkStatus.failed) const LinearProgressIndicator(minHeight: 2),
         if (lost)
           MaterialBanner(
-            backgroundColor: cs.errorContainer,
+            // Dang thu lai: mau canh bao (vang); bo cuoc: mau dung khan (do)
+            backgroundColor: s.status == LinkStatus.failed ? cs.errorContainer : cs.tertiaryContainer,
+            dividerColor: Colors.transparent,
             leading: s.status == LinkStatus.failed
                 ? Icon(Icons.link_off, color: cs.onErrorContainer)
-                : const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                : SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: cs.onTertiaryContainer),
+                  ),
             content: Text(
               s.status == LinkStatus.failed ? S.lostGiveUp : S.lostRetrying,
-              style: TextStyle(color: cs.onErrorContainer),
+              style: TextStyle(
+                color: s.status == LinkStatus.failed ? cs.onErrorContainer : cs.onTertiaryContainer,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             actions: [
               if (s.status == LinkStatus.failed)
@@ -257,78 +405,47 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
       listenable: s,
       builder: (context, _) {
         _syncTabs();
-        final cs = Theme.of(context).colorScheme;
         final tabs = _tabs;
-        final link = _link(cs);
+        final link = _link();
         final n = _tabIdx.length;
         final menuIdx = [for (var i = 0; i < s.screens.length; i++) if (!_tabIdx.contains(i)) i];
-        // Thanh tab nam o tren, moi tab co icon + chu; tu 4 man tro len thi cuon ngang
         final showTabs = tabs != null && s.hasEverConnected && n >= 2;
+        final alarms = s.hasEverConnected ? activeAlarms(s).length : 0;
         return PopScope(
           canPop: s.draftCount(_shown) == 0,
           onPopInvokedWithResult: (didPop, _) {
             if (!didPop) _leaveScreen();
           },
           child: Scaffold(
+            drawer: _drawer(context, menuIdx),
             appBar: AppBar(
+              leading: const MenuButton(),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(s.displayName, overflow: TextOverflow.ellipsis),
-                  Text(link.$1, style: TextStyle(fontSize: 12, color: link.$2)),
+                  Text(link.$1, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: link.$2)),
                 ],
               ),
               actions: [
-                PopupMenuButton<String>(
-                  onSelected: (v) {
-                    if (v.startsWith('scr:')) {
-                      _openMenuScreen(int.parse(v.substring(4)));
-                      return;
-                    }
-                    switch (v) {
-                      case 'info':
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => InfoScreen(session: s)));
-                      case 'reload':
-                        s.reloadSchema();
-                      case 'disconnect':
-                        s.drafts.clear();
-                        Navigator.of(context).pop();
-                    }
-                  },
-                  itemBuilder: (_) => [
-                    // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
-                    for (final i in menuIdx)
-                      PopupMenuItem(
-                        value: 'scr:$i',
-                        enabled: s.hasEverConnected,
-                        child: Row(children: [
-                          Icon(screenIcon(s.screens[i].icon, i), size: 20),
-                          const SizedBox(width: 12),
-                          Flexible(child: Text(s.screens[i].title)),
-                        ]),
-                      ),
-                    if (menuIdx.isNotEmpty) const PopupMenuDivider(),
-                    PopupMenuItem(value: 'info', enabled: s.info != null, child: const Text(S.menuInfo)),
-                    PopupMenuItem(value: 'reload', enabled: s.ready, child: const Text(S.menuReload)),
-                    const PopupMenuItem(value: 'disconnect', child: Text(S.menuDisconnect)),
-                  ],
+                // Top Action Item: chuong thong bao kem so bao dong dang bat
+                IconButton(
+                  tooltip: S.alarmsTooltip,
+                  onPressed: s.hasEverConnected ? _showAlarms : null,
+                  icon: Badge(
+                    isLabelVisible: alarms > 0,
+                    label: Text('$alarms'),
+                    backgroundColor: const Color(0xFFDC2626),
+                    textColor: Colors.white,
+                    child: Icon(alarms > 0 ? Icons.notifications_active : Icons.notifications_none),
+                  ),
                 ),
+                const SizedBox(width: 4),
               ],
               bottom: !showTabs
                   ? null
-                  : TabBar(
-                      controller: tabs,
-                      isScrollable: n > 3,
-                      tabAlignment: n > 3 ? TabAlignment.start : TabAlignment.fill,
-                      tabs: [
-                        for (final i in _tabIdx)
-                          Tab(
-                            icon: Icon(screenIcon(s.screens[i].icon, i)),
-                            text: s.screens[i].title,
-                            iconMargin: const EdgeInsets.only(bottom: 4),
-                          ),
-                      ],
-                    ),
+                  : TopTabs(controller: tabs, titles: [for (final i in _tabIdx) s.screens[i].title]),
             ),
             // Chua cho cho thanh dieu huong cua Android (man hinh tran vien)
             body: SafeArea(top: false, child: _body(context)),
@@ -339,7 +456,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
   }
 }
 
-/// Trang rieng cua mot man nav:"menu" (cai dat, thong tin thiet bi), mo tu menu ⋮
+/// Trang rieng cua mot man nav:"menu" (cai dat, thong tin thiet bi), mo tu menu he thong
 class _MenuScreenPage extends StatelessWidget {
   final DeviceSession session;
   final int index;
@@ -374,7 +491,7 @@ class _MenuScreenPage extends StatelessWidget {
             if (!didPop) _leave(context);
           },
           child: Scaffold(
-            appBar: AppBar(title: Text(s.screens[index].title)),
+            appBar: AppBar(titleSpacing: null, title: Text(s.screens[index].title)),
             body: SafeArea(
               top: false,
               child: Column(
@@ -382,10 +499,11 @@ class _MenuScreenPage extends StatelessWidget {
                   if (lost && !failed) const LinearProgressIndicator(minHeight: 2),
                   if (lost)
                     MaterialBanner(
-                      backgroundColor: cs.errorContainer,
+                      backgroundColor: failed ? cs.errorContainer : cs.tertiaryContainer,
+                      dividerColor: Colors.transparent,
                       content: Text(
                         failed ? S.lostGiveUp : S.lostRetrying,
-                        style: TextStyle(color: cs.onErrorContainer),
+                        style: TextStyle(color: failed ? cs.onErrorContainer : cs.onTertiaryContainer),
                       ),
                       actions: [
                         if (failed) TextButton(onPressed: s.connect, child: const Text(S.retry)) else const SizedBox.shrink(),

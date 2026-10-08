@@ -94,7 +94,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `f` | Mảng trường (§5.1) |
 | `rep` | Khối lặp (§5.3), tùy chọn |
 | `ic` | Icon của tab (§5.6), tùy chọn (v1.1) |
-| `nav` | Vị trí của màn trong app, tùy chọn (v1.1). Không có = một **tab**. `"menu"` = màn cài đặt / thông tin ít dùng: không làm tab, app đưa vào **menu ⋮** ở góc trên, bấm thì mở thành trang riêng. Dữ liệu trên đường truyền không đổi (vẫn SELECT theo số thứ tự màn). Giá trị lạ → coi như tab |
+| `nav` | Vị trí của màn trong app, tùy chọn (v1.1). Không có = một **tab**. `"menu"` = màn cài đặt / thông tin ít dùng: không làm tab, app đưa vào **menu hệ thống** (Navigation Drawer, nút [≡] góc trên bên trái; app 1.1 dùng menu ⋮), bấm thì mở thành trang riêng. Dữ liệu trên đường truyền không đổi (vẫn SELECT theo số thứ tự màn). Giá trị lạ → coi như tab |
 
 App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`, `fields`=`f`, `repeat`=`rep`.
 
@@ -294,7 +294,7 @@ void   vph_unit / vph_dp / vph_readonly / vph_nullable / vph_hint / vph_confirm 
 // v1.1: icon (dùng cho cả màn hình và trường), chú thích, dòng phụ, chữ 2 trạng thái của bool
 void   vph_icon / vph_desc / vph_sub (cJSON *screen_or_field, const char *s);
 void   vph_bool_labels(cJSON *f, const char *off, const char *on);
-void   vph_nav_menu(cJSON *screen);   // màn cài đặt/thông tin: nằm trong menu ⋮ thay vì làm tab
+void   vph_nav_menu(cJSON *screen);   // màn cài đặt/thông tin: nằm trong menu hệ thống [≡] thay vì làm tab
 void   vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
                       const char *const *icons, int n);
 void   vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);

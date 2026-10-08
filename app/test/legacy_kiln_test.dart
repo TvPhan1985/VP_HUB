@@ -44,12 +44,12 @@ void main() {
       for (final s in kKilnSchemas) VphScreen.fromJson(patchKilnSchema(jsonDecode(s) as Map<String, dynamic>)),
     ];
 
-    test('moi man hinh la live, tieu de va nhan tieng Viet', () {
+    test('moi man hinh la live, tieu de va nhan chuan', () {
       expect(patched.every((s) => !s.batch), isTrue);
-      expect(patched[0].title, 'Vận hành');
-      expect(patched[0].field('sv')!.label, 'Nhiệt độ đặt');
-      expect(patched[6].rep!.label, 'Bước');
-      expect(patched[6].field('step1_r')!.unit, 'phút');
+      expect(patched[0].title, 'Operation');
+      expect(patched[0].field('sv')!.label, 'Setpoint');
+      expect(patched[6].rep!.label, 'Step');
+      expect(patched[6].field('step1_r')!.unit, 'min');
     });
 
     test('man operation: pv big+trend, them program_info / safety_reason / safety_clear', () {
@@ -60,7 +60,7 @@ void main() {
       // v1.1: cong tac dot lo la the hero co chu rieng; khoa an toan la the bao dong gom ly do + nut xoa
       final run = op.field('running')!;
       expect(run.hint('hero'), isTrue);
-      expect(run.boolLabels, ['Dừng', 'Đang đốt']);
+      expect(run.boolLabels, ['Stopped', 'Firing']);
       expect(run.sub, 'sv');
       expect(run.confirm, isNotNull);
       expect(op.field('safety_latched')!.hint('alarm'), isTrue);
@@ -175,7 +175,7 @@ void main() {
       await t.select(0);
       final r = await t.write('running', true);
       expect(r.ok, isFalse);
-      expect(r.err, 'Thiết bị không nhận giá trị');
+      expect(r.err, 'Value not accepted by the device');
     });
 
     test('nut lenh va truong tu nha khong can xac nhan', () async {

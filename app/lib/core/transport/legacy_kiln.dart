@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';
@@ -10,47 +10,46 @@ import 'gatt_link.dart';
 import 'transport.dart';
 import 'uuids.dart';
 
-/// Nhan tieng Viet cho schema lo nung (firmware cu gui nhan tieng Anh)
+/// Nhan chuan cho schema lo nung (thay nhan cua firmware cu)
 const Map<String, String> _kilnTitles = {
-  'operation': 'Vận hành',
+  'operation': 'Operation',
   'pid': 'PID',
-  'alarm': 'Cảnh báo',
-  'calibration': 'Hiệu chuẩn',
-  'autotune': 'Tự dò PID',
-  'program': 'Chương trình',
-  'program_steps': 'Các bước',
+  'alarm': 'Alarm',
+  'calibration': 'Calibration',
+  'autotune': 'Auto-tune',
+  'program': 'Program',
+  'program_steps': 'Steps',
 };
 
 const Map<String, String> _kilnLabels = {
-  'pv': 'Nhiệt độ',
-  'sv': 'Nhiệt độ đặt',
-  'running': 'Đốt lò',
-  'alarm_dev': 'Cảnh báo lệch nhiệt',
-  'tc_offset': 'Bù sai số cảm biến',
-  'autotune_info': 'Trạng thái',
-  'autotune_run': 'Chạy tự dò',
-  'autotune_apply': 'Áp dụng kết quả',
-  'program_enabled': 'Dùng chương trình nhiều bước',
-  'program_step_count': 'Số bước',
-  'program_running': 'Chạy chương trình',
-  'program_info': 'Tiến trình',
-  't': 'Nhiệt độ đích',
-  'r': 'Thời gian tăng',
-  's': 'Thời gian giữ',
+  'pv': 'Temperature',
+  'sv': 'Setpoint',
+  'running': 'Burner',
+  'alarm_dev': 'Deviation alarm',
+  'tc_offset': 'Sensor offset',
+  'autotune_info': 'Status',
+  'autotune_run': 'Run auto-tune',
+  'autotune_apply': 'Apply result',
+  'program_enabled': 'Use multi-step program',
+  'program_step_count': 'Step count',
+  'program_running': 'Run program',
+  'program_info': 'Progress',
+  't': 'Target temperature',
+  'r': 'Ramp time',
+  's': 'Hold time',
 };
 
 const Map<String, String> _kilnConfirm = {
-  'running': 'Bật đốt lò?',
-  'program_running': 'Chạy chương trình nhiệt? Lò sẽ bắt đầu đốt.',
-  'autotune_run': 'Chạy tự dò PID? Lò sẽ đốt để thử.',
-  'autotune_apply': 'Áp dụng kết quả tự dò vào PID?',
+  'running': 'Start firing the kiln?',
+  'program_running': 'Run the firing program? The kiln will start heating.',
+  'autotune_run': 'Run PID auto-tune? The kiln will heat for the test.',
+  'autotune_apply': 'Apply the auto-tune result to PID?',
 };
 
 void _patchField(Map<String, dynamic> f) {
   final id = f['id'];
   if (_kilnLabels.containsKey(id)) f['label'] = _kilnLabels[id];
   if (_kilnConfirm.containsKey(id)) f['c'] = _kilnConfirm[id];
-  if (f['unit'] == 'min') f['unit'] = 'phút';
 }
 
 /// Va schema lo nung (LEGACY L2). Ham thuan, khong sua [raw].
@@ -65,7 +64,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
   }
   final rep = s['repeat'];
   if (rep is Map<String, dynamic>) {
-    rep['label'] = 'Bước';
+    rep['label'] = 'Step';
     if (rep['fields'] is List) {
       for (final f in rep['fields'] as List) {
         if (f is Map<String, dynamic>) _patchField(f);
@@ -93,7 +92,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (f['id'] == 'running') {
         f['w'] = 'hero';
         f['ic'] = 'fire';
-        f['opt'] = ['Dừng', 'Đang đốt'];
+        f['opt'] = ['Stopped', 'Firing'];
         f['sub'] = 'sv';
       }
     }
@@ -102,10 +101,10 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (!has(f['id'] as String)) fields.add(f);
     }
 
-    add({'id': 'sensor_ok', 'label': 'Cảm biến', 'type': 'bool', 'readonly': true, 'w': 'led'});
+    add({'id': 'sensor_ok', 'label': 'Sensor', 'type': 'bool', 'readonly': true, 'w': 'led'});
     add({
       'id': 'program_info',
-      'label': 'Chương trình',
+      'label': 'Program',
       'type': 'text',
       'readonly': true,
       'if': 'program_running==true',
@@ -113,7 +112,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     // Khoa an toan thanh the bao dong, gom ly do va nut xoa loi (cung nhom)
     add({
       'id': 'safety_latched',
-      'label': 'Khóa an toàn',
+      'label': 'Safety lock',
       'type': 'bool',
       'readonly': true,
       'w': 'alarm,led,warn',
@@ -121,7 +120,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_reason',
-      'label': 'Lý do khóa',
+      'label': 'Lock reason',
       'type': 'text',
       'readonly': true,
       'if': 'safety_latched==true',
@@ -129,11 +128,11 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_clear',
-      'label': 'Xóa lỗi',
+      'label': 'Clear fault',
       'type': 'act',
       'ic': 'reset',
       'if': 'safety_latched==true',
-      'c': 'Xóa khóa an toàn và cho lò chạy lại?',
+      'c': 'Clear the safety lock and allow the kiln to run again?',
       'g': 'safety',
     });
   }

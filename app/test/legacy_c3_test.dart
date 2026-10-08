@@ -154,14 +154,14 @@ void main() {
 
     test('kiem tra truoc khi gui giong app cu', () {
       String? err(Map<String, dynamic> set) => c3BuildConfig(set, _flatCfg()).err;
-      expect(err({'on_at': 90}), contains('nhỏ hơn'));
-      expect(err({'sen_act': 'high'}), contains('lớn hơn'));
+      expect(err({'on_at': 90}), contains('below'));
+      expect(err({'sen_act': 'high'}), contains('above'));
       expect(err({'sen_act': 'high', 'on_at': 90, 'off_at': 80}), isNull);
       expect(err({'s1_on': '8h'}), contains('HH:MM'));
-      expect(err({'date_from': '2026-12-01', 'date_to': '2026-01-01'}), contains('trước'));
+      expect(err({'date_from': '2026-12-01', 'date_to': '2026-01-01'}), contains('before'));
       expect(err({'mb_addr': 0}), contains('1-247'));
-      expect(err({'mb_idx_h': 5}), contains('vượt'));
-      expect(err({'al_t_lo': 50}), contains('nhiệt độ'));
+      expect(err({'mb_idx_h': 5}), contains('exceeds'));
+      expect(err({'al_t_lo': 50}), contains('temperature'));
       expect(err({'_name': ''}), contains('1-20'));
       expect(err({'_name': 'Vườn'}), contains('ASCII'));
     });
@@ -302,7 +302,7 @@ void main() {
       await t.open();
       final r2 = await t.write('mode', 'auto');
       expect(r2.ok, isFalse);
-      expect(r2.err, 'Thiết bị không phản hồi');
+      expect(r2.err, 'No response from the device');
     });
   });
 }

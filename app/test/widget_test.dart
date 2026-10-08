@@ -3,12 +3,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vphub/app.dart';
 import 'package:vphub/core/device_session.dart';
 import 'package:vphub/core/transport/demo_transport.dart';
-import 'package:vphub/l10n/strings_vi.dart';
+import 'package:vphub/l10n/strings.dart';
+import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/ui/render/header_bar.dart';
 import 'package:vphub/ui/screens/device_screen.dart';
+import 'package:vphub/ui/theme.dart';
+import 'package:vphub/ui/vp_widgets.dart';
 
 String _demo(String name) => File('assets/demo/$name').readAsStringSync();
 
@@ -48,15 +50,15 @@ Future<void> _close(WidgetTester tester, _Rig rig) async {
 
 /// Bam mot tab tren thanh tab o tren
 Future<void> _goto(WidgetTester tester, String title) async {
-  await tester.tap(find.widgetWithText(Tab, title));
+  await tester.tap(find.widgetWithText(Tab, title.toUpperCase()));
   await tester.pumpAndSettle();
 }
 
-/// Mo mot man nav:"menu" tu menu ⋮
+/// Mo mot man nav:"menu" tu menu he thong (bam [≡] roi chon muc trong Drawer)
 Future<void> _openFromMenu(WidgetTester tester, String title) async {
-  await tester.tap(find.byType(PopupMenuButton<String>));
+  await tester.tap(find.byIcon(Icons.menu));
   await tester.pumpAndSettle();
-  await tester.tap(find.widgetWithText(PopupMenuItem<String>, title));
+  await tester.tap(find.descendant(of: find.byType(Drawer), matching: find.text(title)));
   await tester.pumpAndSettle();
 }
 
@@ -132,35 +134,35 @@ void main() {
 
   testWidgets('the bao dong do; thanh dau trang chi hien truong khong co trong tab', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
-    // alarm = 2 -> bit1 "Chưa có giờ" thanh gach dau dong trong the bao dong
-    expect(find.text('• Chưa có giờ'), findsOneWidget);
-    expect(find.text('Tắt còi'), findsOneWidget);
+    // alarm = 2 -> bit1 "Clock not set" thanh gach dau dong trong the bao dong
+    expect(find.text('• Clock not set'), findsOneWidget);
+    expect(find.text('Silence'), findsOneWidget);
     // Tab Tong quan da co du cac truong hdr nen thanh dau trang trong
     expect(find.descendant(of: find.byType(HeaderBar), matching: find.byType(Text)), findsNothing);
-    await _goto(tester, 'Lịch');
-    expect(find.descendant(of: find.byType(HeaderBar), matching: find.text('Chưa có giờ')), findsOneWidget);
+    await _goto(tester, 'Schedule');
+    expect(find.descendant(of: find.byType(HeaderBar), matching: find.text('Clock not set')), findsOneWidget);
     await _close(tester, rig);
   });
 
   testWidgets('man live: nut BAT/TAT gui ngay; en khoa khi dieu kien sai', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
     expect(rig.session.values['out'], true);
-    expect(find.text('Relay: BẬT'), findsOneWidget);
-    expect(find.text('Chế độ: Tay'), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, S.onCaps), findsOneWidget);
+    expect(find.text('Mode: Manual'), findsOneWidget);
     expect(tester.widget<FilledButton>(_button(S.onCaps)).onPressed, isNull, reason: 'dang bat thi nut BAT mo');
     await tester.tap(_button(S.offCaps));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'out', 'v': false});
-    expect(find.text('Relay: TẮT'), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, S.offCaps), findsOneWidget);
     expect(find.text(S.turnedOff('Relay')), findsOneWidget);
     // Doi che do sang Tu dong -> ca hai nut bi khoa (en: mode==manual), hien dong giai thich
-    expect(find.text('Bật/tắt tay chỉ dùng được ở chế độ Tay'), findsNothing);
-    await tester.tap(find.text('Tự động'));
+    expect(find.text('Manual switching is available in Manual mode only'), findsNothing);
+    await tester.tap(find.text('Auto'));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'mode', 'v': 'auto'});
     expect(tester.widget<FilledButton>(_button(S.onCaps)).onPressed, isNull);
     expect(tester.widget<FilledButton>(_button(S.offCaps)).onPressed, isNull);
-    expect(find.text('Bật/tắt tay chỉ dùng được ở chế độ Tay'), findsOneWidget);
+    expect(find.text('Manual switching is available in Manual mode only'), findsOneWidget);
     await _close(tester, rig);
   });
 
@@ -174,25 +176,25 @@ void main() {
 
   testWidgets('hai tile lien nhau nam cung mot hang, mini gom mot the', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
-    final t = tester.getCenter(find.text('Nhiệt độ'));
-    final h = tester.getCenter(find.text('Độ ẩm'));
+    final t = tester.getCenter(find.text('Temperature'));
+    final h = tester.getCenter(find.text('Humidity'));
     expect(t.dy, h.dy);
     expect(t.dx, lessThan(h.dx));
-    final ys = {for (final l in ['EC', 'Độ mặn', 'TDS']) tester.getCenter(find.text(l)).dy};
+    final ys = {for (final l in ['EC', 'Salinity', 'TDS']) tester.getCenter(find.text(l)).dy};
     expect(ys.length, 1);
     expect(find.text('28.4 °C'), findsOneWidget);
     // dur: 7512 giay
-    expect(find.text('2 giờ 5 phút'), findsOneWidget);
+    expect(find.text('2 h 5 min'), findsOneWidget);
     await _close(tester, rig);
   });
 
   testWidgets('tile co trend: cham de mo va dong bieu do', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
     expect(find.text(S.trendEmpty), findsNothing);
-    await tester.tap(find.text('Nhiệt độ'));
+    await tester.tap(find.text('Temperature'));
     await tester.pumpAndSettle();
     expect(find.text(S.trendEmpty), findsOneWidget);
-    await tester.tap(find.text('Nhiệt độ'));
+    await tester.tap(find.text('Temperature'));
     await tester.pumpAndSettle();
     expect(find.text(S.trendEmpty), findsNothing);
     await _close(tester, rig);
@@ -200,16 +202,16 @@ void main() {
 
   testWidgets('goi y moi: hero co chu rieng, alarm cua bool, nut trong the bao dong', (tester) async {
     final rig = await _open(tester, 'demo_all_types.json');
-    await _goto(tester, 'Gợi ý mới');
-    expect(find.text('Đốt lò: Đang đốt'), findsOneWidget);
-    expect(find.text('Bơm: TẮT'), findsOneWidget);
-    expect(find.text('Chế độ bơm: Tự động'), findsOneWidget);
-    expect(find.text('Cảm biến mất kết nối'), findsOneWidget);
+    await _goto(tester, 'New Hints');
+    expect(find.widgetWithText(StatusChip, 'Firing'), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, S.offCaps), findsOneWidget);
+    expect(find.text('Pump mode: Auto'), findsOneWidget);
+    expect(find.text('Sensor disconnected'), findsOneWidget);
     // n_al = 3 -> 2 gach dau dong; n_lock = true -> ly do thanh gach dau dong
-    expect(find.text('• Cạn nước'), findsOneWidget);
-    expect(find.text('• Quá dòng'), findsOneWidget);
-    expect(find.text('• Quá nhiệt 1250 °C'), findsOneWidget);
-    await tester.tap(find.text('Tắt chuông'));
+    expect(find.text('• Dry run'), findsOneWidget);
+    expect(find.text('• Overcurrent'), findsOneWidget);
+    expect(find.text('• Overtemperature 1250 °C'), findsOneWidget);
+    await tester.tap(find.text('Silence'));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'n_sil', 'v': 1});
     expect(tester.takeException(), isNull);
@@ -226,9 +228,10 @@ void main() {
     expect(a.dy, b.dy);
     expect(c.dy, greaterThan(a.dy));
     expect(find.text('25.5 °C'), findsOneWidget);
-    // Khong co `ic`: tab van co icon theo vi tri; thanh tab nam o tren, khong co thanh duoi
+    // Thanh tab nam o tren (duoi Top App Bar), chu in hoa, cuon ngang; khong co thanh duoi
     expect(find.byType(NavigationBar), findsNothing);
-    expect(find.descendant(of: find.byType(TabBar), matching: find.byIcon(Icons.dashboard_outlined)), findsOneWidget);
+    expect(find.widgetWithText(Tab, 'MÀN 0'), findsOneWidget);
+    expect(tester.widget<TabBar>(find.byType(TabBar)).isScrollable, isTrue);
     expect(tester.getCenter(find.byType(TabBar)).dy, lessThan(a.dy));
     await _goto(tester, 'Màn 1');
     expect(rig.session.current, 1);
@@ -248,13 +251,13 @@ void main() {
     final s = rig.session;
     // Chi 2 man thuong lam tab
     expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 2);
-    expect(find.widgetWithText(Tab, 'Nâng cao'), findsNothing);
-    await _goto(tester, 'Lịch');
+    expect(find.widgetWithText(Tab, 'ADVANCED'), findsNothing);
+    await _goto(tester, 'Schedule');
     expect(s.current, 1);
-    await _openFromMenu(tester, 'Nâng cao');
+    await _openFromMenu(tester, 'Advanced');
     expect(s.current, 2);
     expect(find.byType(TabBar), findsNothing);
-    expect(find.text('Ngưỡng báo động'), findsOneWidget);
+    expect(find.text('Alarm thresholds'), findsOneWidget);
     // Man batch trong trang rieng: sua -> hien thanh Luu -> gui 1 lenh set
     final n = rig.demo.writes.length;
     await tester.tap(find.byIcon(Icons.add_circle_outline).first);
@@ -295,13 +298,13 @@ void main() {
   testWidgets('nut lenh co c: hoi xac nhan roi moi gui', (tester) async {
     final rig = await _open(tester, 'demo_all_types.json');
     final n = rig.demo.writes.length;
-    await tester.tap(find.text('Xóa cảnh báo'));
+    await tester.tap(find.text('Clear warnings'));
     await tester.pumpAndSettle();
-    expect(find.text('Xóa toàn bộ cảnh báo?'), findsOneWidget);
+    expect(find.text('Clear all warnings?'), findsOneWidget);
     await tester.tap(find.text(S.cancel));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.length, n);
-    await tester.tap(find.text('Xóa cảnh báo'));
+    await tester.tap(find.text('Clear warnings'));
     await tester.pumpAndSettle();
     await tester.tap(find.text(S.ok));
     await tester.pumpAndSettle();
@@ -311,9 +314,9 @@ void main() {
 
   testWidgets('man batch: sua -> Luu -> gui dung 1 lenh set', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
-    await _goto(tester, 'Lịch');
+    await _goto(tester, 'Schedule');
     final n = rig.demo.writes.length;
-    // Bam + hai lan o "Bật khi độ ẩm dưới" (70 -> 72) va bat Khung 2
+    // Bam + hai lan o "On when humidity below" (70 -> 72) va bat Khung 2
     await tester.tap(find.byIcon(Icons.add_circle_outline).first);
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.add_circle_outline).first);
@@ -335,12 +338,12 @@ void main() {
 
   testWidgets('man batch: roi tab khi chua luu thi hoi lai; Huy bo thay doi', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
-    await _goto(tester, 'Lịch');
+    await _goto(tester, 'Schedule');
     final n = rig.demo.writes.length;
     await tester.tap(find.byIcon(Icons.remove_circle_outline).first);
     await tester.pumpAndSettle();
     expect(find.text(S.batchChanges(1)), findsOneWidget);
-    await _goto(tester, 'Tổng quan');
+    await _goto(tester, 'Overview');
     expect(find.text(S.unsavedTitle), findsOneWidget);
     await tester.tap(find.text(S.stay));
     await tester.pumpAndSettle();
@@ -357,13 +360,111 @@ void main() {
 
   testWidgets('cnt gioi han so the lap', (tester) async {
     final rig = await _open(tester, 'demo_all_types.json');
-    await _goto(tester, 'Nhóm & lặp');
+    await _goto(tester, 'Groups & Repeat');
     // steps = 2 -> chi hien Buoc 1, Buoc 2
-    expect(find.text('Bước 1'), findsOneWidget);
-    expect(find.text('Bước 2'), findsOneWidget);
-    expect(find.text('Bước 3'), findsNothing);
-    // p1_hold = true nen co "Thời gian giữ", p2_hold = false nen an
-    expect(find.text('Thời gian giữ'), findsOneWidget);
+    expect(find.text('Step 1'), findsOneWidget);
+    expect(find.text('Step 2'), findsOneWidget);
+    expect(find.text('Step 3'), findsNothing);
+    // p1_hold = true nen co "Hold time", p2_hold = false nen an
+    expect(find.text('Hold time'), findsOneWidget);
     await _close(tester, rig);
+  });
+
+  testWidgets('Top App Bar: nut [≡] ben trai mo menu he thong, rong toi da 320dp, du cac nhom', (tester) async {
+    final rig = await _open(tester, 'demo_relay.json');
+    expect(tester.getSize(find.byType(AppBar)).height, greaterThanOrEqualTo(Vp.barHeight));
+    expect(tester.getCenter(find.byIcon(Icons.menu)).dx, lessThan(56));
+    expect(find.byType(Drawer), findsNothing);
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    expect(tester.getSize(find.byType(Drawer)).width, 320);
+    Finder inDrawer(String t) => find.descendant(of: find.byType(Drawer), matching: find.text(t));
+    // Khoi thong tin: ten thiet bi + trang thai ket noi
+    expect(inDrawer('DEMO-RELAY'), findsOneWidget);
+    expect(inDrawer(S.linkOk), findsOneWidget);
+    for (final t in ['DEVICE', 'SUPPORT', S.menuDeviceList, 'Advanced', 'Device', S.menuInfo, S.menuReload, S.menuAbout, S.menuDisconnect]) {
+      expect(inDrawer(t), findsOneWidget, reason: t);
+    }
+    // Cham vung mo ben phai de dong menu
+    await tester.tapAt(const Offset(800, 400));
+    await tester.pumpAndSettle();
+    expect(find.byType(Drawer), findsNothing);
+    await _close(tester, rig);
+  });
+
+  testWidgets('chuong thong bao hien so bao dong dang bat va danh sach bao dong', (tester) async {
+    final rig = await _open(tester, 'demo_relay.json');
+    // alarm = 2 -> 1 bao dong
+    expect(activeAlarms(rig.session), ['Clock not set']);
+    expect(find.descendant(of: find.byType(AppBar), matching: find.text('1')), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.notifications_active));
+    await tester.pumpAndSettle();
+    expect(find.text(S.alarmsTitle), findsOneWidget);
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle();
+    await _close(tester, rig);
+  });
+
+  testWidgets('menu Theme: doi sang/toi ap dung ngay va luu lai', (tester) async {
+    final store = MemoryStore();
+    final ctl = ThemeController(store);
+    expect(ctl.mode, ThemeMode.system);
+    final rig = _Rig();
+    rig.session = DeviceSession(
+      connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
+    );
+    await rig.session.connect();
+    await tester.pumpWidget(ThemeScope(
+      controller: ctl,
+      child: ListenableBuilder(
+        listenable: ctl,
+        builder: (context, _) => MaterialApp(
+          theme: vpHubTheme(Brightness.light),
+          darkTheme: vpHubTheme(Brightness.dark),
+          themeMode: ctl.mode,
+          home: DeviceScreen(session: rig.session),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byIcon(Icons.menu));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.menuTheme));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(S.themeDark));
+    await tester.pumpAndSettle();
+    expect(ctl.mode, ThemeMode.dark);
+    expect(store.getString('theme'), 'dark');
+    expect(ThemeController(store).mode, ThemeMode.dark);
+    final theme = Theme.of(tester.element(find.byType(DeviceScreen)));
+    expect(theme.scaffoldBackgroundColor, Vp.darkBg);
+    expect(theme.colorScheme.surface, Vp.darkCard);
+    await _close(tester, rig);
+  });
+
+  test('bang mau theo quy chuan: khong den thuan / trang thuan o che do toi, mau canh bao dung ma', () {
+    final l = vpHubTheme(Brightness.light), d = vpHubTheme(Brightness.dark);
+    expect(l.scaffoldBackgroundColor, const Color(0xFFF8F9FA));
+    expect(l.colorScheme.surface, const Color(0xFFFFFFFF));
+    expect(l.colorScheme.onSurface, const Color(0xFF1E293B));
+    expect(l.colorScheme.onSurfaceVariant, const Color(0xFF64748B));
+    expect(l.colorScheme.primary, const Color(0xFF0284C7));
+    expect(Vp.ok(l.colorScheme), const Color(0xFF15803D));
+    expect(l.colorScheme.tertiaryContainer, const Color(0xFFFEF3C7));
+    expect(l.colorScheme.onTertiaryContainer, const Color(0xFF92400E));
+    expect(l.colorScheme.errorContainer, const Color(0xFFFEE2E2));
+    expect(l.colorScheme.onErrorContainer, const Color(0xFF991B1B));
+    expect(d.scaffoldBackgroundColor, const Color(0xFF0F172A));
+    expect(d.colorScheme.surface, const Color(0xFF1E293B));
+    expect(d.colorScheme.onSurface, const Color(0xFFF1F5F9));
+    expect(d.colorScheme.onSurfaceVariant, const Color(0xFF94A3B8));
+    expect(d.colorScheme.primary, const Color(0xFF38BDF8));
+    expect(Vp.ok(d.colorScheme), const Color(0xFF22C55E));
+    expect(d.colorScheme.tertiaryContainer, const Color(0xFF451A03));
+    expect(d.colorScheme.onTertiaryContainer, const Color(0xFFFDE047));
+    expect(d.colorScheme.errorContainer, const Color(0xFF450A0A));
+    expect(d.colorScheme.onErrorContainer, const Color(0xFFFCA5A5));
+    expect(d.scaffoldBackgroundColor, isNot(const Color(0xFF000000)));
+    expect(d.colorScheme.onSurface, isNot(const Color(0xFFFFFFFF)));
   });
 }

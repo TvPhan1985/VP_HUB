@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 
 /// Thong tin thiet bi (SPEC §5): INFO, giao thuc that, MTU, kich thuoc goi VALUES
 class InfoScreen extends StatelessWidget {

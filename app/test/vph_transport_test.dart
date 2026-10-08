@@ -128,7 +128,7 @@ void main() {
     await t.start();
     final r = await t.write('sv', 1);
     expect(r.ok, isFalse);
-    expect(r.err, 'Thiết bị không phản hồi');
+    expect(r.err, 'No response from the device');
   });
 
   test('lenh qua 500 byte bi tu choi truoc khi gui', () async {

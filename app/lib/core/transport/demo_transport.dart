@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';

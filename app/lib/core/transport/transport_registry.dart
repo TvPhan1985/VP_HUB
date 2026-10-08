@@ -1,4 +1,4 @@
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../schema_cache.dart';
 import 'gatt_link.dart';
 import 'legacy_c3relay.dart';

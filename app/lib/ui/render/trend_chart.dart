@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 
 String _hm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 

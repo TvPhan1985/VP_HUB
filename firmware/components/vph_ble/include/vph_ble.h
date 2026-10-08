@@ -66,7 +66,7 @@ void vph_maxlen(cJSON *f, int max);                 // do dai toi da cua kieu st
 // ----- v1.1: tu vung hien thi (PROTOCOL §5.1, §5.4, §5.6). App 1.0 bo qua, khong loi -----
 // Icon: dung cho ca man hinh (icon cua tab) va truong. Ten trong bo icon chuan §5.6
 void vph_icon(cJSON *screen_or_field, const char *name);
-// Man cai dat / thong tin it dung: app dua vao menu ⋮ o goc tren thay vi lam tab (nav:"menu")
+// Man cai dat / thong tin it dung: app dua vao menu he thong [≡] thay vi lam tab (nav:"menu")
 void vph_nav_menu(cJSON *screen);
 void vph_desc(cJSON *f, const char *text);          // dong chu thich nho duoi truong
 void vph_sub(cJSON *f, const char *field_id);       // the hero: gia tri truong nay lam dong phu

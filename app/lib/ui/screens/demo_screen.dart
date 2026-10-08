@@ -6,7 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 import '../../core/device_session.dart';
 import '../../core/transport/demo_transport.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import 'device_screen.dart';
 
 const String kDemoRelayAsset = 'assets/demo/demo_relay.json';

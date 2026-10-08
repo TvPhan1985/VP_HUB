@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/cond.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 import '../theme.dart';
 import 'alarm_card.dart';
 import 'field_widget.dart';
@@ -32,7 +32,7 @@ class ScreenView extends StatelessWidget {
                   style: Theme.of(context)
                       .textTheme
                       .titleSmall
-                      ?.copyWith(color: Theme.of(context).colorScheme.primary, fontWeight: FontWeight.w700),
+                      ?.copyWith(color: Theme.of(context).colorScheme.onSurface, fontWeight: FontWeight.w700),
                 ),
               ),
             const SizedBox(height: 4),

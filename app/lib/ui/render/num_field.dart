@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
+import '../theme.dart';
+import '../vp_widgets.dart';
 import 'field_widget.dart';
+import 'icons.dart';
 
 String numText(VphField f, dynamic value, {bool withUnit = true}) {
   final x = asNum(value);
@@ -194,34 +197,46 @@ class BigValueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final x = asNum(value);
+    final cs = theme.colorScheme;
+    final ic = vphIcon(field.icon);
     return Card(
-      color: theme.colorScheme.primaryContainer,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        child: Column(
-          children: [
-            Text(field.label, style: theme.textTheme.titleMedium),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    x == null ? S.noData : fmtNum(x, dp: field.decimals ?? 1),
-                    style: theme.textTheme.displayLarge
-                        ?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onPrimaryContainer),
-                  ),
-                  if (field.unit != null) ...[
-                    const SizedBox(width: 6),
-                    Text(field.unit!, style: theme.textTheme.headlineSmall),
+        padding: const EdgeInsets.all(Vp.pad),
+        child: AccentWell(
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(field.label, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            x == null ? S.noData : fmtNum(x, dp: field.decimals ?? 1),
+                            style: TextStyle(
+                                fontSize: Vp.bigNumber, fontWeight: FontWeight.w700, height: 1.15, color: cs.onSurface),
+                          ),
+                          if (field.unit != null) ...[
+                            const SizedBox(width: 6),
+                            Text(field.unit!,
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant)),
+                          ],
+                        ],
+                      ),
+                    ),
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+              if (ic != null) Icon(ic, size: 36, color: cs.primary),
+            ],
+          ),
         ),
       ),
     );

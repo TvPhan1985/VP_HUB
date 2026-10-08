@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../l10n/strings_vi.dart';
+import '../../l10n/strings.dart';
 
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
