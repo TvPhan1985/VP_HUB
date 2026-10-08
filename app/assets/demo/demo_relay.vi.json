@@ -1,7 +1,7 @@
 {
   "info": {
     "proto": "vph", "pv": 1, "model": "demorelay", "name": "DEMO-RELAY", "fw": "1.1.0", "hw": "demo",
-    "hdr": ["t", "h", "out", "mode", "alarm"], "caps": ["time"], "icon": "relay"
+    "hdr": ["t", "h", "out", "mode", "alarm"], "caps": ["time"], "icon": "relay", "dom": "agri"
   },
   "screens": [
     {"id": "overview", "l": "Tổng quan", "ic": "dashboard", "save": "live", "f": [

@@ -255,4 +255,14 @@ void v11Tests() {
       expect(s.field('s2_on')!.desc, 'Giờ bật');
     });
   });
+
+  test('INFO: khoa dom cho biet linh vuc, mac dinh la cong nghiep', () {
+    VphInfo info(Map<String, dynamic> extra) => VphInfo.fromJson({'proto': 'vph', 'model': 'm', 'n': 1, ...extra});
+    expect(info({}).domain, 'ind');
+    expect(info({'dom': 'ind'}).agri, isFalse);
+    expect(info({'dom': 'agri'}).agri, isTrue);
+    expect(info({'dom': 'la'}).domain, 'ind');
+    expect(info({'dom': 'agri'}).toJson()['dom'], 'agri');
+    expect(info({}).toJson().containsKey('dom'), isFalse);
+  });
 }

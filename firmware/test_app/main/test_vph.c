@@ -159,7 +159,7 @@ static void setup(int extra_fields)
     dev.lo = 20;
     dev.hi = 35;
     const vph_info_t info = {
-        .model = "c3relay", .fw = "1.1.0", .hw = "esp32c3", .icon = "relay",
+        .model = "c3relay", .fw = "1.1.0", .hw = "esp32c3", .icon = "relay", .domain = "agri",
         .hdr = HDR, .caps = VPH_CAP_TIME, .name_prefix = "C3-RELAY",
     };
     cJSON *screens[2] = {screen_overview(), screen_settings(extra_fields)};
@@ -203,6 +203,7 @@ TEST_CASE("INFO: du khoa, dung gia tri, duoi 240 byte", "[info]")
     TEST_ASSERT_EQUAL_STRING("esp32c3", str_of(j, "hw"));
     TEST_ASSERT_EQUAL(2, (int)num_of(j, "n"));
     TEST_ASSERT_EQUAL_STRING("relay", str_of(j, "icon"));
+    TEST_ASSERT_EQUAL_STRING("agri", str_of(j, "dom"));
     TEST_ASSERT_EQUAL_STRING(vph_core_sch(), str_of(j, "sch"));
     TEST_ASSERT_EQUAL(4, strlen(vph_core_sch()));
     const cJSON *hdr = cJSON_GetObjectItemCaseSensitive(j, "hdr");

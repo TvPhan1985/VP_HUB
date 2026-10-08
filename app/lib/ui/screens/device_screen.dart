@@ -68,7 +68,7 @@ class TopTabs extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) => Container(
         height: 44,
         width: double.infinity,
-        color: Vp.barTabs,
+        color: VpBars.of(context).tabs,
         child: TabBar(
           controller: controller,
           isScrollable: true,
@@ -78,16 +78,32 @@ class TopTabs extends StatelessWidget implements PreferredSizeWidget {
       );
 }
 
-/// Man hinh Thiet bi: ve hoan toan tu schema, khong biet thiet bi la loai gi
-class DeviceScreen extends StatefulWidget {
+/// Man hinh Thiet bi: ve hoan toan tu schema, khong biet thiet bi la loai gi.
+/// Bo giao dien (cong nghiep / nong nghiep) chon theo khoa `dom` thiet bi khai trong INFO.
+class DeviceScreen extends StatelessWidget {
   final DeviceSession session;
   const DeviceScreen({super.key, required this.session});
 
   @override
-  State<DeviceScreen> createState() => _DeviceScreenState();
+  Widget build(BuildContext context) => ListenableBuilder(
+        listenable: session,
+        builder: (context, child) => Theme(
+          data: vpHubTheme(Theme.of(context).brightness, session.info?.domain ?? 'ind'),
+          child: child!,
+        ),
+        child: _DeviceView(session: session),
+      );
 }
 
-class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMixin {
+class _DeviceView extends StatefulWidget {
+  final DeviceSession session;
+  const _DeviceView({required this.session});
+
+  @override
+  State<_DeviceView> createState() => _DeviceScreenState();
+}
+
+class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixin {
   TabController? _tabs;
 
   /// Chi so (trong session.screens) cua cac man lam tab; man nav:"menu" nam trong menu he thong
@@ -159,8 +175,12 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     if (!mounted) return;
     _inMenu = true;
     final nav = Navigator.of(context);
+    // Trang con giu bo giao dien cua thiet bi
+    final theme = Theme.of(context);
     unawaited(s.selectScreen(i));
-    await nav.push(MaterialPageRoute(builder: (_) => _MenuScreenPage(session: s, index: i)));
+    await nav.push(MaterialPageRoute(
+      builder: (_) => Theme(data: theme, child: _MenuScreenPage(session: s, index: i)),
+    ));
     _inMenu = false;
     s.discardBatch(i);
     await s.selectScreen(_shown);
@@ -201,7 +221,7 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
 
   /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi (mau tren nen thanh dam)
   (String, Color) _link() => switch (s.status) {
-        LinkStatus.ready => (S.linkOk, Vp.barOk),
+        LinkStatus.ready => (S.linkOk, VpBars.of(context).ok),
         LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.barCaution),
         LinkStatus.reconnecting => (S.linkRetry, Vp.barCaution),
         _ => (S.linkLost, Vp.barStop),
@@ -265,7 +285,9 @@ class _DeviceScreenState extends State<DeviceScreen> with TickerProviderStateMix
     final i = s.info;
     final sub = i == null ? (s.transport?.protoLabel ?? S.appName) : '${i.model} · ${S.infoFw} ${i.fw}';
     final theme = themeEntry(context), language = languageEntry(context);
-    void push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    final pageTheme = Theme.of(context);
+    void push(Widget page) =>
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => Theme(data: pageTheme, child: page)));
     return AppDrawer(
       avatar: Text(AppDrawer.initials(s.displayName)),
       title: s.displayName,

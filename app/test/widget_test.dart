@@ -533,4 +533,28 @@ void main() {
       expect(jsonEncode(strip(vi)), jsonEncode(strip(en)), reason: f);
     }
   });
+
+  testWidgets('dom:"agri" -> bo giao dien nong nghiep (xanh la); khong co dom -> cong nghiep', (tester) async {
+    // Thiet bi mau relay khai dom:"agri"
+    var rig = await _open(tester, 'demo_relay.json');
+    expect(rig.session.info!.domain, 'agri');
+    var theme = Theme.of(tester.element(find.byType(TabBar)));
+    expect(theme.appBarTheme.backgroundColor, const Color(0xFF14532D));
+    expect(theme.colorScheme.primary, const Color(0xFF15803D));
+    expect(VpBars.of(tester.element(find.byType(TabBar))).tabs, const Color(0xFF166534));
+    // Trang con mo tu menu he thong giu bo nong nghiep
+    await _openFromMenu(tester, 'Advanced');
+    expect(Theme.of(tester.element(find.text('Alarm thresholds'))).colorScheme.primary, const Color(0xFF15803D));
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await _close(tester, rig);
+
+    // Thiet bi khong khai dom: cong nghiep (xam dam + xanh duong)
+    rig = await _openJson(tester, _v10(2));
+    expect(rig.session.info!.domain, 'ind');
+    theme = Theme.of(tester.element(find.byType(TabBar)));
+    expect(theme.appBarTheme.backgroundColor, const Color(0xFF0F172A));
+    expect(theme.colorScheme.primary, const Color(0xFF0284C7));
+    await _close(tester, rig);
+  });
 }

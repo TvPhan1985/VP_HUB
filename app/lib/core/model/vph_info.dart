@@ -12,6 +12,9 @@ class VphInfo {
   final List<String> caps;
   final String icon;
 
+  /// Linh vuc cua thiet bi (khoa `dom`): 'ind' cong nghiep (mac dinh) | 'agri' nong nghiep
+  final String domain;
+
   const VphInfo({
     this.proto = 'vph',
     this.pv = 1,
@@ -24,7 +27,10 @@ class VphInfo {
     this.hdr = const [],
     this.caps = const [],
     this.icon = 'generic',
+    this.domain = 'ind',
   });
+
+  bool get agri => domain == 'agri';
 
   bool get hasTime => caps.contains('time');
 
@@ -47,6 +53,7 @@ class VphInfo {
       hdr: _strList(j['hdr']),
       caps: _strList(j['caps']),
       icon: j['icon'] is String ? j['icon'] as String : 'generic',
+      domain: j['dom'] == 'agri' ? 'agri' : 'ind',
     );
   }
 
@@ -62,5 +69,6 @@ class VphInfo {
         if (hdr.isNotEmpty) 'hdr': hdr,
         if (caps.isNotEmpty) 'caps': caps,
         'icon': icon,
+        if (agri) 'dom': domain,
       };
 }

@@ -70,7 +70,10 @@ class AppDrawer extends StatelessWidget {
   }
 
   Widget _item(BuildContext context, DrawerEntry e) {
-    final fg = !e.enabled ? Vp.barLine : (e.danger ? Vp.barStop : (e.selected ? Vp.onBar : const Color(0xFFCBD5E1)));
+    final bars = VpBars.of(context);
+    final fg = !e.enabled
+        ? bars.sub.withValues(alpha: 0.4)
+        : (e.danger ? Vp.barStop : (e.selected ? Vp.onBar : Vp.onBar.withValues(alpha: 0.86)));
     return InkWell(
       onTap: !e.enabled || e.onTap == null
           ? null
@@ -81,19 +84,19 @@ class AppDrawer extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints(minHeight: 48),
         decoration: BoxDecoration(
-          color: e.selected ? Vp.barTabs : null,
-          border: Border(left: BorderSide(color: e.selected ? Vp.barAccent : Colors.transparent, width: 3)),
+          color: e.selected ? bars.tabs : null,
+          border: Border(left: BorderSide(color: e.selected ? bars.accent : Colors.transparent, width: 3)),
         ),
         padding: const EdgeInsets.fromLTRB(17, 6, 12, 6),
         child: Row(
           children: [
-            Icon(e.icon, size: 22, color: e.danger || !e.enabled ? fg : (e.selected ? Vp.barAccent : Vp.onBarSub)),
+            Icon(e.icon, size: 22, color: e.danger || !e.enabled ? fg : (e.selected ? bars.accent : bars.sub)),
             const SizedBox(width: 16),
             Expanded(
               child: Text(e.label,
                   style: TextStyle(color: fg, fontSize: 15, fontWeight: e.selected ? FontWeight.w600 : FontWeight.w500)),
             ),
-            if (e.value != null) Text(e.value!, style: const TextStyle(color: Vp.onBarSub, fontSize: 13)),
+            if (e.value != null) Text(e.value!, style: TextStyle(color: bars.sub, fontSize: 13)),
             ?e.trailing,
           ],
         ),
@@ -104,6 +107,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = math.min(MediaQuery.of(context).size.width * 0.82, 320.0);
+    final bars = VpBars.of(context);
     return Drawer(
       width: width,
       child: SafeArea(
@@ -112,9 +116,9 @@ class AppDrawer extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
-              decoration: const BoxDecoration(
-                color: Vp.barTabs,
-                border: Border(bottom: BorderSide(color: Vp.barLine)),
+              decoration: BoxDecoration(
+                color: bars.tabs,
+                border: Border(bottom: BorderSide(color: bars.line)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,10 +127,10 @@ class AppDrawer extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: Vp.lightAccent,
-                        foregroundColor: Colors.white,
+                        backgroundColor: bars.avatar,
+                        foregroundColor: bars.onAvatar,
                         child: DefaultTextStyle.merge(
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                          style: TextStyle(color: bars.onAvatar, fontWeight: FontWeight.w700, fontSize: 16),
                           child: avatar,
                         ),
                       ),
@@ -142,7 +146,7 @@ class AppDrawer extends StatelessWidget {
                             Text(subtitle,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(color: Vp.barAccent, fontSize: 13)),
+                                style: TextStyle(color: bars.accent, fontSize: 13)),
                           ],
                         ),
                       ),
@@ -178,8 +182,8 @@ class AppDrawer extends StatelessWidget {
                         padding: const EdgeInsets.fromLTRB(20, 18, 16, 6),
                         child: Text(
                           sec.title.toUpperCase(),
-                          style: const TextStyle(
-                              color: Color(0xFF64748B), fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.8),
+                          style: TextStyle(
+                              color: bars.sub.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.8),
                         ),
                       ),
                       for (final e in sec.items) _item(context, e),

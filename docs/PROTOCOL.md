@@ -77,6 +77,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `hdr` | không | Danh sách id trường "đầu trang": firmware **luôn chèn** các trường này vào VALUES của **mọi** màn hình, để app hiện thanh trạng thái cố định ở trên cùng |
 | `caps` | không | Khả năng thêm. `"time"`: thiết bị cần giờ, app gửi `_time` ngay khi kết nối |
 | `icon` | không | Gợi ý biểu tượng: `relay`, `heater`, `sensor`, `pump`, `light`, `motor`, `generic` |
+| `dom` | không | Lĩnh vực của thiết bị (v1.2): `"ind"` = công nghiệp (mặc định khi không có), `"agri"` = nông nghiệp. App chọn bộ giao diện theo khóa này (công nghiệp: thanh trên xám đậm, màu nhấn xanh dương; nông nghiệp: thanh trên xanh lá, màu nhấn xanh lá). Giá trị lạ → coi như `ind` |
 
 ---
 
@@ -280,6 +281,7 @@ Mọi dự án ESP-IDF mới **không tự viết lại GATT**, mà dùng compon
 ```c
 typedef struct {
     const char *model, *fw, *hw, *icon;
+    const char *domain;         // "ind" (mac dinh khi NULL) | "agri" -> khoa "dom" cua INFO
     const char *const *hdr;       // NULL-terminated
     uint32_t caps;                // VPH_CAP_TIME ...
     const char *name_prefix;      // tên mặc định = <name_prefix>-<4 hex MAC>
@@ -372,3 +374,6 @@ Chuỗi này khoảng 1,3 KB (3 trang), vẫn dưới 1920 byte.
   - §8: WRITE tối đa 500 byte (trước 240), gửi bằng long write. Lý do: lưu 5 khung giờ một lần ≈ 300 byte bị chặn (SPEC §11.11). Firmware `vph_ble` 1.0.0 đã có bộ đệm 512 byte nên vẫn nhận được; adapter thiết bị đời cũ giữ giới hạn riêng.
   - §10: hàm `vph_icon`, `vph_desc`, `vph_sub`, `vph_bool_labels`, `vph_options_ic`, `vph_nav_menu`.
   - §5: khóa `nav` của màn hình (`"menu"`). Lý do: các màn "Nâng cao", "Thiết bị" là cài đặt và thông tin, để chung hàng tab với màn dùng hằng ngày làm thanh tab chật và rối; người dùng yêu cầu đưa vào menu ⋮. App 1.0 bỏ qua khóa này nên vẫn hiện thành tab như cũ.
+- **v1.2 (2026-10-08)**, giữ `pv:1`, tương thích hai chiều.
+  - §4: khóa `dom` của INFO (`"ind"` / `"agri"`). Lý do: quy chuẩn giao diện có hai bộ mẫu (Factory SCADA và Smart Farm); bộ relay C3 dùng cho nông nghiệp nên phải hiện theo mẫu nông nghiệp, lò nung theo mẫu công nghiệp. App không được đoán theo `model`, nên thiết bị tự khai lĩnh vực. Thiết bị cũ không có `dom` → công nghiệp như trước; app cũ bỏ qua khóa này.
+  - §10: trường `domain` trong `vph_info_t`.

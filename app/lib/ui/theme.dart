@@ -78,17 +78,72 @@ class Vp {
   static Color well(ColorScheme cs) => cs.surfaceContainer;
 }
 
-ColorScheme _scheme(Brightness b) {
+/// Mau cua thanh dau man hinh, thanh tab va menu he thong; khac nhau theo linh vuc cua thiet bi
+class VpBars extends ThemeExtension<VpBars> {
+  final Color bar, tabs, accent, sub, line, ok, avatar, onAvatar;
+  const VpBars({
+    required this.bar,
+    required this.tabs,
+    required this.accent,
+    required this.sub,
+    required this.line,
+    required this.ok,
+    required this.avatar,
+    required this.onAvatar,
+  });
+
+  /// Cong nghiep (Factory SCADA): xam dam + xanh duong
+  static const industrial = VpBars(
+    bar: Vp.bar,
+    tabs: Vp.barTabs,
+    accent: Vp.barAccent,
+    sub: Vp.onBarSub,
+    line: Vp.barLine,
+    ok: Vp.barOk,
+    avatar: Vp.lightAccent,
+    onAvatar: Colors.white,
+  );
+
+  /// Nong nghiep (Smart Farm): xanh la dam + xanh la sang
+  static const agri = VpBars(
+    bar: Color(0xFF14532D),
+    tabs: Color(0xFF166534),
+    accent: Color(0xFF86EFAC),
+    sub: Color(0xFFBBF7D0),
+    line: Color(0xFF15803D),
+    ok: Color(0xFF86EFAC),
+    avatar: Color(0xFF22C55E),
+    onAvatar: Color(0xFF14532D),
+  );
+
+  static VpBars of(BuildContext context) => Theme.of(context).extension<VpBars>() ?? industrial;
+
+  @override
+  VpBars copyWith() => this;
+
+  @override
+  VpBars lerp(ThemeExtension<VpBars>? other, double t) => t < 0.5 || other is! VpBars ? this : other;
+}
+
+ColorScheme _scheme(Brightness b, bool agri) {
   final dark = b == Brightness.dark;
+  // Mau nhan: xanh duong (cong nghiep) hoac xanh la (nong nghiep)
+  final primary = agri ? (dark ? Vp.darkOk : Vp.lightOk) : (dark ? Vp.darkAccent : Vp.lightAccent);
+  final container = agri
+      ? (dark ? const Color(0xFF14532D) : const Color(0xFFDCFCE7))
+      : (dark ? const Color(0xFF0C4A6E) : const Color(0xFFE0F2FE));
+  final onContainer = agri
+      ? (dark ? const Color(0xFFBBF7D0) : const Color(0xFF166534))
+      : (dark ? const Color(0xFFBAE6FD) : const Color(0xFF075985));
   return ColorScheme.fromSeed(seedColor: Vp.lightAccent, brightness: b).copyWith(
-    primary: dark ? Vp.darkAccent : Vp.lightAccent,
+    primary: primary,
     onPrimary: dark ? Vp.darkBg : Vp.lightCard,
-    primaryContainer: dark ? const Color(0xFF0C4A6E) : const Color(0xFFE0F2FE),
-    onPrimaryContainer: dark ? const Color(0xFFBAE6FD) : const Color(0xFF075985),
+    primaryContainer: container,
+    onPrimaryContainer: onContainer,
     secondary: dark ? Vp.darkSub : Vp.lightSub,
     onSecondary: dark ? Vp.darkBg : Vp.lightCard,
-    secondaryContainer: dark ? const Color(0xFF0C4A6E) : const Color(0xFFE0F2FE),
-    onSecondaryContainer: dark ? const Color(0xFFBAE6FD) : const Color(0xFF075985),
+    secondaryContainer: container,
+    onSecondaryContainer: onContainer,
     // Canh bao: nen vang nhat / chu nau (sang), nen nau dam / chu vang (toi)
     tertiary: dark ? const Color(0xFFFDE047) : const Color(0xFF92400E),
     onTertiary: dark ? const Color(0xFF451A03) : Vp.lightCard,
@@ -116,45 +171,53 @@ ColorScheme _scheme(Brightness b) {
   );
 }
 
-ThemeData vpHubTheme(Brightness b) {
-  final cs = _scheme(b);
+final Map<String, ThemeData> _themes = {};
+
+/// Giao dien cua app theo che do sang/toi va linh vuc cua thiet bi ('ind' | 'agri', PROTOCOL §4 `dom`)
+ThemeData vpHubTheme(Brightness b, [String domain = 'ind']) =>
+    _themes['${b.name}/$domain'] ??= _buildTheme(b, domain == 'agri');
+
+ThemeData _buildTheme(Brightness b, bool agri) {
+  final cs = _scheme(b, agri);
   final dark = b == Brightness.dark;
+  final bars = agri ? VpBars.agri : VpBars.industrial;
   return ThemeData(
+    extensions: [bars],
     useMaterial3: true,
     colorScheme: cs,
     scaffoldBackgroundColor: dark ? Vp.darkBg : Vp.lightBg,
-    appBarTheme: const AppBarTheme(
-      backgroundColor: Vp.bar,
+    appBarTheme: AppBarTheme(
+      backgroundColor: bars.bar,
       foregroundColor: Vp.onBar,
       toolbarHeight: Vp.barHeight,
       elevation: 0,
       scrolledUnderElevation: 0,
       titleSpacing: 0,
-      titleTextStyle: TextStyle(color: Vp.onBar, fontSize: 18, fontWeight: FontWeight.w600),
-      iconTheme: IconThemeData(color: Vp.onBar),
-      actionsIconTheme: IconThemeData(color: Vp.onBar),
+      titleTextStyle: const TextStyle(color: Vp.onBar, fontSize: 18, fontWeight: FontWeight.w600),
+      iconTheme: const IconThemeData(color: Vp.onBar),
+      actionsIconTheme: const IconThemeData(color: Vp.onBar),
       systemOverlayStyle: SystemUiOverlayStyle.light,
     ),
-    tabBarTheme: const TabBarThemeData(
-      labelColor: Vp.barAccent,
-      unselectedLabelColor: Vp.onBarSub,
-      labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.6),
-      unselectedLabelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.6),
+    tabBarTheme: TabBarThemeData(
+      labelColor: bars.accent,
+      unselectedLabelColor: bars.sub,
+      labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.6),
+      unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0.6),
       indicatorSize: TabBarIndicatorSize.tab,
       // Tab dang chon: nen xanh mo + gach chan
       indicator: BoxDecoration(
-        color: Color(0x2638BDF8),
-        border: Border(bottom: BorderSide(color: Vp.barAccent, width: 3)),
+        color: bars.accent.withValues(alpha: 0.15),
+        border: Border(bottom: BorderSide(color: bars.accent, width: 3)),
       ),
       dividerColor: Colors.transparent,
-      labelPadding: EdgeInsets.symmetric(horizontal: 18),
+      labelPadding: const EdgeInsets.symmetric(horizontal: 18),
     ),
-    drawerTheme: const DrawerThemeData(
-      backgroundColor: Vp.bar,
+    drawerTheme: DrawerThemeData(
+      backgroundColor: bars.bar,
       // Lop phu nen khi mo menu: rgba(0, 0, 0, 0.5)
-      scrimColor: Color(0x80000000),
+      scrimColor: const Color(0x80000000),
       elevation: 0,
-      shape: RoundedRectangleBorder(),
+      shape: const RoundedRectangleBorder(),
     ),
     cardTheme: CardThemeData(
       color: cs.surface,

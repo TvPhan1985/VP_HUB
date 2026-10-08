@@ -290,6 +290,8 @@ class C3RelayTransport implements DeviceTransport {
       hdr: const ['t', 'h', 'out', 'mode', 'alarm'],
       caps: const ['time'],
       icon: 'relay',
+      // Bo relay C3 dung cho nong nghiep (tuoi, nha mang)
+      domain: 'agri',
     );
   }
 

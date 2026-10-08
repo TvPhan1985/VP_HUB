@@ -107,6 +107,7 @@ UUID và GATT, quảng bá (UUID ở gói advertising, tên ở scan response), 
 | Muốn | Gọi |
 |---|---|
 | Icon cho tab / trường | `vph_icon(screen_or_field, "temp")` |
+| Lĩnh vực của thiết bị (app chọn bộ giao diện nông nghiệp / công nghiệp) | `.domain = "agri"` hoặc `"ind"` trong `vph_info_t` |
 | Màn cài đặt / thông tin nằm trong menu hệ thống [≡], không làm tab | `vph_nav_menu(screen)` |
 | Số đo chính thành thẻ, 2 thẻ một hàng | `vph_hint(f, "tile")` + `vph_icon` |
 | Vài số phụ gom một thẻ | `vph_hint(f, "mini")` cho các trường liền nhau |

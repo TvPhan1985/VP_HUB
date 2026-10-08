@@ -40,6 +40,7 @@ typedef struct {
     const char *fw;             // "x.y.z"
     const char *hw;             // co the NULL
     const char *icon;           // relay|heater|sensor|pump|light|motor|generic, co the NULL
+    const char *domain;         // linh vuc: "ind" cong nghiep (mac dinh khi NULL) | "agri" nong nghiep
     const char *const *hdr;     // id cac truong dau trang, ket thuc bang NULL; co the NULL
     uint32_t caps;              // VPH_CAP_TIME ...
     const char *name_prefix;    // ten quang ba mac dinh = <name_prefix>-<4 hex MAC>; NULL = MODEL viet hoa

@@ -45,3 +45,7 @@ Chỉ khi cần **kiểu dữ liệu hoặc gợi ý hiển thị mới** dùng 
 ## Chữ hiển thị (từ app 1.2)
 
 App VP Hub hiển thị **tiếng Anh** (mặc định) hoặc tiếng Việt do người dùng chọn. Nhãn (`l`), nhóm (`g`), chú thích (`d`), câu hỏi xác nhận (`c`), nhãn `opt` và chuỗi `err` mà firmware gửi lên nên viết tiếng Anh cho đồng bộ (vd `Temperature`, `Setpoint`, `Alarm thresholds`). App không dịch chữ của thiết bị. Tên màn hình viết kiểu thường (`Overview`); app tự đổi thành chữ in hoa trên thanh tab.
+
+## Lĩnh vực của thiết bị (từ app 1.3)
+
+Mỗi dự án mới **phải khai lĩnh vực** trong INFO: `"dom":"agri"` cho thiết bị nông nghiệp (tưới, nhà màng, cảm biến đất…), `"dom":"ind"` cho thiết bị công nghiệp (lò, dây chuyền, máy…). Với `vph_ble`: đặt `.domain = "agri"` hoặc `.domain = "ind"` trong `vph_info_t`. App chọn bộ giao diện theo khóa này (nông nghiệp: thanh trên xanh lá; công nghiệp: thanh trên xám đậm, màu nhấn xanh dương). Không khai → app coi là công nghiệp.

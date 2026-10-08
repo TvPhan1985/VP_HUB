@@ -315,6 +315,7 @@ static void build_info(void)
         if (s.info.caps & VPH_CAP_TIME) cJSON_AddItemToArray(c, cJSON_CreateString("time"));
     }
     if (s.info.icon) cJSON_AddStringToObject(j, "icon", s.info.icon);
+    if (s.info.domain) cJSON_AddStringToObject(j, "dom", s.info.domain);
     if (!cJSON_PrintPreallocated(j, s.info_json, sizeof(s.info_json), false)) {
         ESP_LOGE(TAG, "INFO qua dai, khong dung duoc");
         strcpy(s.info_json, "{}");
