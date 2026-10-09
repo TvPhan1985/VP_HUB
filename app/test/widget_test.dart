@@ -379,7 +379,10 @@ void main() {
   testWidgets('Top App Bar: nut [≡] ben trai mo menu he thong, rong toi da 320dp, du cac nhom', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
     expect(tester.getSize(find.byType(AppBar)).height, greaterThanOrEqualTo(Vp.barHeight));
-    expect(tester.getCenter(find.byIcon(Icons.menu)).dx, lessThan(56));
+    // Nut quay lai o goc trai; [≡] ben phai, sau chuong
+    expect(tester.getCenter(find.byType(BackButtonIcon)).dx, lessThan(56));
+    expect(tester.getCenter(find.byIcon(Icons.menu)).dx,
+        greaterThan(tester.getCenter(find.byIcon(Icons.notifications_active)).dx));
     expect(find.byType(Drawer), findsNothing);
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();

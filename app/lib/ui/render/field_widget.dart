@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/cond.dart';
 import '../../core/device_session.dart';
@@ -73,7 +74,9 @@ FieldCtx fieldCtx(BuildContext context, DeviceSession session, int screen, VphFi
       final ask = c != null && (f.type != 'bool' || v == true);
       // Nut lenh: lap lai ten nut. Cong tac: "Turn on". Con lai: "Confirm".
       final action = f.type == 'act' ? f.label : (f.type == 'bool' ? context.l.turnOn : context.l.confirm);
-      if (ask && !await confirmDialog(context, c, action: action)) return;
+      if (ask && !await confirmDialog(context, c, action: action, danger: dangerousAction(f))) return;
+      // Rung nhe khi bam ON/OFF va nut lenh
+      if (f.type == 'bool' || f.type == 'act') HapticFeedback.lightImpact();
       await session.edit(screen, f, v);
     },
   );
@@ -94,18 +97,42 @@ class FieldDeco extends InheritedWidget {
   bool updateShouldNotify(FieldDeco old) => old.icon != icon || old.desc != desc || old.strong != strong;
 }
 
+/// Nut lenh dung / khoi dong lai / xoa: nut xac nhan mau do. Nhan ra tu schema (id danh rieng
+/// `_reboot`, icon `stop` / `reset`), khong theo model.
+bool dangerousAction(VphField f) =>
+    f.type == 'act' && (f.id == '_reboot' || f.icon == 'stop' || f.icon == 'reset');
+
+/// Vong cho nho dat ngay tren nut trong luc cho RESULT
+class ButtonSpinner extends StatelessWidget {
+  final double size;
+  const ButtonSpinner({super.key, this.size = 18});
+
+  @override
+  Widget build(BuildContext context) =>
+      SizedBox(width: size, height: size, child: const CircularProgressIndicator(strokeWidth: 2));
+}
+
 /// Hop hoi lai truoc khi gui lenh co `c`: tieu de la cau hoi cua thiet bi,
 /// nut xac nhan ghi dung hanh dong ([action]), khong dung "OK".
-Future<bool> confirmDialog(BuildContext context, String question, {required String action}) async {
+Future<bool> confirmDialog(BuildContext context, String question,
+    {required String action, bool danger = false}) async {
   final yes = await showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: Text(question),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l.cancel)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(action)),
-      ],
-    ),
+    builder: (ctx) {
+      final cs = Theme.of(ctx).colorScheme;
+      return AlertDialog(
+        title: Text(question),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l.cancel)),
+          FilledButton(
+            // Dung / khoi dong lai / xoa: nut xac nhan mau do
+            style: danger ? FilledButton.styleFrom(backgroundColor: cs.error, foregroundColor: cs.onError) : null,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(action),
+          ),
+        ],
+      );
+    },
   );
   return yes == true;
 }
@@ -288,6 +315,7 @@ class OnOffButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Dang cho RESULT thi c.value la gia tri vua bam: vong cho hien ngay tren nut do
     final on = asBool(c.value) ?? false;
     final can = c.editable && !c.busy;
     return Row(
@@ -295,7 +323,7 @@ class OnOffButtons extends StatelessWidget {
         Expanded(
           child: FilledButton.icon(
             onPressed: can && !on ? () => c.onChanged(true) : null,
-            icon: const Icon(Icons.power),
+            icon: c.busy && on ? const ButtonSpinner() : const Icon(Icons.power),
             label: Text(context.l.onCaps),
           ),
         ),
@@ -303,7 +331,7 @@ class OnOffButtons extends StatelessWidget {
         Expanded(
           child: FilledButton.icon(
             onPressed: can && on ? () => c.onChanged(false) : null,
-            icon: const Icon(Icons.power_off),
+            icon: c.busy && !on ? const ButtonSpinner() : const Icon(Icons.power_off),
             label: Text(context.l.offCaps),
           ),
         ),

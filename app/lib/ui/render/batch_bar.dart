@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../l10n/l10n.dart';
 
@@ -38,7 +39,12 @@ class BatchBar extends StatelessWidget {
               TextButton(onPressed: saving ? null : onCancel, child: Text(context.l.cancel)),
               const SizedBox(width: 8),
               FilledButton.icon(
-                onPressed: saving || !enabled ? null : onSave,
+                onPressed: saving || !enabled
+                    ? null
+                    : () {
+                        HapticFeedback.lightImpact();
+                        onSave();
+                      },
                 icon: saving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.save, size: 18),

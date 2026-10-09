@@ -202,7 +202,7 @@ class AppDrawer extends StatelessWidget {
   }
 }
 
-/// Nut [≡] goc tren ben trai cua Top App Bar
+/// Nut [≡] mo menu he thong (man Quet: goc trai; man Thiet bi: ben phai, canh chuong)
 class MenuButton extends StatelessWidget {
   const MenuButton({super.key});
 

@@ -192,11 +192,11 @@ Màn `SettingsScreen`:
 
 ## H8. Thao tác
 
-- [ ] Màn Thiết bị: nút `←` ở góc trái (về danh sách), nút `[≡]` chuyển sang bên phải cạnh chuông, hoặc mở Drawer bằng vuốt từ cạnh trái. Ghi quyết định vào SPEC §11 (thay mục 38 phần nút).
-- [ ] Rung nhẹ (`HapticFeedback.lightImpact`) khi bấm ON/OFF, nút lệnh, Save.
-- [ ] Nút lệnh và ON/OFF: trong lúc chờ RESULT, nút hiện vòng chờ nhỏ ngay trên nút (không chỉ ở hàng).
-- [ ] Nút xác nhận của hộp hỏi lại dùng màu đỏ khi hành động là dừng/khởi động lại/xóa.
-- [ ] Sửa `_syncTabs()`: không tạo `TabController` trong `build()`. Tạo lại trong listener của session (hoặc `didUpdateWidget`), rồi `setState`.
+- [x] Màn Thiết bị: nút `←` ở góc trái (về danh sách), nút `[≡]` chuyển sang bên phải cạnh chuông, hoặc mở Drawer bằng vuốt từ cạnh trái. Ghi quyết định vào SPEC §11 (thay mục 38 phần nút).
+- [x] Rung nhẹ (`HapticFeedback.lightImpact`) khi bấm ON/OFF, nút lệnh, Save.
+- [x] Nút lệnh và ON/OFF: trong lúc chờ RESULT, nút hiện vòng chờ nhỏ ngay trên nút (không chỉ ở hàng).
+- [x] Nút xác nhận của hộp hỏi lại dùng màu đỏ khi hành động là dừng/khởi động lại/xóa.
+- [x] Sửa `_syncTabs()`: không tạo `TabController` trong `build()`. Tạo lại trong listener của session (hoặc `didUpdateWidget`), rồi `setState`.
 
 ---
 

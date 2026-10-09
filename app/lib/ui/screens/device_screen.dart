@@ -149,6 +149,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       if (mounted && s.ready && age != null && age > DeviceSession.ageShownAfter) setState(() {});
     });
     s.addListener(_applyWake);
+    s.addListener(_onSession);
   }
 
   @override
@@ -157,11 +158,13 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
     _settings = SettingsScope.maybeOf(context);
     _tech = _settings?.technician ?? false;
     _applyWake();
+    _syncTabs();
   }
 
   @override
   void dispose() {
     s.removeListener(_applyWake);
+    s.removeListener(_onSession);
     if (_awake) _setWake(false);
     _msgSub?.cancel();
     _ageTimer?.cancel();
@@ -210,22 +213,34 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       ));
   }
 
-  /// Tao lai TabController khi so man hinh doi (ket noi xong, doc lai schema)
-  void _syncTabs() {
+  /// Tinh lai danh sach tab khi so man hinh hoac che do nguoi dung doi (ket noi xong, doc lai schema,
+  /// bat/tat Technician) va tao lai TabController. Goi tu listener cua session va didChangeDependencies,
+  /// KHONG goi trong build(). Tra true neu danh sach tab doi.
+  bool _syncTabs() {
     // Man adv chi co o che do Technician
     final all = [for (var i = 0; i < s.screens.length; i++) if (_tech || !s.screens[i].adv) i];
     var idx = [for (final i in all) if (!s.screens[i].menu) i];
     // Moi man deu la menu thi coi tat ca la tab, khong de man Thiet bi trong
     if (idx.isEmpty) idx = all;
-    if (_tabs != null && listEquals(idx, _tabIdx)) return;
-    _tabs?.dispose();
+    if (listEquals(idx, _tabIdx) && (_tabs != null || idx.isEmpty)) return false;
+    // Controller cu con gan voi TabBarView cho toi lan ve ke: huy sau khung hinh nay
+    final old = _tabs;
+    if (old != null) {
+      old.removeListener(_onTab);
+      WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    }
     _tabs = null;
     _tabIdx = idx;
-    if (idx.isEmpty) return;
+    if (idx.isEmpty) return true;
     _shown = idx.contains(s.current) ? s.current : idx.first;
     _tabs = TabController(length: idx.length, vsync: this, initialIndex: idx.indexOf(_shown))..addListener(_onTab);
     // Man dang chon tren thiet bi khong phai tab (vd man dau la menu): chon lai tab dang hien
     if (_shown != s.current && !_inMenu) Future.microtask(() => s.selectScreen(_shown));
+    return true;
+  }
+
+  void _onSession() {
+    if (mounted && _syncTabs()) setState(() {});
   }
 
   Future<_Leave> _askLeave(int screen) => _askLeaveDialog(context, s, screen);
@@ -519,7 +534,6 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
     return ListenableBuilder(
       listenable: s,
       builder: (context, _) {
-        _syncTabs();
         final tabs = _tabs;
         final link = _link();
         final n = _tabIdx.length;
@@ -537,7 +551,13 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
           child: Scaffold(
             drawer: _drawer(context, menuIdx),
             appBar: AppBar(
-              leading: const MenuButton(),
+              // Nut quay lai danh sach thiet bi o goc trai; [≡] nam ben phai, canh chuong.
+              // Menu he thong van mo duoc bang vuot tu canh trai.
+              leading: IconButton(
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                icon: const BackButtonIcon(),
+                onPressed: _leaveScreen,
+              ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -571,6 +591,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
                     child: Icon(alarms > 0 ? Icons.notifications_active : Icons.notifications_none),
                   ),
                 ),
+                const MenuButton(),
                 const SizedBox(width: 4),
               ],
               bottom: !showTabs
