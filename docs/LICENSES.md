@@ -14,6 +14,7 @@ Quy tắc của dự án: chỉ dùng gói có license **BSD / MIT / Apache / Zl
 | `flutter_launcher_icons` | 0.14.4 | MIT (chỉ dùng lúc phát triển) |
 | `flutter_lints` | 6.0.0 | BSD-3-Clause (chỉ dùng lúc phát triển) |
 | `flutter_localizations` | SDK | BSD-3-Clause (Flutter SDK) |
+| `flutter_native_splash` | 2.4.8 | MIT (chỉ dùng lúc phát triển) |
 | `flutter_test` | SDK | BSD-3-Clause (Flutter SDK) (chỉ dùng lúc phát triển) |
 | `intl` | 0.20.3 | BSD-3-Clause |
 | `package_info_plus` | 10.2.2 | BSD-3-Clause |
@@ -29,6 +30,7 @@ Quy tắc của dự án: chỉ dùng gói có license **BSD / MIT / Apache / Zl
 | Gói | Bản | License |
 |---|---|---|
 | `android_file_picker` | 2.0.1 | MIT |
+| `ansicolor` | 2.0.3 | Apache-2.0 |
 | `archive` | 4.3.0 | MIT |
 | `args` | 2.7.0 | BSD-3-Clause |
 | `async` | 2.13.1 | BSD-3-Clause |
@@ -42,6 +44,7 @@ Quy tắc của dự án: chỉ dùng gói có license **BSD / MIT / Apache / Zl
 | `collection` | 1.19.1 | BSD-3-Clause |
 | `cross_file` | 0.3.5+5 | BSD-3-Clause |
 | `crypto` | 3.0.7 | BSD-3-Clause |
+| `csslib` | 1.0.2 | BSD-3-Clause |
 | `dbus` | 0.7.15 | 🔴 **MPL-2.0** |
 | `equatable` | 2.1.0 | MIT |
 | `fake_async` | 1.3.3 | Apache-2.0 |
@@ -56,6 +59,7 @@ Quy tắc của dự án: chỉ dùng gói có license **BSD / MIT / Apache / Zl
 | `flutter_web_bluetooth` | 1.1.0 | MIT |
 | `flutter_web_plugins` | SDK | BSD-3-Clause (Flutter SDK) |
 | `hooks` | 2.0.2 | BSD-3-Clause |
+| `html` | 0.15.7 | MIT |
 | `http` | 1.6.0 | BSD-3-Clause |
 | `http_parser` | 4.1.2 | BSD-3-Clause |
 | `image` | 4.10.1 | MIT |
@@ -107,6 +111,7 @@ Quy tắc của dự án: chỉ dùng gói có license **BSD / MIT / Apache / Zl
 | `term_glyph` | 1.2.2 | BSD-3-Clause |
 | `test_api` | 0.7.12 | BSD-3-Clause |
 | `typed_data` | 1.4.0 | BSD-3-Clause |
+| `universal_io` | 2.3.1 | Apache-2.0 |
 | `url_launcher_linux` | 3.2.3 | BSD-3-Clause |
 | `url_launcher_platform_interface` | 2.3.2 | BSD-3-Clause |
 | `url_launcher_web` | 2.4.3 | BSD-3-Clause |

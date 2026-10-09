@@ -53,6 +53,9 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName(if (keystoreProps.isNotEmpty()) "release" else "debug")
+            // Thu gon ma (R8) va bo tai nguyen khong dung de APK nho hon
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
     }
 }
