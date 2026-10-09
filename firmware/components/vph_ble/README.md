@@ -61,7 +61,7 @@ static void fill_values(uint8_t screen, vph_out_t *o)
 static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
 {
     if (!strcmp(id, "out")) { relay_set(cJSON_IsTrue(v)); return VPH_OK; }
-    return VPH_ERR_UNKNOWN;     // component trả "Không có trường <id>"
+    return VPH_ERR_UNKNOWN;     // component trả "Unknown field: <id>"
 }
 
 // 4. Khởi động và gọi vph_poll() đều trong vòng lặp chính
@@ -84,7 +84,7 @@ void app_main(void)
 
 | Việc | Cách làm |
 |---|---|
-| Mã trả về của `on_write` / `on_batch` | `VPH_OK`; `VPH_ERR_UNKNOWN` (không biết trường); `VPH_ERR_REJECT` + ghi lý do **tiếng Việt có dấu** vào `err` (≤ 80 byte) |
+| Mã trả về của `on_write` / `on_batch` | `VPH_OK`; `VPH_ERR_UNKNOWN` (không biết trường); `VPH_ERR_REJECT` + ghi lý do **tiếng Anh, ngắn** vào `err` (≤ 80 byte, quy tắc chữ: `docs/COPY_STYLE.md`) |
 | Màn `batch` | `on_batch(set, ...)`: áp **tất cả** lên **bản sao** cấu hình → kiểm tra → hợp lệ mới gán và lưu. Sai thì giữ nguyên cấu hình cũ |
 | Trường đầu trang (`hdr`) | Liệt kê id trong `info.hdr`; trong `fill_values` ghi chúng khi `screen == VPH_SCREEN_HDR`. Component tự chèn vào VALUES mọi màn, id trùng thì bỏ qua |
 | Khối lặp | `rep = vph_repeat(s, 5, "s", "Khung"); vph_field(rep, "en", "Bật", "bool");` → VALUES phải có `s1_en … s5_en` |
@@ -113,7 +113,7 @@ UUID và GATT, quảng bá (UUID ở gói advertising, tên ở scan response), 
 | Số đo chính thành thẻ, 2 thẻ một hàng | `vph_hint(f, "tile")` + `vph_icon` |
 | Vài số phụ gom một thẻ | `vph_hint(f, "mini")` cho các trường liền nhau |
 | Công tắc tải chính | `vph_hint(f, "hero,btns")`, `vph_sub(f, "mode")`, `vph_desc(f, "lý do khi bị khóa")` |
-| Chữ trạng thái khác BẬT/TẮT | `vph_bool_labels(f, "Dừng", "Đang đốt")` |
+| Chữ trạng thái khác ON/OFF | `vph_bool_labels(f, "Stopped", "Firing")` |
 | Chọn chế độ có icon | `vph_hint(f, "seg")` + `vph_options_ic(...)` |
 | Thẻ báo động | `vph_hint(flags, "alarm")`, nút "Tắt còi" đặt liền sau, cùng `vph_group` |
 | Dòng cảnh báo | `vph_hint(f, "note")` + `vph_show_if` |
@@ -128,14 +128,14 @@ Mẫu đầy đủ: `firmware/examples/vph_demo/main/main.c`.
 | INFO | 240 byte | `ESP_LOGW` |
 | SCHEMA mỗi màn | 1920 byte (4 trang) | `ESP_LOGW` lúc khởi động; in kích thước từng màn ra log |
 | VALUES mỗi màn (kể cả `hdr`) | 240 byte | `ESP_LOGW` một lần cho mỗi màn; quá 400 byte thì bỏ các trường cuối (JSON vẫn hợp lệ) |
-| WRITE | 500 byte (v1.1) | RESULT `"err":"Lệnh quá dài"`, không gọi `on_write` / `on_batch` |
+| WRITE | 500 byte (v1.1) | RESULT `"err":"Command too long"`, không gọi `on_write` / `on_batch` |
 | RESULT | 120 byte | `err` bị cắt còn 80 byte |
 
 VALUES quá 240 byte → tách thành 2 màn hoặc rút id ngắn lại. **Dự án phải có unit test** kiểm tra kích thước lớn nhất của từng màn (xem `firmware/test_app/main/test_vph.c`, các test nhãn `[size]`).
 
 ## Thử giao diện trước khi nạp
 
-Lấy chuỗi INFO và schema từ log lúc khởi động (hoặc `vph_core_info()`, `vph_core_schema(i)` trong `vph_core.h`), ghép thành file demo theo `app/assets/demo/README.md`, mở bằng VP Hub → **Thiết bị mẫu → Mở file JSON**.
+Lấy chuỗi INFO và schema từ log lúc khởi động (hoặc `vph_core_info()`, `vph_core_schema(i)` trong `vph_core.h`), ghép thành file demo theo `app/assets/demo/README.md`, mở bằng VP Hub → **Settings → Technician mode → Developer tools → Open JSON file**.
 
 ## Test
 

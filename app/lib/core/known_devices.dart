@@ -10,6 +10,9 @@ class KnownDevice {
   final String icon;
   final bool legacy;
   final int lastMs;
+
+  /// Ten do nguoi dung dat trong app: khong ghi de bang ten quang ba khi ket noi lai
+  final bool alias;
   const KnownDevice({
     required this.id,
     required this.name,
@@ -17,10 +20,11 @@ class KnownDevice {
     this.icon = 'generic',
     this.legacy = false,
     this.lastMs = 0,
+    this.alias = false,
   });
 
   Map<String, dynamic> toJson() =>
-      {'id': id, 'name': name, 'model': model, 'icon': icon, 'legacy': legacy, 'last': lastMs};
+      {'id': id, 'name': name, 'model': model, 'icon': icon, 'legacy': legacy, 'last': lastMs, if (alias) 'alias': true};
 
   static KnownDevice? fromJson(dynamic j) {
     if (j is! Map || j['id'] is! String) return null;
@@ -31,6 +35,7 @@ class KnownDevice {
       icon: j['icon'] is String ? j['icon'] as String : 'generic',
       legacy: j['legacy'] == true,
       lastMs: j['last'] is num ? (j['last'] as num).toInt() : 0,
+      alias: j['alias'] == true,
     );
   }
 }
@@ -65,4 +70,21 @@ class KnownDevices {
   }
 
   Future<void> forget(String id) async => _save(list()..removeWhere((e) => e.id == id));
+
+  /// Dat lai mot thiet bi vao dung vi tri cu (hoan tac xoa)
+  Future<void> insertAt(int index, KnownDevice d) async {
+    final l = list()..removeWhere((e) => e.id == d.id);
+    l.insert(index.clamp(0, l.length), d);
+    await _save(l);
+  }
+
+  /// Doi ten hien thi trong app (khong doi ten quang ba cua thiet bi)
+  Future<void> rename(String id, String name) async {
+    final l = list();
+    final i = l.indexWhere((e) => e.id == id);
+    if (i < 0) return;
+    final d = l[i];
+    l[i] = KnownDevice(id: d.id, name: name, model: d.model, icon: d.icon, legacy: d.legacy, lastMs: d.lastMs, alias: true);
+    await _save(l);
+  }
 }

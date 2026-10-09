@@ -57,7 +57,7 @@ class StrField extends StatelessWidget {
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
-              FilledButton(onPressed: submit, child: Text(S.ok)),
+              FilledButton(onPressed: submit, child: Text(S.apply)),
             ],
           );
         },

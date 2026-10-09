@@ -15,31 +15,31 @@ const int kC3Slots = 5;
 /// Schema luu san cua relay C3, theo ngon ngu dang dung
 String c3SchemaAsset() => Lang.isVi ? 'assets/legacy/c3relay_v1.vi.json' : 'assets/legacy/c3relay_v1.json';
 
-/// Ban tieng Viet cua cac loi kiem tra CONFIG (c3BuildConfig tra loi tieng Anh)
+/// Ban tieng Viet cua cac loi kiem tra CONFIG (c3BuildConfig tra loi tieng Anh, viet theo docs/COPY_STYLE.md)
 const Map<String, String> _c3ErrVi = {
-  'Name must be 1-20 characters': 'Tên phải dài 1-20 ký tự',
-  'Name must use ASCII characters only': 'Tên chỉ dùng ký tự ASCII',
-  'Invalid auto source': 'Nguồn tự động sai',
-  'Date must be YYYY-MM-DD': 'Ngày phải dạng YYYY-MM-DD',
-  'Start date must be before end date': 'Ngày bắt đầu phải trước ngày kết thúc',
-  'Time must be HH:MM': 'Giờ phải dạng HH:MM',
-  'Invalid weekdays': 'Thứ trong tuần sai',
-  'Invalid sensor type': 'Loại cảm biến sai',
-  'Invalid threshold type': 'Kiểu ngưỡng sai',
-  'Invalid threshold': 'Ngưỡng không hợp lệ',
-  'On when low: on threshold must be below off threshold': 'Bật khi thấp: ngưỡng bật phải nhỏ hơn ngưỡng tắt',
-  'On when high: on threshold must be above off threshold': 'Bật khi cao: ngưỡng bật phải lớn hơn ngưỡng tắt',
-  'Modbus address must be 1-247': 'Địa chỉ Modbus phải 1-247',
-  'Start register must be 0-65535': 'Thanh ghi đầu phải 0-65535',
-  'Register count must be 1-10': 'Số thanh ghi phải 1-10',
-  'Humidity / temperature index exceeds register count': 'Vị trí độ ẩm / nhiệt độ vượt quá số thanh ghi',
-  'Scale divisor must be greater than 0': 'Hệ số chia phải lớn hơn 0',
-  'Poll interval must be 1-3600 s': 'Chu kỳ đọc phải 1-3600 giây',
-  'Invalid alarm threshold': 'Ngưỡng báo động không hợp lệ',
-  'Alarm: low temperature must be below high temperature': 'Báo động: nhiệt độ thấp phải nhỏ hơn nhiệt độ cao',
-  'Alarm: low humidity must be below high humidity': 'Báo động: độ ẩm thấp phải nhỏ hơn độ ẩm cao',
-  'Nothing to save': 'Không có gì để lưu',
-  'Name must not contain " or \\': 'Tên không được chứa " hoặc \\',
+  'Enter a name of 1 to 20 characters.': 'Hãy nhập tên dài 1 đến 20 ký tự.',
+  'Use only unaccented letters, digits and symbols in the name.': 'Tên chỉ dùng chữ không dấu, số và ký hiệu.',
+  'Choose Schedule, Sensor or Combined.': 'Hãy chọn Lịch, Cảm biến hoặc Kết hợp.',
+  'Enter the date as YYYY-MM-DD.': 'Hãy nhập ngày dạng YYYY-MM-DD.',
+  'Set the start date before the end date.': 'Hãy đặt ngày bắt đầu trước ngày kết thúc.',
+  'Enter the time as HH:MM.': 'Hãy nhập giờ dạng HH:MM.',
+  'Choose valid weekdays.': 'Hãy chọn thứ trong tuần hợp lệ.',
+  'Choose Humidity or Temperature.': 'Hãy chọn Độ ẩm hoặc Nhiệt độ.',
+  'Choose when the relay turns on.': 'Hãy chọn khi nào relay bật.',
+  'Enter both thresholds.': 'Hãy nhập đủ hai ngưỡng.',
+  'Set the on threshold below the off threshold.': 'Hãy đặt ngưỡng bật nhỏ hơn ngưỡng tắt.',
+  'Set the on threshold above the off threshold.': 'Hãy đặt ngưỡng bật lớn hơn ngưỡng tắt.',
+  'Enter a Modbus address from 1 to 247.': 'Hãy nhập địa chỉ Modbus từ 1 đến 247.',
+  'Enter a start register from 0 to 65535.': 'Hãy nhập thanh ghi đầu từ 0 đến 65535.',
+  'Enter a register count from 1 to 10.': 'Hãy nhập số thanh ghi từ 1 đến 10.',
+  'Set both positions below the register count.': 'Hãy đặt hai vị trí nhỏ hơn số thanh ghi.',
+  'Enter a scale factor greater than 0.': 'Hãy nhập hệ số tỉ lệ lớn hơn 0.',
+  'Enter a poll interval from 1 to 3600 s.': 'Hãy nhập chu kỳ đọc từ 1 đến 3600 giây.',
+  'Enter all four alarm thresholds.': 'Hãy nhập đủ bốn ngưỡng báo động.',
+  'Set low temperature below high temperature.': 'Hãy đặt nhiệt độ thấp nhỏ hơn nhiệt độ cao.',
+  'Set low humidity below high humidity.': 'Hãy đặt độ ẩm thấp nhỏ hơn độ ẩm cao.',
+  'There are no changes to save.': 'Không có thay đổi nào để lưu.',
+  'Remove " and \\ from the name.': 'Hãy bỏ ký tự " và \\ khỏi tên.',
 };
 
 String? c3ErrText(String? err) => Lang.isVi ? (_c3ErrVi[err] ?? err) : err;
@@ -129,25 +129,25 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
 
   if (set.containsKey('_name')) {
     final name = '${set['_name']}'.trim();
-    if (name.isEmpty || name.length > 20) return const C3ConfigBuild.fail('Name must be 1-20 characters');
+    if (name.isEmpty || name.length > 20) return const C3ConfigBuild.fail('Enter a name of 1 to 20 characters.');
     for (final c in name.codeUnits) {
-      if (c < 0x20 || c > 0x7E) return const C3ConfigBuild.fail('Name must use ASCII characters only');
-      if (c == 0x22 || c == 0x5C) return const C3ConfigBuild.fail('Name must not contain " or \\');
+      if (c < 0x20 || c > 0x7E) return const C3ConfigBuild.fail('Use only unaccented letters, digits and symbols in the name.');
+      if (c == 0x22 || c == 0x5C) return const C3ConfigBuild.fail('Remove " and \\ from the name.');
     }
     out['name'] = name;
   }
 
   if (set.containsKey('src')) {
-    if (!const ['schedule', 'sensor', 'both'].contains(v['src'])) return const C3ConfigBuild.fail('Invalid auto source');
+    if (!const ['schedule', 'sensor', 'both'].contains(v['src'])) return const C3ConfigBuild.fail('Choose Schedule, Sensor or Combined.');
     auto['src'] = v['src'];
   }
   if (set.containsKey('date_from') || set.containsKey('date_to')) {
     final from = v['date_from'], to = v['date_to'];
     for (final d in [from, to]) {
-      if (d != null && !(d is String && _ymd.hasMatch(d))) return const C3ConfigBuild.fail('Date must be YYYY-MM-DD');
+      if (d != null && !(d is String && _ymd.hasMatch(d))) return const C3ConfigBuild.fail('Enter the date as YYYY-MM-DD.');
     }
     if (from != null && to != null && (from as String).compareTo(to as String) > 0) {
-      return const C3ConfigBuild.fail('Start date must be before end date');
+      return const C3ConfigBuild.fail('Set the start date before the end date.');
     }
     if (set.containsKey('date_from')) auto['dateFrom'] = from;
     if (set.containsKey('date_to')) auto['dateTo'] = to;
@@ -156,9 +156,9 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
     final slots = <List<dynamic>>[];
     for (var i = 1; i <= kC3Slots; i++) {
       final on = '${v['s${i}_on']}', off = '${v['s${i}_off']}';
-      if (!_hhmm.hasMatch(on) || !_hhmm.hasMatch(off)) return const C3ConfigBuild.fail('Time must be HH:MM');
+      if (!_hhmm.hasMatch(on) || !_hhmm.hasMatch(off)) return const C3ConfigBuild.fail('Enter the time as HH:MM.');
       final days = _i(v['s${i}_days'], 127);
-      if (days < 0 || days > 127) return const C3ConfigBuild.fail('Invalid weekdays');
+      if (days < 0 || days > 127) return const C3ConfigBuild.fail('Choose valid weekdays.');
       slots.add([(asBool(v['s${i}_en']) ?? false) ? 1 : 0, days, on, off]);
     }
     auto['slots'] = slots;
@@ -166,14 +166,14 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
   if (touched((k) => k.startsWith('sen_') || k == 'on_at' || k == 'off_at')) {
     final act = v['sen_act'], type = v['sen_type'];
     final onAt = asNum(v['on_at']), offAt = asNum(v['off_at']);
-    if (type != 'hum' && type != 'temp') return const C3ConfigBuild.fail('Invalid sensor type');
-    if (act != 'low' && act != 'high') return const C3ConfigBuild.fail('Invalid threshold type');
-    if (onAt == null || offAt == null) return const C3ConfigBuild.fail('Invalid threshold');
+    if (type != 'hum' && type != 'temp') return const C3ConfigBuild.fail('Choose Humidity or Temperature.');
+    if (act != 'low' && act != 'high') return const C3ConfigBuild.fail('Choose when the relay turns on.');
+    if (onAt == null || offAt == null) return const C3ConfigBuild.fail('Enter both thresholds.');
     if (act == 'low' && !(onAt < offAt)) {
-      return const C3ConfigBuild.fail('On when low: on threshold must be below off threshold');
+      return const C3ConfigBuild.fail('Set the on threshold below the off threshold.');
     }
     if (act == 'high' && !(onAt > offAt)) {
-      return const C3ConfigBuild.fail('On when high: on threshold must be above off threshold');
+      return const C3ConfigBuild.fail('Set the on threshold above the off threshold.');
     }
     auto['sensor'] = {'type': type, 'action': act, 'onAt': _r1(onAt), 'offAt': _r1(offAt)};
   }
@@ -183,14 +183,14 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
     final addr = _i(v['mb_addr'], 0), count = _i(v['mb_count'], 0);
     final idxH = _i(v['mb_idx_h'], -1), idxT = _i(v['mb_idx_t'], -1);
     final scale = asNum(v['mb_scale']) ?? 0, period = _i(v['mb_period'], 0), start = _i(v['mb_start'], -1);
-    if (addr < 1 || addr > 247) return const C3ConfigBuild.fail('Modbus address must be 1-247');
-    if (start < 0 || start > 65535) return const C3ConfigBuild.fail('Start register must be 0-65535');
-    if (count < 1 || count > 10) return const C3ConfigBuild.fail('Register count must be 1-10');
+    if (addr < 1 || addr > 247) return const C3ConfigBuild.fail('Enter a Modbus address from 1 to 247.');
+    if (start < 0 || start > 65535) return const C3ConfigBuild.fail('Enter a start register from 0 to 65535.');
+    if (count < 1 || count > 10) return const C3ConfigBuild.fail('Enter a register count from 1 to 10.');
     if (idxH < 0 || idxT < 0 || idxH >= count || idxT >= count) {
-      return const C3ConfigBuild.fail('Humidity / temperature index exceeds register count');
+      return const C3ConfigBuild.fail('Set both positions below the register count.');
     }
-    if (!(scale > 0)) return const C3ConfigBuild.fail('Scale divisor must be greater than 0');
-    if (period < 1 || period > 3600) return const C3ConfigBuild.fail('Poll interval must be 1-3600 s');
+    if (!(scale > 0)) return const C3ConfigBuild.fail('Enter a scale factor greater than 0.');
+    if (period < 1 || period > 3600) return const C3ConfigBuild.fail('Enter a poll interval from 1 to 3600 s.');
     out['modbus'] = {
       'addr': addr,
       'baud': _i(v['mb_baud'], 9600),
@@ -206,10 +206,10 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
   if (touched((k) => k.startsWith('al_'))) {
     final tLo = asNum(v['al_t_lo']), tHi = asNum(v['al_t_hi']), hLo = asNum(v['al_h_lo']), hHi = asNum(v['al_h_hi']);
     if (tLo == null || tHi == null || hLo == null || hHi == null) {
-      return const C3ConfigBuild.fail('Invalid alarm threshold');
+      return const C3ConfigBuild.fail('Enter all four alarm thresholds.');
     }
-    if (!(tLo < tHi)) return const C3ConfigBuild.fail('Alarm: low temperature must be below high temperature');
-    if (!(hLo < hHi)) return const C3ConfigBuild.fail('Alarm: low humidity must be below high humidity');
+    if (!(tLo < tHi)) return const C3ConfigBuild.fail('Set low temperature below high temperature.');
+    if (!(hLo < hHi)) return const C3ConfigBuild.fail('Set low humidity below high humidity.');
     out['alarm'] = {
       'en': (asBool(v['al_en']) ?? false) ? 1 : 0,
       'tHi': _r1(tHi),
@@ -218,7 +218,7 @@ C3ConfigBuild c3BuildConfig(Map<String, dynamic> set, Map<String, dynamic> curre
       'hLo': _r1(hLo),
     };
   }
-  if (out.isEmpty) return const C3ConfigBuild.fail('Nothing to save');
+  if (out.isEmpty) return const C3ConfigBuild.fail('There are no changes to save.');
   return C3ConfigBuild.ok(out);
 }
 
@@ -332,7 +332,7 @@ class C3RelayTransport implements DeviceTransport {
     try {
       final j = jsonDecode(utf8.decode(data)) as Map;
       final ok = j['ok'] == true || j['ok'] == 1;
-      p.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.deviceRefused));
+      p.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.errRejected));
     } catch (_) {}
   }
 
@@ -354,9 +354,9 @@ class C3RelayTransport implements DeviceTransport {
           await link.write(chr, utf8.encode(jsonEncode(body)));
           return await c.future.timeout(resultTimeout);
         } on TimeoutException {
-          return VphResult.fail(S.noResponse);
+          return VphResult.fail(S.errNoResponse);
         } catch (e) {
-          return VphResult.fail(S.sendFailed(e));
+          return VphResult.fail(S.errUnknown);
         } finally {
           _pending = null;
         }
@@ -379,7 +379,7 @@ class C3RelayTransport implements DeviceTransport {
     final b = c3BuildConfig(set, _cfgFlat);
     if (b.json == null) return VphResult.fail(c3ErrText(b.err));
     final len = utf8.encode(jsonEncode(b.json)).length;
-    if (len > maxConfig) return VphResult.fail(S.writeTooLong(len, maxConfig));
+    if (len > maxConfig) return VphResult.fail(S.errTooLong);
     final r = await _writeAndWait(kC3Config, b.json!);
     if (r.ok) await _readConfig();
     return r;
@@ -388,7 +388,7 @@ class C3RelayTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     final p = _pending;
-    if (p != null && !p.isCompleted) p.complete(VphResult.fail(S.linkLost));
+    if (p != null && !p.isCompleted) p.complete(VphResult.fail(S.disconnected));
     await link.disconnect();
     await _values.close();
   }

@@ -259,7 +259,7 @@ class KilnTransport implements DeviceTransport {
       }
       out.add(s);
     }
-    if (out.isEmpty) throw Exception(S.emptySchema);
+    if (out.isEmpty) throw Exception(S.errBadData);
     _rawSchemas = out;
     stats.schemaFromCache = false;
     await cache.put(_cacheKey, out);
@@ -336,16 +336,16 @@ class KilnTransport implements DeviceTransport {
         final f = _field(id);
         final json = encodeWrite(id, v, type: f?.type);
         final payload = utf8.encode(json);
-        if (payload.length > maxWrite) return VphResult.fail(S.writeTooLong(payload.length, maxWrite));
+        if (payload.length > maxWrite) return VphResult.fail(S.errTooLong);
         try {
           await link.write(kKilnWrite, payload);
         } catch (e) {
-          return VphResult.fail(S.sendFailed(e));
+          return VphResult.fail(S.errUnknown);
         }
         if (f == null || f.type == 'act' || _momentary.contains(id)) return const VphResult.ok();
         final expected = f.type == 'bool' ? (asBool(v) ?? false) : v;
         final tol = f.type == 'num' ? ((f.step ?? 0.1) / 2 + 0.011).clamp(0.06, 1e9).toDouble() : 1e-6;
-        return await _verify(id, expected, tol) ? const VphResult.ok() : VphResult.fail(S.kilnNotAccepted);
+        return await _verify(id, expected, tol) ? const VphResult.ok() : VphResult.fail(S.errNotAccepted);
       });
 
   /// Khong co RESULT: xem VALUES trong 2 giay toi co dung gia tri vua ghi khong

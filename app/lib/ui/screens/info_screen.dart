@@ -30,10 +30,10 @@ class _InfoScreenState extends State<InfoScreen> {
   }
 
   String _status(LinkStatus s) => switch (s) {
-        LinkStatus.ready => S.linkOk,
+        LinkStatus.ready => S.connected,
         LinkStatus.connecting || LinkStatus.loading => S.connecting,
-        LinkStatus.reconnecting => S.linkRetry,
-        _ => S.linkLost,
+        LinkStatus.reconnecting => S.reconnecting,
+        _ => S.disconnected,
       };
 
   @override
@@ -56,7 +56,7 @@ class _InfoScreenState extends State<InfoScreen> {
             if (i.hw != null) (S.infoHw, i.hw!),
           ],
           if (rssi != null)
-            (S.infoSignal, tech ? '${S.signalLevel(SignalBars.level(rssi))} (${S.rssi(rssi)})' : S.signalLevel(SignalBars.level(rssi))),
+            (S.infoSignal, tech ? '${S.signalLevel(SignalBars.level(rssi))} (${S.rssiDbm(rssi)})' : S.signalLevel(SignalBars.level(rssi))),
           (S.infoStatus, _status(session.status)),
           if (tech) ...[
             if (i != null) (S.infoPv, '${i.pv}'),
@@ -69,7 +69,7 @@ class _InfoScreenState extends State<InfoScreen> {
             if (st != null) ...[
               (S.infoSchemaSrc, st.schemaFromCache ? S.fromCache : S.fromDevice),
               if (st.mtu > 0) (S.infoMtu, '${st.mtu}'),
-              (S.infoMaxValues, S.bytes(st.maxValuesLen)),
+              (S.infoMaxValues, S.bytesN(st.maxValuesLen)),
               (S.infoPackets, '${st.valuesCount}'),
               (S.infoBad, '${st.badPackets}'),
             ],
@@ -84,7 +84,7 @@ class _InfoScreenState extends State<InfoScreen> {
               ),
             );
         return Scaffold(
-          appBar: AppBar(titleSpacing: null, title: Text(S.menuInfo)),
+          appBar: AppBar(titleSpacing: null, title: Text(S.deviceInfo)),
           body: ListView(
             padding: const EdgeInsets.all(12),
             children: [

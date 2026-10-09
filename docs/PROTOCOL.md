@@ -228,10 +228,10 @@ Firmware áp **tất cả** lên bản sao cấu hình → kiểm tra hợp lệ
 ### 6.4 RESULT
 ```json
 {"q":12,"ok":1}
-{"q":13,"ok":0,"err":"Ngưỡng bật phải nhỏ hơn ngưỡng tắt"}
+{"q":13,"ok":0,"err":"Set the on threshold below the off threshold."}
 ```
-- Firmware trả RESULT cho **mọi** lệnh ghi trong vòng **1 giây**. App chờ tối đa **3 giây**, quá thì báo "Thiết bị không phản hồi".
-- `err` ≤ 80 byte (UTF-8; từ app 1.2 nên viết tiếng Anh). Id không biết → `"err":"Không có trường <id>"`.
+- Firmware trả RESULT cho **mọi** lệnh ghi trong vòng **1 giây**. App chờ tối đa **3 giây**, quá thì báo "The device didn't respond. Try again.".
+- `err` ≤ 80 byte (UTF-8), viết **tiếng Anh** theo `docs/COPY_STYLE.md`: chuyện gì sai + làm gì tiếp, ví dụ `Set the on threshold below the off threshold.` Id không biết → `"err":"Unknown field: <id>"`.
 
 ---
 
@@ -250,7 +250,7 @@ Một object phẳng `{"id":giá_trị,...}` gồm: các trường của màn h�
 | INFO | 240 byte | đọc 1 gói kể cả khi MTU chỉ được 247 |
 | SCHEMA mỗi **trang** | **480 byte** | 1 attribute BLE tối đa 512 byte. Cả màn hình tối đa 4 trang = 1920 byte (§8.1) |
 | VALUES (mỗi màn hình, kể cả `hdr`) | **240 byte** | notify tối đa MTU−3 = 244 byte nếu điện thoại chỉ cho MTU 247. Dài hơn sẽ bị cắt, app không đọc được |
-| WRITE | **500 byte** | v1.1 (trước là 240). Lệnh dài hơn MTU−3 thì app gửi bằng **long write** (prepared write, có phản hồi); NimBLE tự ghép. Dài hơn 500 → RESULT `"err":"Lệnh quá dài"` |
+| WRITE | **500 byte** | v1.1 (trước là 240). Lệnh dài hơn MTU−3 thì app gửi bằng **long write** (prepared write, có phản hồi); NimBLE tự ghép. Dài hơn 500 → RESULT `"err":"Command too long"` |
 | RESULT | 120 byte | |
 
 Chữ tiếng Việt có dấu tốn 2–3 byte/ký tự (ví dụ §11 đã là ~556 byte). VALUES quá 240 byte → **tách thành 2 màn hình**, hoặc rút id ngắn lại.
@@ -313,7 +313,7 @@ void vph_out_num(vph_out_t *o, const char *id, double v, int dp);
 void vph_out_int / vph_out_bool / vph_out_str / vph_out_null (...);
 
 // Ghi: luôn chạy trong TASK gọi vph_poll() (không phải callback GATT).
-// Trả VPH_OK, VPH_ERR_UNKNOWN (không biết trường), hoặc VPH_ERR_REJECT kèm err tiếng Việt.
+// Trả VPH_OK, VPH_ERR_UNKNOWN (không biết trường), hoặc VPH_ERR_REJECT kèm err tiếng Anh.
 typedef int (*vph_write_cb)(const char *id, const cJSON *v, char *err, size_t err_len);
 typedef int (*vph_batch_cb)(const cJSON *set, char *err, size_t err_len);
 
@@ -383,3 +383,4 @@ Chuỗi này khoảng 1,3 KB (3 trang), vẫn dưới 1920 byte.
 - **v1.3 (2026-10-09)**, giữ `pv:1`, tương thích hai chiều.
   - §5, §5.1: khóa `adv` cho màn hình và trường. Lý do: người vận hành (công nhân, nông dân) chỉ cần xem số đo, bật/tắt, lịch, báo động; các tham số Modbus, PID, hiệu chuẩn, bảo vệ làm họ rối và dễ sửa nhầm. App 1.4 có hai chế độ Standard / Technician; thiết bị tự khai phần nào là nâng cao, app không đoán theo `model`. App cũ bỏ qua khóa lạ nên vẫn hiện đủ như trước; thiết bị cũ không có `adv` thì hiện đủ ở cả hai chế độ.
   - §10: hàm `vph_advanced` (`vph_ble` 1.2.0).
+  - Chuỗi lỗi có sẵn của `vph_ble` 1.2.0 đổi sang tiếng Anh (`Command too long`, `Unknown field: <id>`, `Invalid command`, `Invalid time`, `Command rejected`…). Lý do: app không dịch chữ của thiết bị, và ngôn ngữ chính của app là tiếng Anh. Không đổi dữ liệu trên đường truyền (`err` vẫn là chuỗi tự do, app hiện nguyên văn).

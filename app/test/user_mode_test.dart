@@ -204,8 +204,8 @@ void main() {
     await openDrawer();
     expect(inDrawer('Alarm settings'), findsOneWidget);
     expect(inDrawer('Sensor setup'), findsNothing);
-    expect(inDrawer(S.menuReload), findsNothing);
-    expect(inDrawer(S.menuInfo), findsOneWidget);
+    expect(inDrawer(S.reloadInterface), findsNothing);
+    expect(inDrawer(S.deviceInfo), findsOneWidget);
     expect(inDrawer(S.settings), findsOneWidget);
     await tester.tap(inDrawer('Device'));
     await tester.pumpAndSettle();
@@ -218,7 +218,7 @@ void main() {
     rig = await _open(tester, src, _settings(tech: true));
     await openDrawer();
     expect(inDrawer('Sensor setup'), findsOneWidget);
-    expect(inDrawer(S.menuReload), findsOneWidget);
+    expect(inDrawer(S.reloadInterface), findsOneWidget);
     await tester.tap(inDrawer('Device'));
     await tester.pumpAndSettle();
     expect(find.text('Restart device'), findsOneWidget);

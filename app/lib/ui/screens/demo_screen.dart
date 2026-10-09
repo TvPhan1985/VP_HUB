@@ -30,7 +30,7 @@ class DemoScreen extends StatelessWidget {
       messenger.showSnackBar(SnackBar(content: Text(e.message)));
       return;
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(S.demoOpenFailed(e))));
+      messenger.showSnackBar(SnackBar(content: Text(S.errFile)));
       return;
     }
     final session = DeviceSession(connector: () async => DemoTransport.fromJson(src), title: title);
@@ -50,7 +50,7 @@ class DemoScreen extends StatelessWidget {
       if (path == null) throw Exception('khong co duong dan file');
       await _open(context, f.name, () => File(path).readAsString());
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text(S.demoOpenFailed(e))));
+      messenger.showSnackBar(SnackBar(content: Text(S.errFile)));
     }
   }
 

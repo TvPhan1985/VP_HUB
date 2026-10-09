@@ -137,7 +137,7 @@ void main() {
     // Goi y la: van ve theo kieu num
     expect(find.text('3.3 V'), findsOneWidget);
     await _goto(tester, rig.session.screens.last.title);
-    expect(find.text(S.schemaError), findsOneWidget);
+    expect(find.text(S.screenError), findsOneWidget);
     expect(tester.takeException(), isNull);
     await _close(tester, rig);
   });
@@ -146,7 +146,7 @@ void main() {
     final rig = await _open(tester, 'demo_relay.json');
     // alarm = 2 -> bit1 "Clock not set" thanh gach dau dong trong the bao dong
     expect(find.text('• Clock not set'), findsOneWidget);
-    expect(find.text('Silence'), findsOneWidget);
+    expect(find.text('Silence buzzer'), findsOneWidget);
     // Tab Tong quan da co du cac truong hdr nen thanh dau trang trong
     expect(find.descendant(of: find.byType(HeaderBar), matching: find.byType(Text)), findsNothing);
     await _goto(tester, 'Schedule');
@@ -166,13 +166,13 @@ void main() {
     expect(find.widgetWithText(StatusChip, S.offCaps), findsOneWidget);
     expect(find.text(S.turnedOff('Relay')), findsOneWidget);
     // Doi che do sang Tu dong -> ca hai nut bi khoa (en: mode==manual), hien dong giai thich
-    expect(find.text('Manual switching is available in Manual mode only'), findsNothing);
+    expect(find.text('Manual switching is available in Manual mode only.'), findsNothing);
     await tester.tap(find.text('Auto'));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'mode', 'v': 'auto'});
     expect(tester.widget<FilledButton>(_button(S.onCaps)).onPressed, isNull);
     expect(tester.widget<FilledButton>(_button(S.offCaps)).onPressed, isNull);
-    expect(find.text('Manual switching is available in Manual mode only'), findsOneWidget);
+    expect(find.text('Manual switching is available in Manual mode only.'), findsOneWidget);
     await _close(tester, rig);
   });
 
@@ -194,7 +194,7 @@ void main() {
     expect(ys.length, 1);
     expect(find.text('28.4 °C'), findsOneWidget);
     // dur: 7512 giay
-    expect(find.text('2 h 5 min'), findsOneWidget);
+    expect(find.text('2 h 05 min'), findsOneWidget);
     await _close(tester, rig);
   });
 
@@ -221,7 +221,7 @@ void main() {
     expect(find.text('• Dry run'), findsOneWidget);
     expect(find.text('• Overcurrent'), findsOneWidget);
     expect(find.text('• Overtemperature 1250 °C'), findsOneWidget);
-    await tester.tap(find.text('Silence'));
+    await tester.tap(find.text('Silence buzzer'));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'n_sil', 'v': 1});
     expect(tester.takeException(), isNull);
@@ -316,7 +316,8 @@ void main() {
     expect(rig.demo.writes.length, n);
     await tester.tap(find.text('Clear warnings'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.ok));
+    // Nut xac nhan lap lai ten hanh dong, khong dung "OK"
+    await tester.tap(find.descendant(of: find.byType(AlertDialog), matching: find.text('Clear warnings')));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'reset', 'v': 1});
     await _close(tester, rig);
@@ -391,8 +392,8 @@ void main() {
     Finder inDrawer(String t) => find.descendant(of: find.byType(Drawer), matching: find.text(t));
     // Khoi thong tin: ten thiet bi + trang thai ket noi
     expect(inDrawer('DEMO-RELAY'), findsOneWidget);
-    expect(inDrawer(S.linkOk), findsOneWidget);
-    for (final t in ['DEVICE', 'APP', S.menuDeviceList, 'Alarm settings', 'Sensor setup', 'Device', S.menuInfo, S.menuReload, S.settings, S.helpAbout, S.menuDisconnect]) {
+    expect(inDrawer(S.connected), findsOneWidget);
+    for (final t in [S.secDevice, S.secApp, S.deviceList, 'Alarm settings', 'Sensor setup', 'Device', S.deviceInfo, S.reloadInterface, S.settings, S.helpAbout, S.disconnect]) {
       expect(inDrawer(t), findsOneWidget, reason: t);
     }
     // Cham vung mo ben phai de dong menu
@@ -441,7 +442,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text(S.settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.menuTheme));
+    await tester.tap(find.text(S.theme));
     await tester.pumpAndSettle();
     await tester.tap(find.text(S.themeDark));
     await tester.pumpAndSettle();

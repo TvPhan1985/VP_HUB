@@ -10,21 +10,21 @@
       {"id": "ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
       {"id": "sal", "l": "Salinity", "t": "num", "ro": 1, "w": "mini"},
       {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
-      {"id": "sok", "l": "Sensor has no data or is disconnected", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "sok", "l": "No sensor data", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
       {"id": "out", "l": "Relay", "t": "bool", "w": "hero,btns", "ic": "power", "sub": "mode", "en": "mode==manual",
-       "d": "Manual switching is available in Manual mode only"},
+       "d": "Manual switching is available in Manual mode only."},
       {"id": "mode", "l": "Mode", "t": "enum", "w": "seg", "opt": [["manual", "Manual", "hand"], ["auto", "Auto", "auto"]]},
       {"id": "alarm", "l": "Alarm", "t": "flags", "w": "alarm", "g": "al",
        "opt": ["Sensor lost", "Clock not set", "Temperature out of range", "Humidity out of range"]},
-      {"id": "silence", "l": "Silence", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
+      {"id": "silence", "l": "Silence buzzer", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
       {"id": "muted", "l": "Buzzer silenced", "t": "bool", "ro": 1, "w": "led", "ic": "mute", "g": "al", "if": "alarm!=0&&muted==true"},
       {"id": "time", "l": "Device time", "t": "text", "ic": "clock", "g": "Status"},
       {"id": "tok", "l": "Device clock is not set", "t": "bool", "ro": 1, "w": "note", "g": "Status", "if": "tok==false"},
       {"id": "up", "l": "Uptime", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Status"}
     ]},
     {"id": "auto", "l": "Schedule", "ic": "schedule", "save": "batch", "f": [
-      {"id": "src", "l": "Auto source", "t": "enum", "w": "seg",
-       "d": "Combined: on only while inside a time slot AND the sensor calls for it.",
+      {"id": "src", "l": "Control by", "t": "enum", "w": "seg",
+       "d": "Combined: on during time slots, only when the sensor calls for it.",
        "opt": [["schedule", "Schedule"], ["sensor", "Sensor"], ["both", "Combined"]]},
       {"id": "on_at", "l": "On when humidity below", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds"},
       {"id": "off_at", "l": "Off when humidity above", "t": "num", "u": "%", "min": 0, "max": 100, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds"}
@@ -33,10 +33,10 @@
       {"id": "en", "l": "Enabled", "t": "bool"},
       {"id": "days", "l": "Days", "t": "days", "en": "en==true"},
       {"id": "on", "l": "On time", "t": "time", "en": "en==true"},
-      {"id": "off", "l": "Off time", "t": "time", "en": "en==true", "d": "Off time earlier than on time = overnight"}
+      {"id": "off", "l": "Off time", "t": "time", "en": "en==true", "d": "If off time is earlier than on time, the slot runs overnight."}
     ]}},
     {"id": "alarms", "l": "Alarm settings", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
-      {"id": "al_en", "l": "Temperature / humidity alarm", "t": "bool", "g": "Alarm thresholds"},
+      {"id": "al_en", "l": "Enable alarm", "t": "bool", "g": "Alarm thresholds"},
       {"id": "al_lo", "l": "Low temperature", "t": "num", "u": "°C", "min": -20, "max": 80, "st": 1, "g": "Alarm thresholds"},
       {"id": "al_hi", "l": "High temperature", "t": "num", "u": "°C", "min": -20, "max": 80, "st": 1, "g": "Alarm thresholds"}
     ]},
@@ -47,7 +47,7 @@
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart the device?"}
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart device?"}
     ]}
   ],
   "values": {

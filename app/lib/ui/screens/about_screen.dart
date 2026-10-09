@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../../core/app_settings.dart';
 import '../../l10n/strings.dart';
 
 class AboutScreen extends StatelessWidget {
@@ -10,7 +11,7 @@ class AboutScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(S.menuAbout)),
+      appBar: AppBar(titleSpacing: null, title: Text(S.helpAbout)),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -20,12 +21,13 @@ class AboutScreen extends StatelessWidget {
           FutureBuilder<PackageInfo>(
             future: PackageInfo.fromPlatform(),
             builder: (context, snap) => Text(
-              snap.hasData ? S.version('${snap.data!.version} (${snap.data!.buildNumber})') : '',
+              snap.hasData ? S.versionN('${snap.data!.version} (${snap.data!.buildNumber})') : '',
               textAlign: TextAlign.center,
             ),
           ),
           const SizedBox(height: 20),
           Text(S.aboutBody),
+          if (SettingsScope.technician(context)) ...[const SizedBox(height: 4), Text(S.aboutProtocol)],
           const SizedBox(height: 16),
           Text(S.aboutSupported, style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),

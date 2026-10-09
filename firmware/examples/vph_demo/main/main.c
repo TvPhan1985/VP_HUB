@@ -179,7 +179,7 @@ static cJSON *build_overview(void)
     vph_options(color, vals, labels, 4);
     vph_hint(color, "seg");
     vph_enable_if(color, "led==true");
-    vph_desc(color, "Turn the LED on before changing color");
+    vph_desc(color, "Turn the LED on before changing the color.");
 
     // Bao dong: the do khi co loi; nut lenh cung nhom nam o goc the
     cJSON *al = vph_field(s, "al", "Alarm", "flags");
@@ -203,8 +203,8 @@ static cJSON *build_overview(void)
     vph_maxlen(name, VPH_NAME_MAX);
     vph_icon(name, "device");
     vph_group(name, "Device");
-    cJSON *rb = vph_field(s, "_reboot", "Restart", "act");
-    vph_confirm(rb, "Restart the device?");
+    cJSON *rb = vph_field(s, "_reboot", "Restart device", "act");
+    vph_confirm(rb, "Restart device?");
     vph_icon(rb, "reset");
     vph_group(rb, "Device");
     vph_advanced(rb);       // v1.3: chi nguoi ky thuat moi thay nut khoi dong lai
@@ -214,7 +214,7 @@ static cJSON *build_overview(void)
 static cJSON *build_settings(void)
 {
     // Hai nguong rang buoc nhau (lo < hi) nen dung man batch: sua xong bam Luu mot lan
-    cJSON *s = vph_screen("settings", "Settings", "batch");
+    cJSON *s = vph_screen("settings", "Thresholds & schedule", "batch");
     vph_icon(s, "settings");
 
     cJSON *lo = vph_field(s, "lo", "Low threshold", "num");
@@ -235,7 +235,7 @@ static cJSON *build_settings(void)
     vph_enable_if(on, "en==true");
     cJSON *off = vph_field(rep, "off", "Off time", "time");
     vph_enable_if(off, "en==true");
-    vph_desc(off, "Off time earlier than on time = overnight");
+    vph_desc(off, "If off time is earlier than on time, the slot runs overnight.");
     return s;
 }
 
@@ -318,7 +318,7 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
 {
     if (!strcmp(id, "led")) {
         if (!json_bool(v, &app.led)) {
-            strlcpy(err, "Value must be on or off", err_len);
+            strlcpy(err, "Send true or false.", err_len);
             return VPH_ERR_REJECT;
         }
         return VPH_OK;
@@ -326,11 +326,11 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
     if (!strcmp(id, "color")) {
         const char *c = cJSON_IsString(v) ? v->valuestring : "";
         if (strcmp(c, "red") && strcmp(c, "green") && strcmp(c, "blue") && strcmp(c, "white")) {
-            strlcpy(err, "Invalid color", err_len);
+            strlcpy(err, "Choose a color from the list.", err_len);
             return VPH_ERR_REJECT;
         }
         if (!app.led) {
-            strlcpy(err, "Turn the LED on before changing color", err_len);
+            strlcpy(err, "Turn the LED on before changing the color.", err_len);
             return VPH_ERR_REJECT;
         }
         strlcpy(app.color, c, sizeof(app.color));
@@ -343,7 +343,7 @@ static int on_write(const char *id, const cJSON *v, char *err, size_t err_len)
     if (!strcmp(id, "_name")) {
         // Component da kiem tra ten hop le; o day chi luu de lan sau khoi dong con giu
         if (storage_save_name(v->valuestring) != ESP_OK) {
-            strlcpy(err, "Could not save the name", err_len);
+            strlcpy(err, "Can't save the name. Try again.", err_len);
             return VPH_ERR_REJECT;
         }
         return VPH_OK;
@@ -378,35 +378,35 @@ static int on_batch(const cJSON *set, char *err, size_t err_len)
                 sl->days = (uint8_t)it->valuedouble;
             } else if (!strcmp(what, "on") || !strcmp(what, "off")) {
                 if (!cJSON_IsString(it) || !valid_hhmm(it->valuestring)) {
-                    strlcpy(err, "Time must be HH:MM", err_len);
+                    strlcpy(err, "Enter the time as HH:MM.", err_len);
                     return VPH_ERR_REJECT;
                 }
                 strlcpy(what[1] == 'n' ? sl->on : sl->off, it->valuestring, sizeof(sl->on));
             } else {
-                snprintf(err, err_len, "Unknown field %s", id);
+                snprintf(err, err_len, "Unknown field: %s", id);
                 return VPH_ERR_REJECT;
             }
         } else {
-            snprintf(err, err_len, "Unknown field %s", id);
+            snprintf(err, err_len, "Unknown field: %s", id);
             return VPH_ERR_REJECT;
         }
         continue;
     bad_value:
-        snprintf(err, err_len, "Invalid value for %s", id);
+        snprintf(err, err_len, "Enter a valid value for %s.", id);
         return VPH_ERR_REJECT;
     }
     // Kiem tra rang buoc tren ca cau hinh moi, sai thi giu nguyen cau hinh cu
     if (c.lo < 0 || c.hi > 100) {
-        strlcpy(err, "Threshold must be within 0-100 °C", err_len);
+        strlcpy(err, "Enter thresholds from 0 to 100 °C.", err_len);
         return VPH_ERR_REJECT;
     }
     if (!(c.lo < c.hi)) {
-        strlcpy(err, "Low threshold must be below high threshold", err_len);
+        strlcpy(err, "Set the low threshold below the high threshold.", err_len);
         return VPH_ERR_REJECT;
     }
     for (int i = 0; i < SLOT_COUNT; i++) {
         if (c.slots[i].en && c.slots[i].days == 0) {
-            snprintf(err, err_len, "Slot %d is enabled but no day is selected", i + 1);
+            snprintf(err, err_len, "Select at least one day for slot %d.", i + 1);
             return VPH_ERR_REJECT;
         }
     }

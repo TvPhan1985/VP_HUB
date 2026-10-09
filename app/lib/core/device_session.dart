@@ -250,7 +250,7 @@ class DeviceSession extends ChangeNotifier {
     try {
       await t.select(i);
     } catch (e) {
-      _say(false, S.selectFailed(_short(e)));
+      _say(false, S.errUnknown);
     }
   }
 
@@ -275,7 +275,7 @@ class DeviceSession extends ChangeNotifier {
   Future<void> _sendLive(VphField f, dynamic v) async {
     final t = transport;
     if (t == null || !ready) {
-      _say(false, S.notConnected);
+      _say(false, S.errNotConnected);
       return;
     }
     if (busy.contains(f.id)) return;
@@ -287,7 +287,7 @@ class DeviceSession extends ChangeNotifier {
     _pending.remove(f.id);
     if (r.ok) {
       if (f.type == 'act') {
-        _say(true, S.sent(f.label));
+        _say(true, S.commandSent(f.label));
       } else {
         values = {...values, f.id: v};
         if (f.type == 'bool') {
@@ -298,7 +298,7 @@ class DeviceSession extends ChangeNotifier {
       }
     } else {
       // Loi: bo gia tri tam, o tro ve gia tri thiet bi
-      _say(false, r.err ?? S.deviceRefused);
+      _say(false, r.err ?? S.errRejected);
     }
     notifyListeners();
   }
@@ -308,7 +308,7 @@ class DeviceSession extends ChangeNotifier {
     final t = transport;
     if (d == null || d.isEmpty) return true;
     if (t == null || !ready) {
-      _say(false, S.notConnected);
+      _say(false, S.errNotConnected);
       return false;
     }
     if (saving) return false;
@@ -322,7 +322,7 @@ class DeviceSession extends ChangeNotifier {
       drafts.remove(screen);
       _say(true, S.saved);
     } else {
-      _say(false, r.err ?? S.deviceRefused);
+      _say(false, r.err ?? S.errRejected);
     }
     notifyListeners();
     return r.ok;
@@ -336,7 +336,7 @@ class DeviceSession extends ChangeNotifier {
   Future<void> reloadSchema() async {
     final t = transport;
     if (t == null || !ready) {
-      _say(false, S.notConnected);
+      _say(false, S.errNotConnected);
       return;
     }
     try {
@@ -344,7 +344,7 @@ class DeviceSession extends ChangeNotifier {
       drafts.clear();
       if (current >= screens.length) current = 0;
       if (screens.isNotEmpty) await t.select(current);
-      _say(true, S.schemaReloaded);
+      _say(true, S.interfaceReloaded);
     } catch (e) {
       _say(false, _short(e));
     }

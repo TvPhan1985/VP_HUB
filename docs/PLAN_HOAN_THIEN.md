@@ -128,13 +128,13 @@ Màn `SettingsScreen`:
 | Về `About`: đoạn nói "schema", "VPH protocol v1.1" | Standard: `VP Hub connects to your sensors and controllers over Bluetooth.` Technician: thêm dòng `Protocol VPH v1.3` |
 | Hộp xác nhận: nút `OK` | Động từ của hành động; nếu không biết thì `Confirm` |
 
-- [ ] Rà **mọi** chuỗi còn lại theo H3.1, sửa cả bản tiếng Việt cho khớp nghĩa.
+- [x] Rà **mọi** chuỗi còn lại theo H3.1, sửa cả bản tiếng Việt cho khớp nghĩa.
 
 ### H3.3 Sửa chữ phía thiết bị (schema có sẵn, firmware mẫu, `vph_ble`)
-- [ ] `c3relay_v1.json`: `Silence` → `Silence buzzer`; `Auto source` → `Control by`; `Measured value` → `Sensor`; `Threshold type` → `Turn on when`; `Scale divisor` → `Scale factor`; `Index` → `Register position`; chú thích `src` tách ngắn từng lựa chọn; câu `_reboot` theo H3.1-3.
-- [ ] Bảng vá lò nung, 2 demo, 2 mẫu, `vph_demo`: rà theo H3.1.
-- [ ] `vph_ble`: mọi chuỗi lỗi có sẵn còn tiếng Việt (lệnh quá dài, trường không tồn tại, v.v.) → tiếng Anh (`Command too long`, `Unknown field: <id>`). Cập nhật test Unity.
-- [ ] Adapter relay C3: bảng dịch lỗi firmware cũ giữ, nhưng câu tiếng Anh phải theo H3.1.
+- [x] `c3relay_v1.json`: `Silence` → `Silence buzzer`; `Auto source` → `Control by`; `Measured value` → `Sensor`; `Threshold type` → `Turn on when`; `Scale divisor` → `Scale factor`; `Index` → `Register position`; chú thích `src` tách ngắn từng lựa chọn; câu `_reboot` theo H3.1-3.
+- [x] Bảng vá lò nung, 2 demo, 2 mẫu, `vph_demo`: rà theo H3.1.
+- [x] `vph_ble`: mọi chuỗi lỗi có sẵn còn tiếng Việt (lệnh quá dài, trường không tồn tại, v.v.) → tiếng Anh (`Command too long`, `Unknown field: <id>`). Cập nhật test Unity.
+- [x] Adapter relay C3: bảng dịch lỗi firmware cũ giữ, nhưng câu tiếng Anh phải theo H3.1.
 
 ---
 

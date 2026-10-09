@@ -90,7 +90,7 @@ static int on_batch(const cJSON *set, char *err, size_t err_len)
         if (!strcmp(it->string, "lo")) lo = it->valuedouble;
         else if (!strcmp(it->string, "hi")) hi = it->valuedouble;
         else {
-            snprintf(err, err_len, "Không có trường %s", it->string);
+            snprintf(err, err_len, "Unknown field: %s", it->string);
             return VPH_ERR_REJECT;
         }
     }
@@ -467,12 +467,12 @@ TEST_CASE("WRITE don: id khong biet -> Khong co truong <id>", "[write]")
     int act;
     cJSON *r = do_write("{\"q\":4,\"id\":\"abc\",\"v\":1}", &act);
     TEST_ASSERT_EQUAL(0, (int)num_of(r, "ok"));
-    TEST_ASSERT_EQUAL_STRING("Không có trường abc", str_of(r, "err"));
+    TEST_ASSERT_EQUAL_STRING("Unknown field: abc", str_of(r, "err"));
     cJSON_Delete(r);
     // Id danh rieng la cung bi tu choi, khong goi project
     int before = dev.writes;
     r = do_write("{\"q\":5,\"id\":\"_xyz\",\"v\":1}", &act);
-    TEST_ASSERT_EQUAL_STRING("Không có trường _xyz", str_of(r, "err"));
+    TEST_ASSERT_EQUAL_STRING("Unknown field: _xyz", str_of(r, "err"));
     TEST_ASSERT_EQUAL(before, dev.writes);
     cJSON_Delete(r);
 }
@@ -530,7 +530,7 @@ TEST_CASE("WRITE lo: hop le thi ap ca lo, sai thi giu nguyen cau hinh cu", "[wri
     cJSON_Delete(r);
 
     r = do_write("{\"q\":15,\"set\":{\"lo\":5,\"zz\":1}}", &act);
-    TEST_ASSERT_EQUAL_STRING("Không có trường zz", str_of(r, "err"));
+    TEST_ASSERT_EQUAL_STRING("Unknown field: zz", str_of(r, "err"));
     TEST_ASSERT_EQUAL(10, (int)dev.lo);
     cJSON_Delete(r);
     TEST_ASSERT_EQUAL(3, dev.batches);
@@ -745,7 +745,7 @@ TEST_CASE("v1.1 WRITE: qua 500 byte -> Lenh qua dai, tra dung q, khong goi proje
     cJSON *r = do_write(cmd, &act);
     TEST_ASSERT_EQUAL(23, (int)num_of(r, "q"));
     TEST_ASSERT_EQUAL(0, (int)num_of(r, "ok"));
-    TEST_ASSERT_EQUAL_STRING("Lệnh quá dài", str_of(r, "err"));
+    TEST_ASSERT_EQUAL_STRING("Command too long", str_of(r, "err"));
     TEST_ASSERT_EQUAL(0, act);
     TEST_ASSERT_EQUAL(20, (int)dev.lo);
     TEST_ASSERT_EQUAL(0, dev.batches);

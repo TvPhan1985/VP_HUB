@@ -252,15 +252,22 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
 
   /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi (mau tren nen thanh dam)
   (String, Color) _link() => switch (s.status) {
-        LinkStatus.ready => (S.linkOk, VpBars.of(context).ok),
+        LinkStatus.ready => (S.connected, VpBars.of(context).ok),
         LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.barCaution),
-        LinkStatus.reconnecting => (S.linkRetry, Vp.barCaution),
-        _ => (S.linkLost, Vp.barStop),
+        LinkStatus.reconnecting => (S.reconnecting, Vp.barCaution),
+        _ => (S.disconnected, Vp.barStop),
       };
 
-  void _disconnect() {
+  /// Ngat ket noi: lam ngay; con thay doi chua luu thi hoi lai truoc
+  Future<void> _disconnect() async {
+    final nav = Navigator.of(context);
+    if (s.drafts.values.any((d) => d.isNotEmpty)) {
+      final ok = await askConfirm(context,
+          title: S.disconnectTitle(s.displayName), body: S.disconnectBody, action: S.disconnect, danger: true);
+      if (!ok) return;
+    }
     s.drafts.clear();
-    Navigator.of(context).pop();
+    nav.pop();
   }
 
   void _showAlarms() {
@@ -328,7 +335,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       statusColor: link.$2,
       sections: [
         DrawerSection('', [
-          DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, onTap: _leaveScreen),
+          DrawerEntry(icon: Icons.devices_other, label: S.deviceList, onTap: _leaveScreen),
         ]),
         DrawerSection(S.secDevice, [
           // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
@@ -341,16 +348,16 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
             ),
           DrawerEntry(
             icon: Icons.info_outline,
-            label: S.menuInfo,
+            label: S.deviceInfo,
             enabled: s.info != null,
             onTap: () => push(InfoScreen(session: s)),
           ),
-          if (_tech) DrawerEntry(icon: Icons.sync, label: S.menuReload, enabled: s.ready, onTap: s.reloadSchema),
+          if (_tech) DrawerEntry(icon: Icons.sync, label: S.reloadInterface, enabled: s.ready, onTap: s.reloadSchema),
         ]),
         DrawerSection(S.secApp, [
           DrawerEntry(icon: Icons.settings_outlined, label: S.settings, onTap: () => pushApp(const SettingsScreen())),
           DrawerEntry(icon: Icons.menu_book_outlined, label: S.helpAbout, onTap: () => pushApp(const AboutScreen())),
-          DrawerEntry(icon: Icons.logout, label: S.menuDisconnect, danger: true, onTap: _disconnect),
+          DrawerEntry(icon: Icons.logout, label: S.disconnect, danger: true, onTap: _disconnect),
         ]),
       ],
     );
@@ -381,7 +388,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       return _center([
         const CircularProgressIndicator(),
         const SizedBox(height: 16),
-        Text(s.status == LinkStatus.loading ? S.loadingSchema : S.connecting),
+        Text(s.status == LinkStatus.loading ? S.loadingDevice : S.connecting),
       ]);
     }
     final tabs = _tabs;

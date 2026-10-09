@@ -65,8 +65,11 @@ class ScreenView extends StatelessWidget {
             color: cs.errorContainer,
             child: ListTile(
               leading: Icon(Icons.error_outline, color: cs.onErrorContainer),
-              title: Text(S.schemaError, style: TextStyle(color: cs.onErrorContainer)),
-              subtitle: Text(screen.error!, style: TextStyle(color: cs.onErrorContainer)),
+              title: Text(S.screenError, style: TextStyle(color: cs.onErrorContainer)),
+              // Loi goc chi co ich voi nguoi ky thuat
+              subtitle: SettingsScope.technician(context)
+                  ? Text(screen.error!, style: TextStyle(color: cs.onErrorContainer))
+                  : null,
             ),
           ),
         ],
@@ -180,7 +183,7 @@ class ScreenView extends StatelessWidget {
       if (cnt is num) shown = cnt.toInt().clamp(0, shown);
       for (final g in screen.repGroups.take(shown)) {
         final fs = [for (final f in g.fields) if (show(f)) fw(f)];
-        if (fs.isNotEmpty) items.add(_card(context, '${rep.label ?? S.repDefault} ${g.index}', fs));
+        if (fs.isNotEmpty) items.add(_card(context, rep.label == null ? '#${g.index}' : '${rep.label} ${g.index}', fs));
       }
     }
 

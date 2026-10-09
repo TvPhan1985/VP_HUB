@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vphub/core/model/vph_schema.dart';
 import 'package:vphub/core/transport/legacy_c3relay.dart';
+import 'package:vphub/l10n/strings.dart';
 import 'package:vphub/core/transport/uuids.dart';
 
 import 'fake_link.dart';
@@ -159,11 +160,11 @@ void main() {
       expect(err({'sen_act': 'high', 'on_at': 90, 'off_at': 80}), isNull);
       expect(err({'s1_on': '8h'}), contains('HH:MM'));
       expect(err({'date_from': '2026-12-01', 'date_to': '2026-01-01'}), contains('before'));
-      expect(err({'mb_addr': 0}), contains('1-247'));
-      expect(err({'mb_idx_h': 5}), contains('exceeds'));
+      expect(err({'mb_addr': 0}), contains('1 to 247'));
+      expect(err({'mb_idx_h': 5}), contains('positions'));
       expect(err({'al_t_lo': 50}), contains('temperature'));
-      expect(err({'_name': ''}), contains('1-20'));
-      expect(err({'_name': 'Vườn'}), contains('ASCII'));
+      expect(err({'_name': ''}), contains('1 to 20'));
+      expect(err({'_name': 'Vườn'}), contains('unaccented'));
     });
 
     test('JSON lon nhat (doi het moi thu) van duoi 500 byte', () {
@@ -307,7 +308,7 @@ void main() {
       await t.open();
       final r2 = await t.write('mode', 'auto');
       expect(r2.ok, isFalse);
-      expect(r2.err, 'No response from the device');
+      expect(r2.err, S.errNoResponse);
     });
   });
 }

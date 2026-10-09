@@ -35,9 +35,9 @@ class DemoTransport implements DeviceTransport {
     try {
       j = jsonDecode(src);
     } catch (e) {
-      throw FormatException(S.demoBadJson('$e'));
+      throw FormatException(S.errFileFormat);
     }
-    if (j is! Map || j['screens'] is! List) throw FormatException(S.demoNoScreens);
+    if (j is! Map || j['screens'] is! List) throw FormatException(S.errFileFormat);
     final rawScreens = j['screens'] as List;
     final screens = [for (var i = 0; i < rawScreens.length; i++) VphScreen.tryFromMap(rawScreens[i], index: i)];
     final infoJson = <String, dynamic>{
@@ -53,7 +53,7 @@ class DemoTransport implements DeviceTransport {
     try {
       info = VphInfo.fromJson(infoJson);
     } catch (e) {
-      throw FormatException(S.demoBadJson('$e'));
+      throw FormatException(S.errFileFormat);
     }
     final values = j['values'] is Map ? Map<String, dynamic>.from(j['values'] as Map) : <String, dynamic>{};
     return DemoTransport._(info, screens, values, tick, seed);

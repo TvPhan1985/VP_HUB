@@ -144,7 +144,8 @@ App tự đếm và hiện số trên chuông: mỗi bit đang bật của mọi
 - Vì vậy mọi chữ firmware gửi lên — tên màn, nhãn `l`, nhóm `g`, chú thích `d`, câu hỏi `c`, nhãn `opt`, chuỗi lỗi `err` — viết **tiếng Anh**, từ ngữ chuyên nghiệp, ngắn: `Temperature`, `Setpoint`, `Alarm thresholds`, `Start the burner?`.
 - Đơn vị viết chuẩn: `°C`, `%`, `bar`, `L/min`, `min`, `s`.
 - `id` của trường: `[a-z0-9_]`, tối đa 16 ký tự, duy nhất trong cả thiết bị, càng ngắn càng tốt (`t`, `h`, `sp`, `al_hi`). Không bắt đầu bằng `_` (dành riêng).
-- Lưu ý: vài thông báo có sẵn bên trong `vph_ble` 1.1 (như lệnh quá dài, trường không tồn tại) hiện vẫn là tiếng Việt.
+- **Quy tắc viết chữ đầy đủ: `docs/COPY_STYLE.md`** (sentence case, nhãn ≤ 24 ký tự, nút ghi đúng hành động, câu lỗi = chuyện gì sai + làm gì tiếp, chú thích `d` là một câu có dấu chấm). Áp dụng cho mọi chữ firmware gửi lên.
+- Thông báo có sẵn bên trong `vph_ble` 1.2 đã là tiếng Anh (`Command too long`, `Unknown field: <id>`).
 
 ---
 
@@ -236,13 +237,13 @@ static cJSON *build_overview(void)
 | Giao diện xám / xanh dương dù là thiết bị nông nghiệp | Chưa khai `.domain = "agri"` | Khai `domain` |
 | Mọi số hiện `--` | VALUES vượt 240 byte, hoặc quên điền trường trong `vph_values_cb` | Xem log, tách màn / rút id |
 | Trường hiện dạng `id: giá trị` | Kiểu `t` không có trong PROTOCOL | Dùng kiểu chuẩn |
-| Thẻ "schema invalid" | JSON màn hỏng hoặc thiếu `id` | Sửa schema |
+| Thẻ "This screen can't be displayed" | JSON màn hỏng hoặc thiếu `id` | Sửa schema |
 | Số đo không thành thẻ, chỉ là một hàng | Thiếu `w:"tile"` | Thêm gợi ý |
 | Hai `tile` không nằm cùng hàng | Có trường khác chen giữa | Đặt liền nhau |
 | Nút Silence nằm ngoài thẻ báo động | Không cùng `g`, hoặc không liền sau trường `alarm` | Cùng `g`, đặt ngay sau |
 | Màn cài đặt chiếm một tab | Thiếu `vph_nav_menu` | Thêm |
 | Chuông không báo ở tab khác | Trường báo động không nằm trong `hdr` | Thêm vào `hdr` |
-| "No response from the device" | Không gọi `vph_poll()` đủ nhanh, hoặc callback ghi chạy lâu hơn 1 giây | Sửa vòng lặp |
+| "The device didn't respond. Try again." | Không gọi `vph_poll()` đủ nhanh, hoặc callback ghi chạy lâu hơn 1 giây | Sửa vòng lặp |
 
 ---
 

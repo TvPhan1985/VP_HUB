@@ -185,7 +185,7 @@ class AppDrawer extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 18, 16, 6),
                         child: Text(
-                          sec.title.toUpperCase(),
+                          sec.title,
                           style: TextStyle(
                               color: bars.sub.withValues(alpha: 0.75), fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 0.8),
                         ),

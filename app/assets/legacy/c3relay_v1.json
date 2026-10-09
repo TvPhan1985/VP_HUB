@@ -6,27 +6,27 @@
       {"id": "ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
       {"id": "sal", "l": "Salinity", "t": "num", "ro": 1, "w": "mini"},
       {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
-      {"id": "sok", "l": "Sensor has no data or is disconnected", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "sok", "l": "No sensor data", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
       {"id": "out", "l": "Relay", "t": "bool", "w": "hero,btns", "ic": "power", "sub": "mode", "en": "mode==manual",
-       "d": "Manual switching is available in Manual mode only"},
+       "d": "Manual switching is available in Manual mode only."},
       {"id": "mode", "l": "Mode", "t": "enum", "w": "seg", "opt": [["manual", "Manual", "hand"], ["auto", "Auto", "auto"]]},
       {"id": "alarm", "l": "Alarm", "t": "flags", "w": "alarm", "g": "al",
        "opt": ["Sensor lost", "Clock not set", "Temperature out of range", "Humidity out of range"]},
-      {"id": "silence", "l": "Silence", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
+      {"id": "silence", "l": "Silence buzzer", "t": "act", "ic": "mute", "g": "al", "if": "alarm!=0&&muted!=true"},
       {"id": "muted", "l": "Buzzer silenced", "t": "bool", "ro": 1, "w": "led", "ic": "mute", "g": "al", "if": "alarm!=0&&muted==true"},
       {"id": "time", "l": "Device time", "t": "text", "ic": "clock", "g": "Status"},
       {"id": "tok", "l": "Device clock is not set", "t": "bool", "ro": 1, "w": "note", "g": "Status", "if": "tok==false"},
       {"id": "up", "l": "Uptime", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Status"}
     ]},
-    {"id": "auto", "l": "Schedule & Auto", "ic": "schedule", "save": "batch", "f": [
-      {"id": "src", "l": "Auto source", "t": "enum", "w": "seg",
-       "d": "Schedule: on while inside a time slot. Sensor: on/off by thresholds, regardless of time. Combined: on only while inside a time slot AND the sensor calls for it.",
+    {"id": "auto", "l": "Schedule & auto", "ic": "schedule", "save": "batch", "f": [
+      {"id": "src", "l": "Control by", "t": "enum", "w": "seg",
+       "d": "Schedule: on during time slots. Sensor: on and off by thresholds. Combined: on during time slots, only when the sensor calls for it.",
        "opt": [["schedule", "Schedule"], ["sensor", "Sensor"], ["both", "Combined"]]},
       {"id": "date_from", "l": "Start date", "t": "date", "nul": 1, "g": "Date range"},
       {"id": "date_to", "l": "End date", "t": "date", "nul": 1, "g": "Date range"},
-      {"id": "sen_type", "l": "Measured value", "t": "enum", "opt": [["hum", "Humidity"], ["temp", "Temperature"]],
+      {"id": "sen_type", "l": "Sensor", "t": "enum", "opt": [["hum", "Humidity"], ["temp", "Temperature"]],
        "if": "src!=schedule", "g": "Sensor thresholds"},
-      {"id": "sen_act", "l": "Threshold type", "t": "enum", "opt": [["low", "On when low"], ["high", "On when high"]],
+      {"id": "sen_act", "l": "Turn on when", "t": "enum", "opt": [["low", "Value is low"], ["high", "Value is high"]],
        "if": "src!=schedule", "g": "Sensor thresholds"},
       {"id": "on_at", "l": "On threshold", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds"},
       {"id": "off_at", "l": "Off threshold", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Sensor thresholds",
@@ -36,10 +36,10 @@
       {"id": "en", "l": "Enabled", "t": "bool"},
       {"id": "days", "l": "Days", "t": "days"},
       {"id": "on", "l": "On time", "t": "time"},
-      {"id": "off", "l": "Off time", "t": "time", "d": "Off time earlier than on time = overnight"}
+      {"id": "off", "l": "Off time", "t": "time", "d": "If off time is earlier than on time, the slot runs overnight."}
     ]}},
     {"id": "alarms", "l": "Alarm settings", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
-      {"id": "al_en", "l": "Temperature / humidity alarm", "t": "bool", "g": "Alarm thresholds"},
+      {"id": "al_en", "l": "Enable alarm", "t": "bool", "g": "Alarm thresholds"},
       {"id": "al_t_lo", "l": "Low temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
       {"id": "al_t_hi", "l": "High temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
       {"id": "al_h_lo", "l": "Low humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"},
@@ -47,23 +47,23 @@
     ]},
     {"id": "sensor", "l": "Sensor setup", "ic": "sensor", "nav": "menu", "adv": 1, "save": "batch", "f": [
       {"id": "mb_addr", "l": "Address", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Modbus RTU sensor"},
-      {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Modbus RTU sensor",
+      {"id": "mb_baud", "l": "Baud rate", "t": "enum", "g": "Modbus RTU sensor",
        "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [38400, "38400"], [57600, "57600"], [115200, "115200"]]},
       {"id": "mb_fc", "l": "Function code", "t": "enum", "opt": [[3, "03 Holding"], [4, "04 Input"]], "g": "Modbus RTU sensor"},
       {"id": "mb_start", "l": "Start register", "t": "num", "min": 0, "max": 65535, "dp": 0, "g": "Modbus RTU sensor"},
       {"id": "mb_count", "l": "Register count", "t": "num", "min": 1, "max": 10, "dp": 0, "g": "Modbus RTU sensor"},
-      {"id": "mb_idx_h", "l": "Humidity index", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
-      {"id": "mb_idx_t", "l": "Temperature index", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
-      {"id": "mb_scale", "l": "Scale divisor", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Modbus RTU sensor",
-       "d": "Actual value = register / divisor"},
+      {"id": "mb_idx_h", "l": "Humidity position", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_idx_t", "l": "Temperature position", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
+      {"id": "mb_scale", "l": "Scale factor", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Modbus RTU sensor",
+       "d": "Value = register ÷ scale factor."},
       {"id": "mb_period", "l": "Poll interval", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Modbus RTU sensor"}
     ]},
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device",
-       "d": "Up to 20 ASCII characters"},
+       "d": "Up to 20 ASCII characters."},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
       {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1,
-       "c": "Restart the device? It will disconnect for a few seconds, then the app reconnects automatically."}
+       "c": "Restart device?"}
     ]}
   ]
 }

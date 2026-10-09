@@ -50,7 +50,7 @@
       {"id": "n_tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
       {"id": "n_sok", "l": "Cảm biến mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "n_sok==false"},
       {"id": "n_out", "l": "Bơm", "t": "bool", "w": "hero,btns", "ic": "pump", "sub": "n_mode", "en": "n_mode==manual",
-       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+       "d": "Chỉ bật/tắt tay được ở chế độ Tay."},
       {"id": "n_mode", "l": "Chế độ bơm", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
       {"id": "n_burn", "l": "Đốt lò", "t": "bool", "w": "hero,warn", "ic": "fire", "opt": ["Dừng", "Đang đốt"], "sub": "n_t"},
       {"id": "n_al", "l": "Báo động bơm", "t": "flags", "w": "alarm", "g": "nal", "opt": ["Cạn nước", "Quá dòng", "Mất pha"]},
@@ -59,7 +59,7 @@
       {"id": "n_why", "l": "Lý do", "t": "text", "g": "nlk", "if": "n_lock==true"},
       {"id": "n_fan", "l": "Quạt", "t": "bool", "w": "btns", "ic": "fan", "g": "Khác"},
       {"id": "n_up", "l": "Thời gian chạy", "t": "num", "u": "s", "ro": 1, "w": "dur", "ic": "timer", "g": "Khác"},
-      {"id": "n_icx", "l": "Icon lạ", "t": "text", "ic": "khong_co_icon_nay", "d": "Tên icon lạ thì không hiện icon", "g": "Khác"}
+      {"id": "n_icx", "l": "Icon lạ", "t": "text", "ic": "khong_co_icon_nay", "d": "Tên icon lạ thì không hiện icon.", "g": "Khác"}
     ]},
     {"id": "legacy", "title": "Khóa dài", "fields": [
       {"id": "old_pv", "label": "Temperature", "type": "float", "unit": "°C", "readonly": true},

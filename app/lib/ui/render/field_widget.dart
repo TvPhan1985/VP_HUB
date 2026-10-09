@@ -70,7 +70,9 @@ FieldCtx fieldCtx(BuildContext context, DeviceSession session, int screen, VphFi
       final c = f.confirm;
       // Cong tac chi hoi lai khi bat (vd dot lo), tat thi lam ngay
       final ask = c != null && (f.type != 'bool' || v == true);
-      if (ask && !await confirmDialog(context, c)) return;
+      // Nut lenh: lap lai ten nut. Cong tac: "Turn on". Con lai: "Confirm".
+      final action = f.type == 'act' ? f.label : (f.type == 'bool' ? S.turnOn : S.confirm);
+      if (ask && !await confirmDialog(context, c, action: action)) return;
       await session.edit(screen, f, v);
     },
   );
@@ -91,15 +93,16 @@ class FieldDeco extends InheritedWidget {
   bool updateShouldNotify(FieldDeco old) => old.icon != icon || old.desc != desc || old.strong != strong;
 }
 
-Future<bool> confirmDialog(BuildContext context, String question) async {
+/// Hop hoi lai truoc khi gui lenh co `c`: tieu de la cau hoi cua thiet bi,
+/// nut xac nhan ghi dung hanh dong ([action]), khong dung "OK".
+Future<bool> confirmDialog(BuildContext context, String question, {required String action}) async {
   final yes = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(S.confirmTitle),
-      content: Text(question),
+      title: Text(question),
       actions: [
         TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.cancel)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(S.ok)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(action)),
       ],
     ),
   );

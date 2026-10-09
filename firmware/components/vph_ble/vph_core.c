@@ -471,16 +471,16 @@ int vph_core_handle_write(const char *json, char *result, size_t result_cap)
     if (strlen(json) > VPH_MAX_WRITE) {
         // Van doc q (neu JSON con nguyen) de app biet lenh nao bi tu choi
         ESP_LOGW(TAG, "WRITE %d byte, vuot %d (PROTOCOL 8)", (int)strlen(json), VPH_MAX_WRITE);
-        strlcpy(err, "Lệnh quá dài", sizeof(err));
+        strlcpy(err, "Command too long", sizeof(err));
     } else if (!cJSON_IsObject(root)) {
-        strlcpy(err, "Lệnh sai định dạng", sizeof(err));
+        strlcpy(err, "Invalid command", sizeof(err));
     } else if (cJSON_IsObject(set)) {
         // Ghi theo lo
         if (!s.bcb) {
-            strlcpy(err, "Thiết bị không nhận ghi theo lô", sizeof(err));
+            strlcpy(err, "Batch write not supported", sizeof(err));
         } else {
             rc = s.bcb(set, err, VPH_MAX_ERR + 1);
-            if (rc == VPH_ERR_UNKNOWN && !err[0]) strlcpy(err, "Có trường không tồn tại", sizeof(err));
+            if (rc == VPH_ERR_UNKNOWN && !err[0]) strlcpy(err, "Unknown field", sizeof(err));
         }
     } else if (cJSON_IsString(jid) && v) {
         const char *id = jid->valuestring;
@@ -488,20 +488,20 @@ int vph_core_handle_write(const char *json, char *result, size_t result_cap)
         if (!strcmp(id, "_time")) {
             double e = cJSON_IsNumber(v) ? v->valuedouble : 0;
             if (e < 1700000000.0 || e > 4102444800.0) {
-                strlcpy(err, "Giờ không hợp lệ", sizeof(err));
+                strlcpy(err, "Invalid time", sizeof(err));
                 goto done;
             }
             struct timeval tv = {.tv_sec = (time_t)e, .tv_usec = 0};
             settimeofday(&tv, NULL);
         } else if (!strcmp(id, "_name")) {
             if (!cJSON_IsString(v) || !name_valid(v->valuestring)) {
-                strlcpy(err, "Tên phải 1-20 ký tự ASCII, không có \" và \\", sizeof(err));
+                strlcpy(err, "Name must be 1-20 ASCII characters without \" or \\", sizeof(err));
                 goto done;
             }
         } else if (!strcmp(id, "_reboot")) {
             // khong can kiem tra gia tri
         } else if (reserved) {
-            snprintf(err, sizeof(err), "Không có trường %s", id);
+            snprintf(err, sizeof(err), "Unknown field: %s", id);
             goto done;
         }
         rc = s.wcb ? s.wcb(id, v, err, VPH_MAX_ERR + 1) : VPH_ERR_UNKNOWN;
@@ -510,7 +510,7 @@ int vph_core_handle_write(const char *json, char *result, size_t result_cap)
                 rc = VPH_OK;    // project khong can lam gi them
                 err[0] = '\0';
             } else {
-                snprintf(err, sizeof(err), "Không có trường %s", id);
+                snprintf(err, sizeof(err), "Unknown field: %s", id);
             }
         }
         if (rc == VPH_OK) {
@@ -522,7 +522,7 @@ int vph_core_handle_write(const char *json, char *result, size_t result_cap)
             }
         }
     } else {
-        strlcpy(err, "Lệnh thiếu id hoặc v", sizeof(err));
+        strlcpy(err, "Command is missing id or v", sizeof(err));
     }
 
 done:
@@ -530,7 +530,7 @@ done:
         act |= VPH_ACT_OK;
         make_result(result, result_cap, q, NULL);
     } else {
-        if (!err[0]) strlcpy(err, "Thiết bị từ chối lệnh", sizeof(err));
+        if (!err[0]) strlcpy(err, "Command rejected", sizeof(err));
         utf8_trunc(err, VPH_MAX_ERR);
         make_result(result, result_cap, q, err);
     }

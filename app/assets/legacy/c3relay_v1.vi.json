@@ -6,9 +6,9 @@
       {"id": "ec", "l": "EC", "t": "num", "ro": 1, "w": "mini"},
       {"id": "sal", "l": "Độ mặn", "t": "num", "ro": 1, "w": "mini"},
       {"id": "tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
-      {"id": "sok", "l": "Cảm biến chưa có dữ liệu hoặc mất kết nối", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
+      {"id": "sok", "l": "Không có dữ liệu cảm biến", "t": "bool", "ro": 1, "w": "note", "if": "sok==false"},
       {"id": "out", "l": "Relay", "t": "bool", "w": "hero,btns", "ic": "power", "sub": "mode", "en": "mode==manual",
-       "d": "Bật/tắt tay chỉ dùng được ở chế độ Tay"},
+       "d": "Chỉ bật/tắt tay được ở chế độ Tay."},
       {"id": "mode", "l": "Chế độ", "t": "enum", "w": "seg", "opt": [["manual", "Tay", "hand"], ["auto", "Tự động", "auto"]]},
       {"id": "alarm", "l": "Báo động", "t": "flags", "w": "alarm", "g": "al",
        "opt": ["Mất cảm biến", "Chưa có giờ", "Nhiệt độ ngoài ngưỡng", "Độ ẩm ngoài ngưỡng"]},
@@ -19,14 +19,14 @@
       {"id": "up", "l": "Thời gian chạy", "t": "num", "u": "s", "dp": 0, "ro": 1, "w": "dur", "ic": "timer", "g": "Trạng thái"}
     ]},
     {"id": "auto", "l": "Lịch & tự động", "ic": "schedule", "save": "batch", "f": [
-      {"id": "src", "l": "Nguồn tự động", "t": "enum", "w": "seg",
-       "d": "Lịch: bật khi đang trong một khung giờ. Cảm biến: bật/tắt theo ngưỡng, không quan tâm giờ. Kết hợp: chỉ bật khi đang trong khung giờ VÀ cảm biến yêu cầu bật.",
+      {"id": "src", "l": "Điều khiển theo", "t": "enum", "w": "seg",
+       "d": "Lịch: bật trong các khung giờ. Cảm biến: bật và tắt theo ngưỡng. Kết hợp: bật trong khung giờ, chỉ khi cảm biến yêu cầu.",
        "opt": [["schedule", "Lịch"], ["sensor", "Cảm biến"], ["both", "Kết hợp"]]},
       {"id": "date_from", "l": "Từ ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
       {"id": "date_to", "l": "Đến ngày", "t": "date", "nul": 1, "g": "Khoảng ngày"},
-      {"id": "sen_type", "l": "Đo theo", "t": "enum", "opt": [["hum", "Độ ẩm"], ["temp", "Nhiệt độ"]],
+      {"id": "sen_type", "l": "Cảm biến", "t": "enum", "opt": [["hum", "Độ ẩm"], ["temp", "Nhiệt độ"]],
        "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
-      {"id": "sen_act", "l": "Kiểu ngưỡng", "t": "enum", "opt": [["low", "Bật khi thấp"], ["high", "Bật khi cao"]],
+      {"id": "sen_act", "l": "Bật khi", "t": "enum", "opt": [["low", "Giá trị thấp"], ["high", "Giá trị cao"]],
        "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
       {"id": "on_at", "l": "Ngưỡng bật", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến"},
       {"id": "off_at", "l": "Ngưỡng tắt", "t": "num", "dp": 1, "st": 1, "if": "src!=schedule", "g": "Ngưỡng cảm biến",
@@ -36,10 +36,10 @@
       {"id": "en", "l": "Bật", "t": "bool"},
       {"id": "days", "l": "Thứ", "t": "days"},
       {"id": "on", "l": "Giờ bật", "t": "time"},
-      {"id": "off", "l": "Giờ tắt", "t": "time", "d": "Giờ tắt nhỏ hơn giờ bật = qua đêm"}
+      {"id": "off", "l": "Giờ tắt", "t": "time", "d": "Giờ tắt sớm hơn giờ bật thì khung chạy qua đêm."}
     ]}},
     {"id": "alarms", "l": "Cài đặt báo động", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
-      {"id": "al_en", "l": "Bật báo động nhiệt độ / độ ẩm", "t": "bool", "g": "Ngưỡng báo động"},
+      {"id": "al_en", "l": "Bật báo động", "t": "bool", "g": "Ngưỡng báo động"},
       {"id": "al_t_lo", "l": "Nhiệt độ thấp", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
       {"id": "al_t_hi", "l": "Nhiệt độ cao", "t": "num", "u": "°C", "dp": 1, "g": "Ngưỡng báo động"},
       {"id": "al_h_lo", "l": "Độ ẩm thấp", "t": "num", "u": "%", "dp": 1, "g": "Ngưỡng báo động"},
@@ -47,23 +47,23 @@
     ]},
     {"id": "sensor", "l": "Cài đặt cảm biến", "ic": "sensor", "nav": "menu", "adv": 1, "save": "batch", "f": [
       {"id": "mb_addr", "l": "Địa chỉ", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Cảm biến Modbus RTU",
+      {"id": "mb_baud", "l": "Tốc độ baud", "t": "enum", "g": "Cảm biến Modbus RTU",
        "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [38400, "38400"], [57600, "57600"], [115200, "115200"]]},
       {"id": "mb_fc", "l": "Mã hàm", "t": "enum", "opt": [[3, "03 Holding"], [4, "04 Input"]], "g": "Cảm biến Modbus RTU"},
       {"id": "mb_start", "l": "Thanh ghi đầu", "t": "num", "min": 0, "max": 65535, "dp": 0, "g": "Cảm biến Modbus RTU"},
       {"id": "mb_count", "l": "Số thanh ghi", "t": "num", "min": 1, "max": 10, "dp": 0, "g": "Cảm biến Modbus RTU"},
       {"id": "mb_idx_h", "l": "Vị trí độ ẩm", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
       {"id": "mb_idx_t", "l": "Vị trí nhiệt độ", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Cảm biến Modbus RTU"},
-      {"id": "mb_scale", "l": "Hệ số chia", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Cảm biến Modbus RTU",
-       "d": "Giá trị thật = thanh ghi / hệ số"},
+      {"id": "mb_scale", "l": "Hệ số tỉ lệ", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Cảm biến Modbus RTU",
+       "d": "Giá trị = thanh ghi ÷ hệ số tỉ lệ."},
       {"id": "mb_period", "l": "Chu kỳ đọc", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Cảm biến Modbus RTU"}
     ]},
     {"id": "device", "l": "Thiết bị", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20, "ic": "device",
-       "d": "Tối đa 20 ký tự không dấu"},
+       "d": "Tối đa 20 ký tự không dấu."},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
       {"id": "_reboot", "l": "Khởi động lại thiết bị", "t": "act", "ic": "reset", "adv": 1,
-       "c": "Khởi động lại thiết bị? Thiết bị sẽ ngắt kết nối vài giây rồi app tự kết nối lại."}
+       "c": "Khởi động lại thiết bị?"}
     ]}
   ]
 }

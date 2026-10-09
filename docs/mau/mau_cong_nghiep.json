@@ -28,9 +28,9 @@
       {"id": "t_off", "l": "Temperature offset", "t": "num", "u": "°C", "min": -10, "max": 10, "st": 0.1, "dp": 1, "g": "Sensor calibration"}
     ]},
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
-      {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters"},
+      {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters."},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart the device?"}
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart device?"}
     ]}
   ],
   "values": {

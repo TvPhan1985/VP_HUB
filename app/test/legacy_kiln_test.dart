@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vphub/l10n/strings.dart';
 import 'package:vphub/core/model/vph_schema.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/core/transport/legacy_kiln.dart';
@@ -175,7 +176,7 @@ void main() {
       await t.select(0);
       final r = await t.write('running', true);
       expect(r.ok, isFalse);
-      expect(r.err, 'Value not accepted by the device');
+      expect(r.err, S.errNotAccepted);
     });
 
     test('nut lenh va truong tu nha khong can xac nhan', () async {

@@ -11,7 +11,7 @@ List<String> activeFlags(VphField f, dynamic value) {
   final mask = (asNum(value) ?? 0).toInt();
   return [
     for (var i = 0; i < 31; i++)
-      if (mask & (1 << i) != 0) i < f.flagLabels.length ? f.flagLabels[i] : S.flagBit(i),
+      if (mask & (1 << i) != 0) i < f.flagLabels.length ? f.flagLabels[i] : S.flagN(i + 1),
   ];
 }
 

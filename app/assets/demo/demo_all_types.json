@@ -4,7 +4,7 @@
     "hdr": ["pv", "run", "fault", "warn"], "caps": ["time"], "icon": "sensor"
   },
   "screens": [
-    {"id": "live", "l": "Data Types", "save": "live", "f": [
+    {"id": "live", "l": "Data types", "save": "live", "f": [
       {"id": "pv", "l": "Kiln temperature", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "big,trend"},
       {"id": "sv", "l": "Setpoint", "t": "num", "u": "°C", "min": 0, "max": 1200, "st": 5, "dp": 0},
       {"id": "press", "l": "Pressure", "t": "num", "u": "bar", "dp": 2, "ro": 1, "min": 0, "max": 10, "w": "gauge"},
@@ -27,7 +27,7 @@
       {"id": "alien", "l": "Unknown type", "t": "xyz"},
       {"id": "odd", "l": "Unknown hint", "t": "num", "u": "V", "ro": 1, "w": "hologram"}
     ]},
-    {"id": "groups", "l": "Groups & Repeat", "save": "batch", "f": [
+    {"id": "groups", "l": "Groups & repeat", "save": "batch", "f": [
       {"id": "kp", "l": "Kp", "t": "num", "min": 0, "max": 100, "st": 0.1, "g": "PID", "adv": 1},
       {"id": "ki", "l": "Ki", "t": "num", "min": 0, "max": 10, "st": 0.01, "g": "PID", "adv": 1},
       {"id": "kd", "l": "Kd", "t": "num", "min": 0, "max": 500, "st": 1, "g": "PID", "adv": 1},
@@ -41,7 +41,7 @@
       {"id": "hold", "l": "Hold", "t": "bool"},
       {"id": "s", "l": "Hold time", "t": "num", "u": "min", "min": 0, "max": 600, "st": 5, "if": "hold==true"}
     ]}},
-    {"id": "hints", "l": "New Hints", "ic": "dashboard", "save": "live", "f": [
+    {"id": "hints", "l": "New hints", "ic": "dashboard", "save": "live", "f": [
       {"id": "n_t", "l": "Temperature", "t": "num", "u": "°C", "dp": 1, "ro": 1, "w": "tile,trend", "ic": "temp"},
       {"id": "n_h", "l": "Humidity", "t": "num", "u": "%", "dp": 1, "ro": 1, "w": "tile", "ic": "hum"},
       {"id": "n_st", "l": "Stage", "t": "text", "w": "tile", "ic": "fire"},
@@ -50,18 +50,18 @@
       {"id": "n_tds", "l": "TDS", "t": "num", "ro": 1, "w": "mini"},
       {"id": "n_sok", "l": "Sensor disconnected", "t": "bool", "ro": 1, "w": "note", "if": "n_sok==false"},
       {"id": "n_out", "l": "Pump", "t": "bool", "w": "hero,btns", "ic": "pump", "sub": "n_mode", "en": "n_mode==manual",
-       "d": "Manual switching is available in Manual mode only"},
+       "d": "Manual switching is available in Manual mode only."},
       {"id": "n_mode", "l": "Pump mode", "t": "enum", "w": "seg", "opt": [["manual", "Manual", "hand"], ["auto", "Auto", "auto"]]},
       {"id": "n_burn", "l": "Burner", "t": "bool", "w": "hero,warn", "ic": "fire", "opt": ["Stopped", "Firing"], "sub": "n_t"},
       {"id": "n_al", "l": "Pump alarm", "t": "flags", "w": "alarm", "g": "nal", "opt": ["Dry run", "Overcurrent", "Phase loss"]},
-      {"id": "n_sil", "l": "Silence", "t": "act", "ic": "mute", "g": "nal", "if": "n_al!=0"},
+      {"id": "n_sil", "l": "Silence buzzer", "t": "act", "ic": "mute", "g": "nal", "if": "n_al!=0"},
       {"id": "n_lock", "l": "Safety lock", "t": "bool", "ro": 1, "w": "alarm", "g": "nlk"},
       {"id": "n_why", "l": "Reason", "t": "text", "g": "nlk", "if": "n_lock==true"},
       {"id": "n_fan", "l": "Fan", "t": "bool", "w": "btns", "ic": "fan", "g": "Other"},
       {"id": "n_up", "l": "Uptime", "t": "num", "u": "s", "ro": 1, "w": "dur", "ic": "timer", "g": "Other"},
-      {"id": "n_icx", "l": "Unknown icon", "t": "text", "ic": "khong_co_icon_nay", "d": "An unknown icon name shows no icon", "g": "Other"}
+      {"id": "n_icx", "l": "Unknown icon", "t": "text", "ic": "khong_co_icon_nay", "d": "An unknown icon name shows no icon.", "g": "Other"}
     ]},
-    {"id": "legacy", "title": "Long Keys", "fields": [
+    {"id": "legacy", "title": "Long keys", "fields": [
       {"id": "old_pv", "label": "Temperature", "type": "float", "unit": "°C", "readonly": true},
       {"id": "old_sv", "label": "Setpoint", "type": "float", "unit": "°C", "min": 0, "max": 1200, "step": 1},
       {"id": "old_cnt", "label": "Counter", "type": "int", "readonly": true}

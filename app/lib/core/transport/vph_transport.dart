@@ -55,7 +55,7 @@ class VphTransport implements DeviceTransport {
     try {
       _info = VphInfo.fromJson(jsonDecode(utf8.decode(raw)) as Map<String, dynamic>);
     } catch (e) {
-      throw Exception(S.badInfo);
+      throw Exception(S.errBadData);
     }
     return _info!;
   }
@@ -119,7 +119,7 @@ class VphTransport implements DeviceTransport {
       final c = q is num ? _pending.remove(q.toInt()) : null;
       if (c == null || c.isCompleted) return;
       final ok = j['ok'] == 1 || j['ok'] == true;
-      c.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.deviceRefused));
+      c.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.errRejected));
     } catch (_) {}
   }
 
@@ -139,16 +139,16 @@ class VphTransport implements DeviceTransport {
     _q = _q >= 65535 ? 1 : _q + 1;
     final q = _q;
     final payload = utf8.encode(jsonEncode({'q': q, ...body}));
-    if (payload.length > maxWrite) return VphResult.fail(S.writeTooLong(payload.length, maxWrite));
+    if (payload.length > maxWrite) return VphResult.fail(S.errTooLong);
     final c = Completer<VphResult>();
     _pending[q] = c;
     try {
       await link.write(kVphWrite, payload);
       return await c.future.timeout(resultTimeout);
     } on TimeoutException {
-      return VphResult.fail(S.noResponse);
+      return VphResult.fail(S.errNoResponse);
     } catch (e) {
-      return VphResult.fail(S.sendFailed(e));
+      return VphResult.fail(S.errUnknown);
     } finally {
       _pending.remove(q);
     }
@@ -157,7 +157,7 @@ class VphTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     for (final c in _pending.values) {
-      if (!c.isCompleted) c.complete(VphResult.fail(S.linkLost));
+      if (!c.isCompleted) c.complete(VphResult.fail(S.disconnected));
     }
     _pending.clear();
     await link.disconnect();

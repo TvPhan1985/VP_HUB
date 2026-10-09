@@ -214,20 +214,20 @@ class SettingsScreen extends StatelessWidget {
           _section(context, S.secGeneral, [
             ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: Text(S.menuTheme),
+              title: Text(S.theme),
               trailing: value(themeModeLabel(st.mode)),
               onTap: () async {
-                final m = await _pickOne(context, S.menuTheme,
+                final m = await _pickOne(context, S.theme,
                     const [ThemeMode.system, ThemeMode.light, ThemeMode.dark], st.mode, themeModeLabel);
                 if (m != null) await st.setMode(m);
               },
             ),
             ListTile(
               leading: const Icon(Icons.language),
-              title: Text(S.menuLanguage),
+              title: Text(S.language),
               trailing: value(Lang.nameOf(st.lang)),
               onTap: () async {
-                final c = await _pickOne(context, S.menuLanguage, const [Lang.en, Lang.vi], st.lang, Lang.nameOf);
+                final c = await _pickOne(context, S.language, const [Lang.en, Lang.vi], st.lang, Lang.nameOf);
                 if (c != null) await st.setLang(c);
               },
             ),

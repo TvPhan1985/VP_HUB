@@ -32,8 +32,8 @@ extern "C" {
 
 // Ma tra ve cua vph_write_cb / vph_batch_cb
 #define VPH_OK              0
-#define VPH_ERR_UNKNOWN     (-1)        // khong biet truong nay -> "Không có trường <id>"
-#define VPH_ERR_REJECT      1           // tu choi, ly do tieng Viet ghi vao err
+#define VPH_ERR_UNKNOWN     (-1)        // khong biet truong nay -> "Unknown field: <id>"
+#define VPH_ERR_REJECT      1           // tu choi, ly do (tieng Anh, xem docs/COPY_STYLE.md) ghi vao err
 
 typedef struct {
     const char *model;          // chu thuong, khong dau, khong cach. KHONG doi sau khi phat hanh
@@ -75,7 +75,7 @@ void vph_nav_menu(cJSON *screen);
 void vph_advanced(cJSON *screen_or_field);
 void vph_desc(cJSON *f, const char *text);          // dong chu thich nho duoi truong
 void vph_sub(cJSON *f, const char *field_id);       // the hero: gia tri truong nay lam dong phu
-// bool: chu cho 2 trang thai thay "TẮT"/"BẬT", vd ("Dừng", "Đang đốt")
+// bool: chu cho 2 trang thai thay "OFF"/"ON", vd ("Stopped", "Firing")
 void vph_bool_labels(cJSON *f, const char *off, const char *on);
 // enum co icon cho tung lua chon; icons[i] co the NULL
 void vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
@@ -107,7 +107,7 @@ void vph_out_null(vph_out_t *o, const char *id);
 // ---------- Ghi ----------
 
 // Goi trong TASK CHINH (ben trong vph_poll), khong phai callback GATT.
-// Tra VPH_OK, VPH_ERR_UNKNOWN, hoac khac 0 kem err tieng Viet (toi da 80 byte).
+// Tra VPH_OK, VPH_ERR_UNKNOWN, hoac khac 0 kem err tieng Anh (toi da 80 byte).
 // Id danh rieng cung di qua day TRUOC khi component thuc hien:
 //   "_time"   v = epoch UTC   (component da settimeofday; project ghi RTC neu co)
 //   "_name"   v = ten moi     (project luu NVS; component doi ten quang ba)

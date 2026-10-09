@@ -37,7 +37,7 @@ Future<DeviceTransport> connectTransport(GattLink link, SchemaCache cache) async
   try {
     await link.connect();
     final kind = kindForServices(link.services);
-    if (kind == null) throw Exception(S.unsupportedDevice);
+    if (kind == null) throw Exception(S.errUnsupported);
     return createTransport(kind, link, cache);
   } catch (_) {
     await link.disconnect();

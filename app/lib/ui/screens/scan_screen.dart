@@ -84,7 +84,7 @@ class _ScanScreenState extends State<ScanScreen> {
       await _scanner.start();
     } catch (e) {
       logVph('Loi quet: $e');
-      if (mounted) setState(() => _message = S.scanFailed(e));
+      if (mounted) setState(() => _message = S.errScan);
     }
   }
 
@@ -140,6 +140,26 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
+  /// Xoa thiet bi khoi danh sach, cho hoan tac trong SnackBar
+  Future<void> _remove(KnownDevice d) async {
+    final index = _known.list().indexWhere((e) => e.id == d.id);
+    await _known.forget(d.id);
+    if (!mounted) return;
+    setState(() {});
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(S.deviceRemoved),
+        action: SnackBarAction(
+          label: S.undo,
+          onPressed: () async {
+            await _known.insertAt(index, d);
+            if (mounted) setState(() {});
+          },
+        ),
+      ));
+  }
+
   Widget _tag(BuildContext context, bool legacy) {
     final cs = Theme.of(context).colorScheme;
     return Container(
@@ -155,11 +175,10 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget _section(BuildContext context, String title) => Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
         child: Text(
-          title.toUpperCase(),
+          title,
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontWeight: FontWeight.w700,
-                letterSpacing: 0.8,
               ),
         ),
       );
@@ -176,11 +195,11 @@ class _ScanScreenState extends State<ScanScreen> {
       avatar: const Icon(Icons.hub, size: 24),
       title: S.appName,
       subtitle: S.appTagline,
-      status: !_adapterOn ? S.btOffShort : (_scanning ? S.scanning : S.btReady),
+      status: !_adapterOn ? S.btOffShort : (_scanning ? S.scanning : S.btOn),
       statusColor: !_adapterOn ? Vp.barStop : (_scanning ? Vp.barCaution : Vp.barOk),
       sections: [
         DrawerSection('', [
-          DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, selected: true, onTap: () {}),
+          DrawerEntry(icon: Icons.devices_other, label: S.deviceList, selected: true, onTap: () {}),
           DrawerEntry(
             icon: Icons.settings_outlined,
             label: S.settings,
@@ -224,7 +243,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 right: -1,
                 bottom: -1,
                 child: Tooltip(
-                  message: S.seenNow,
+                  message: S.inRange,
                   child: Container(
                     width: 13,
                     height: 13,
@@ -250,7 +269,7 @@ class _ScanScreenState extends State<ScanScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (rssi != null && tech) Text(S.rssi(rssi), style: Theme.of(context).textTheme.labelSmall),
+            if (rssi != null && tech) Text(S.rssiDbm(rssi), style: Theme.of(context).textTheme.labelSmall),
             if (rssi != null) SignalBars(rssi: rssi),
             trailing,
           ],
@@ -275,7 +294,7 @@ class _ScanScreenState extends State<ScanScreen> {
           FilledButton.icon(
             onPressed: _scanning ? _stopScan : _scan,
             icon: Icon(_scanning ? Icons.stop : Icons.search),
-            label: Text(_scanning ? S.stopScan : S.scan),
+            label: Text(_scanning ? S.stopScan : S.scanAgain),
           ),
         ],
       ),
@@ -339,7 +358,7 @@ class _ScanScreenState extends State<ScanScreen> {
               child: Text(_message!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           if (known.isNotEmpty) ...[
-            _section(context, S.knownDevices),
+            _section(context, S.myDevices),
             for (final d in known)
               _deviceCard(
                 context,
@@ -351,12 +370,9 @@ class _ScanScreenState extends State<ScanScreen> {
                 rssi: seen[d.id]?.rssi,
                 seen: seen.containsKey(d.id),
                 trailing: IconButton(
-                  tooltip: S.forget,
+                  tooltip: S.removeDevice,
                   icon: const Icon(Icons.delete_outline),
-                  onPressed: () async {
-                    await _known.forget(d.id);
-                    if (mounted) setState(() {});
-                  },
+                  onPressed: () => _remove(d),
                 ),
                 onTap: () => _openKnown(d),
               ),
@@ -367,7 +383,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 ? _empty(context)
                 : Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text(_scanning ? S.scanning : S.noDevices, textAlign: TextAlign.center),
+                    child: Text(_scanning ? S.scanning : S.noNewDevices, textAlign: TextAlign.center),
                   ),
           for (final r in fresh)
             _deviceCard(
@@ -399,7 +415,7 @@ class SignalBars extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final n = level(rssi);
     return Tooltip(
-      message: S.rssi(rssi),
+      message: S.rssiDbm(rssi),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: Row(
