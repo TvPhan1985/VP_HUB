@@ -37,8 +37,16 @@ class _ScanScreenState extends State<ScanScreen> {
   late final SchemaCache _cache = SchemaCache(widget.store);
   late final DeviceScanner _scanner = widget.scanner ?? UbScanner();
   bool _permDenied = false;
+  bool _locationOff = false;
   bool _busy = false;
   String? _message;
+
+  /// Thiet bi da nho dang cho thay trong luc quet luc mo app (tu ket noi)
+  String? _autoId;
+  Timer? _autoTimer;
+
+  /// Mo app: chi tu ket noi neu thay thiet bi trong khoang nay
+  static const Duration autoWindow = Duration(seconds: 4);
 
   bool get _scanning => _scanner.scanning;
   bool get _adapterOn => _scanner.adapterOn;
@@ -52,23 +60,42 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   void dispose() {
+    _autoTimer?.cancel();
     _scanner.removeListener(_onScanner);
     if (widget.scanner == null) _scanner.dispose();
     super.dispose();
   }
 
   void _onScanner() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    setState(() {});
+    // Thay thiet bi da nho gan nhat trong 4 giay dau -> tu ket noi
+    final id = _autoId;
+    if (id != null && !_busy && _scanner.hits.any((h) => h.id == id)) {
+      final d = _known.list().where((e) => e.id == id).firstOrNull;
+      _cancelAuto();
+      if (d != null) _openKnown(d);
+    }
   }
 
+  void _cancelAuto() {
+    _autoTimer?.cancel();
+    _autoTimer = null;
+    _autoId = null;
+  }
+
+  /// Mo app: quet 10 s. Trong 4 s dau, thay thiet bi da nho gan nhat (theo lastMs) thi tu ket noi;
+  /// khong thay thi o lai man Quet va quet tiep cho het 10 s. Khong nhay thang vao thiet bi cu.
   Future<void> _startup() async {
     final list = _known.list();
     final auto = SettingsScope.maybeOf(context)?.autoConnect ?? true;
-    if (auto && list.isNotEmpty && await _ensurePermissions()) {
-      await _openKnown(list.first);
-    } else {
-      await _scan();
+    if (auto && list.isNotEmpty) {
+      final last = list.reduce((a, b) => b.lastMs > a.lastMs ? b : a);
+      _autoId = last.id;
+      _autoTimer = Timer(autoWindow, _cancelAuto);
     }
+    await _scan();
+    if (!_scanning) _cancelAuto();
   }
 
   Future<bool> _ensurePermissions() async {
@@ -80,7 +107,13 @@ class _ScanScreenState extends State<ScanScreen> {
   Future<void> _scan() async {
     if (_scanning || _busy) return;
     if (!await _ensurePermissions()) return;
-    setState(() => _message = null);
+    // Android 6-11: cong tac Location tat thi quet khong thay gi
+    final locOff = await _scanner.locationOff();
+    if (!mounted) return;
+    setState(() {
+      _message = null;
+      _locationOff = locOff;
+    });
     try {
       await _scanner.start();
     } catch (e) {
@@ -89,16 +122,36 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
+  /// Keo xuong de quet lai
+  Future<void> _refresh() async {
+    await _stopScan();
+    await _scan();
+  }
+
   Future<void> _stopScan() => _scanner.stop();
 
-  Future<void> _openKnown(KnownDevice d) =>
-      _open(d.id, d.name, legacyHint: d.legacy);
+  Future<void> _openKnown(KnownDevice d) => _open(d.id, d.name, legacyHint: d.legacy);
 
   Future<void> _open(String id, String name, {bool legacyHint = false}) async {
     if (_busy) return;
     _busy = true;
-    await _stopScan();
-    if (!mounted) return;
+    _cancelAuto();
+    try {
+      await _stopScan();
+      if (!mounted) return;
+      await _session(id, name, legacyHint: legacyHint);
+    } finally {
+      // Du co loi giua chung, man Quet van bam duoc tiep
+      _busy = false;
+    }
+    if (mounted) {
+      setState(() {});
+      _scan();
+    }
+  }
+
+  /// Mo man Thiet bi cho mot phien ket noi; tra ve khi nguoi dung quay lai man Quet
+  Future<void> _session(String id, String name, {bool legacyHint = false}) async {
     GattLink? link;
     // Chu cua schema luu san (relay C3, lo nung) lay theo ngon ngu luc ket noi
     final lang = context.l.localeName;
@@ -111,14 +164,20 @@ class _ScanScreenState extends State<ScanScreen> {
     Future<void> remember() async {
       final i = session.info;
       if (i == null) return;
-      await _known.remember(KnownDevice(
-        id: id,
-        name: session.displayName,
-        model: i.model,
-        icon: i.icon,
-        legacy: session.transport?.legacy ?? legacyHint,
-        lastMs: DateTime.now().millisecondsSinceEpoch,
-      ));
+      // Ten nguoi dung dat trong app (Rename) khong bi ghi de bang ten quang ba
+      final old = _known.list().where((e) => e.id == id).firstOrNull;
+      final alias = old?.alias ?? false;
+      await _known.remember(
+        KnownDevice(
+          id: id,
+          name: alias ? old!.name : session.displayName,
+          alias: alias,
+          model: i.model,
+          icon: i.icon,
+          legacy: session.transport?.legacy ?? legacyHint,
+          lastMs: DateTime.now().millisecondsSinceEpoch,
+        ),
+      );
     }
 
     var saved = false;
@@ -136,11 +195,60 @@ class _ScanScreenState extends State<ScanScreen> {
     // Luu lai lan nua vi nguoi dung co the da doi ten thiet bi
     if (session.hasEverConnected && session.ready) await remember();
     session.dispose();
-    _busy = false;
-    if (mounted) {
-      setState(() {});
-      _scan();
-    }
+  }
+
+  /// Menu cua the thiet bi da nho (nhan giu, hoac nut ba cham): Rename / Remove
+  Future<void> _deviceMenu(KnownDevice d) async {
+    final act = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.edit_outlined),
+              title: Text(ctx.l.rename),
+              onTap: () => Navigator.pop(ctx, 'rename'),
+            ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: Text(ctx.l.remove),
+              onTap: () => Navigator.pop(ctx, 'remove'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (act == 'rename') await _rename(d);
+    if (act == 'remove') await _remove(d);
+  }
+
+  /// Doi ten hien thi trong app (khong doi ten quang ba cua thiet bi)
+  Future<void> _rename(KnownDevice d) async {
+    final ctl = TextEditingController(text: d.name);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l.renameDevice),
+        content: TextField(
+          controller: ctl,
+          autofocus: true,
+          maxLength: 30,
+          decoration: InputDecoration(labelText: ctx.l.deviceNameLabel, helperText: ctx.l.renameDeviceHint),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l.cancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, ctl.text), child: Text(ctx.l.save)),
+        ],
+      ),
+    );
+    final n = name?.trim() ?? '';
+    if (n.isEmpty || n == d.name) return;
+    await _known.rename(d.id, n);
+    if (mounted) setState(() {});
   }
 
   /// Xoa thiet bi khoi danh sach, cho hoan tac trong SnackBar
@@ -151,16 +259,18 @@ class _ScanScreenState extends State<ScanScreen> {
     setState(() {});
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(
-        content: Text(context.l.deviceRemoved),
-        action: SnackBarAction(
-          label: context.l.undo,
-          onPressed: () async {
-            await _known.insertAt(index, d);
-            if (mounted) setState(() {});
-          },
+      ..showSnackBar(
+        SnackBar(
+          content: Text(context.l.deviceRemoved),
+          action: SnackBarAction(
+            label: context.l.undo,
+            onPressed: () async {
+              await _known.insertAt(index, d);
+              if (mounted) setState(() {});
+            },
+          ),
         ),
-      ));
+      );
   }
 
   Widget _tag(BuildContext context, bool legacy) {
@@ -176,15 +286,13 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Widget _section(BuildContext context, String title) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-        child: Text(
-          title,
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+    child: Text(
+      title,
+      style: Theme.of(context).textTheme.labelMedium
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant, fontWeight: FontWeight.w700),
+    ),
+  );
 
   /// Menu he thong cua man Quet: chi con dieu huong (Devices, Settings, Help & about)
   Widget _drawer(BuildContext context) {
@@ -208,7 +316,11 @@ class _ScanScreenState extends State<ScanScreen> {
             label: context.l.settings,
             onTap: () => push(const SettingsScreen()),
           ),
-          DrawerEntry(icon: Icons.menu_book_outlined, label: context.l.helpAbout, onTap: () => push(const AboutScreen())),
+          DrawerEntry(
+            icon: Icons.menu_book_outlined,
+            label: context.l.helpAbout,
+            onTap: () => push(const AboutScreen()),
+          ),
         ]),
       ],
     );
@@ -224,6 +336,7 @@ class _ScanScreenState extends State<ScanScreen> {
     required bool tech,
     required VoidCallback onTap,
     required Widget trailing,
+    VoidCallback? onLongPress,
     int? rssi,
     bool seen = false,
   }) {
@@ -264,11 +377,13 @@ class _ScanScreenState extends State<ScanScreen> {
         // Standard: chi ten va model. Technician: them nhan giao thuc, dia chi, so dBm.
         subtitle: !tech
             ? (detail.isEmpty ? null : Text(detail, overflow: TextOverflow.ellipsis))
-            : Row(children: [
-                _tag(context, legacy),
-                const SizedBox(width: 8),
-                Flexible(child: Text(detail, overflow: TextOverflow.ellipsis)),
-              ]),
+            : Row(
+                children: [
+                  _tag(context, legacy),
+                  const SizedBox(width: 8),
+                  Flexible(child: Text(detail, overflow: TextOverflow.ellipsis)),
+                ],
+              ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -278,6 +393,7 @@ class _ScanScreenState extends State<ScanScreen> {
           ],
         ),
         onTap: onTap,
+        onLongPress: onLongPress,
       ),
     );
   }
@@ -305,19 +421,28 @@ class _ScanScreenState extends State<ScanScreen> {
   }
 
   Widget _notice(IconData icon, String text, String button, VoidCallback onTap) => Card(
-        margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+    child: Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
             children: [
-              Row(children: [Icon(icon), const SizedBox(width: 12), Expanded(child: Text(text))]),
-              const SizedBox(height: 8),
-              Align(alignment: Alignment.centerRight, child: FilledButton.tonal(onPressed: onTap, child: Text(button))),
+              Icon(icon),
+              const SizedBox(width: 12),
+              Expanded(child: Text(text)),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: FilledButton.tonal(onPressed: onTap, child: Text(button)),
+          ),
+        ],
+      ),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -330,7 +455,10 @@ class _ScanScreenState extends State<ScanScreen> {
     final hits = _scanner.hits;
     final seen = {for (final r in hits) r.id: r};
     final knownIds = {for (final d in known) d.id};
-    final fresh = [for (final r in hits) if (!knownIds.contains(r.id)) r];
+    final fresh = [
+      for (final r in hits)
+        if (!knownIds.contains(r.id)) r,
+    ];
     return Scaffold(
       drawer: _drawer(context),
       appBar: AppBar(
@@ -349,58 +477,71 @@ class _ScanScreenState extends State<ScanScreen> {
             ? const PreferredSize(preferredSize: Size.fromHeight(3), child: LinearProgressIndicator(minHeight: 3))
             : null,
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 24),
-        children: [
-          if (!_adapterOn)
-            _notice(Icons.bluetooth_disabled, context.l.btOff, context.l.btTurnOn, _scanner.turnOnBluetooth),
-          if (_permDenied) _notice(Icons.lock_outline, context.l.permMissing, context.l.openSettings, openAppSettings),
-          if (_message != null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(_message!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            ),
-          if (known.isNotEmpty) ...[
-            _section(context, context.l.myDevices),
-            for (final d in known)
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 24),
+          children: [
+            if (!_adapterOn)
+              _notice(Icons.bluetooth_disabled, context.l.btOff, context.l.btTurnOn, _scanner.turnOnBluetooth),
+            if (_permDenied)
+              _notice(Icons.lock_outline, context.l.permMissing, context.l.openSettings, openAppSettings),
+            if (_locationOff)
+              _notice(
+                Icons.location_off_outlined,
+                context.l.locationOff,
+                context.l.openLocationSettings,
+                _scanner.openLocationSettings,
+              ),
+            if (_message != null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(_message!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              ),
+            if (known.isNotEmpty) ...[
+              _section(context, context.l.myDevices),
+              for (final d in known)
+                _deviceCard(
+                  context,
+                  icon: deviceIcon(d.icon),
+                  name: d.name,
+                  detail: detail(d.model, d.id),
+                  legacy: d.legacy,
+                  tech: tech,
+                  rssi: seen[d.id]?.rssi,
+                  seen: seen.containsKey(d.id),
+                  trailing: IconButton(
+                    tooltip: MaterialLocalizations.of(context).showMenuTooltip,
+                    icon: const Icon(Icons.more_vert),
+                    onPressed: () => _deviceMenu(d),
+                  ),
+                  onLongPress: () => _deviceMenu(d),
+                  onTap: () => _openKnown(d),
+                ),
+            ],
+            if (fresh.isNotEmpty || known.isNotEmpty) _section(context, context.l.nearby),
+            if (fresh.isEmpty)
+              known.isEmpty
+                  ? _empty(context)
+                  : Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(_scanning ? context.l.scanning : context.l.noNewDevices, textAlign: TextAlign.center),
+                    ),
+            for (final r in fresh)
               _deviceCard(
                 context,
-                icon: deviceIcon(d.icon),
-                name: d.name,
-                detail: detail(d.model, d.id),
-                legacy: d.legacy,
+                icon: deviceIcon(iconForKind(r.kind)),
+                name: r.name,
+                detail: detail('', r.id),
+                legacy: r.kind != TransportKind.vph,
                 tech: tech,
-                rssi: seen[d.id]?.rssi,
-                seen: seen.containsKey(d.id),
-                trailing: IconButton(
-                  tooltip: context.l.removeDevice,
-                  icon: const Icon(Icons.delete_outline),
-                  onPressed: () => _remove(d),
-                ),
-                onTap: () => _openKnown(d),
+                rssi: r.rssi,
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => _open(r.id, r.name, legacyHint: r.kind != TransportKind.vph),
               ),
           ],
-          if (fresh.isNotEmpty || known.isNotEmpty) _section(context, context.l.nearby),
-          if (fresh.isEmpty)
-            known.isEmpty
-                ? _empty(context)
-                : Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Text(_scanning ? context.l.scanning : context.l.noNewDevices, textAlign: TextAlign.center),
-                  ),
-          for (final r in fresh)
-            _deviceCard(
-              context,
-              icon: deviceIcon(iconForKind(r.kind)),
-              name: r.name,
-              detail: detail('', r.id),
-              legacy: r.kind != TransportKind.vph,
-              tech: tech,
-              rssi: r.rssi,
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _open(r.id, r.name, legacyHint: r.kind != TransportKind.vph),
-            ),
-        ],
+        ),
       ),
     );
   }

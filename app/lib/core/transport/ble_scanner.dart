@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:universal_ble/universal_ble.dart';
 
 import 'gatt_link.dart';
@@ -37,12 +38,30 @@ abstract class DeviceScanner extends ChangeNotifier {
 
   Future<void> turnOnBluetooth();
 
+  /// true khi may la Android 6-11 va cong tac Location dang tat: quet BLE se khong thay gi
+  Future<bool> locationOff();
+
+  Future<void> openLocationSettings();
+
   /// Duong truyen GATT toi mot thiet bi (chua ket noi)
   GattLink link(String id, String name);
 }
 
+/// Xin quyen Bluetooth (Android 12+: Nearby devices; Android 11 tro xuong: vi tri). false = bi tu choi.
+Future<bool> requestBlePermissions() async {
+  try {
+    await UniversalBle.requestPermissions();
+    return true;
+  } catch (e) {
+    logVph('Thieu quyen Bluetooth: $e');
+    return false;
+  }
+}
+
 /// Bo quet that, dung universal_ble
 class UbScanner extends DeviceScanner {
+  static const MethodChannel _sys = MethodChannel('vn.phan.vphub/sys');
+
   final Map<String, ScanHit> _hits = {};
   StreamSubscription? _scanSub, _availSub;
   Timer? _timer;
@@ -96,13 +115,26 @@ class UbScanner extends DeviceScanner {
   }
 
   @override
-  Future<bool> ensurePermissions() async {
+  Future<bool> ensurePermissions() => requestBlePermissions();
+
+  @override
+  Future<bool> locationOff() async {
     try {
-      await UniversalBle.requestPermissions();
-      return true;
-    } catch (e) {
-      logVph('Thieu quyen Bluetooth: $e');
+      final sdk = await _sys.invokeMethod<int>('sdkInt') ?? 99;
+      // Android 12+ khai neverForLocation nen khong can Location
+      if (sdk >= 31) return false;
+      return !(await _sys.invokeMethod<bool>('locationEnabled') ?? true);
+    } catch (_) {
       return false;
+    }
+  }
+
+  @override
+  Future<void> openLocationSettings() async {
+    try {
+      await _sys.invokeMethod<void>('openLocationSettings');
+    } catch (e) {
+      logVph('Mo cai dat vi tri loi: $e');
     }
   }
 

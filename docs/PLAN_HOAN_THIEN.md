@@ -150,13 +150,13 @@ Màn `SettingsScreen`:
 
 ## H5. Mở app và quét
 
-- [ ] **Bỏ nhảy thẳng vào thiết bị cũ.** Khi mở app: quét 4 s. Thấy thiết bị đã nhớ gần nhất (theo `lastMs`) trong kết quả → tự kết nối. Không thấy → ở lại màn Quét, quét tiếp đến hết 10 s.
-- [ ] **Lần đầu mở app (onboarding 1 màn):** logo, 1 câu giới thiệu, giải thích vì sao cần quyền Bluetooth, nút `Allow Bluetooth access` → mới gọi hộp xin quyền của Android. Lưu khóa `onboarded`.
-- [ ] Quyền bị từ chối vĩnh viễn → thẻ hướng dẫn + `Open settings` (đã có, sửa chữ theo H3).
-- [ ] Android 6–11: quét mà công tắc Location đang tắt → thẻ `Turn on Location to find Bluetooth devices` + nút mở cài đặt vị trí.
-- [ ] Kéo xuống để quét lại (`RefreshIndicator`).
-- [ ] Thẻ thiết bị đã nhớ: nhấn giữ → menu `Rename` (chỉ đổi tên hiển thị trong app) / `Remove`.
-- [ ] Sửa `_busy` trong `_open()` bằng `try/finally`.
+- [x] **Bỏ nhảy thẳng vào thiết bị cũ.** Khi mở app: quét 4 s. Thấy thiết bị đã nhớ gần nhất (theo `lastMs`) trong kết quả → tự kết nối. Không thấy → ở lại màn Quét, quét tiếp đến hết 10 s.
+- [x] **Lần đầu mở app (onboarding 1 màn):** logo, 1 câu giới thiệu, giải thích vì sao cần quyền Bluetooth, nút `Allow Bluetooth access` → mới gọi hộp xin quyền của Android. Lưu khóa `onboarded`.
+- [x] Quyền bị từ chối vĩnh viễn → thẻ hướng dẫn + `Open settings` (đã có, sửa chữ theo H3).
+- [x] Android 6–11: quét mà công tắc Location đang tắt → thẻ `Turn on Location to find Bluetooth devices` + nút mở cài đặt vị trí.
+- [x] Kéo xuống để quét lại (`RefreshIndicator`).
+- [x] Thẻ thiết bị đã nhớ: nhấn giữ → menu `Rename` (chỉ đổi tên hiển thị trong app) / `Remove`.
+- [x] Sửa `_busy` trong `_open()` bằng `try/finally`.
 
 ---
 

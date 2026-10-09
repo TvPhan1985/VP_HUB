@@ -4,6 +4,7 @@ import 'core/app_settings.dart';
 import 'core/schema_cache.dart';
 import 'core/consts.dart';
 import 'l10n/l10n.dart';
+import 'ui/screens/onboarding_screen.dart';
 import 'ui/screens/scan_screen.dart';
 import 'ui/theme.dart';
 
@@ -42,7 +43,8 @@ class _VpHubAppState extends State<VpHubApp> {
             theme: vpHubTheme(Brightness.light),
             darkTheme: vpHubTheme(Brightness.dark),
             themeMode: _settings.mode,
-            home: ScanScreen(store: widget.store),
+            // Lan dau mo app: gioi thieu va giai thich quyen Bluetooth truoc khi Android hoi quyen
+            home: _settings.onboarded ? ScanScreen(store: widget.store) : const OnboardingScreen(),
           ),
         ),
       );
