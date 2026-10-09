@@ -130,6 +130,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
   /// Dang mo mot man cua menu he thong thanh trang rieng
   bool _inMenu = false;
   StreamSubscription<SessionMessage>? _msgSub;
+  Timer? _ageTimer;
 
   /// Dang o che do Technician (hien ca man / truong adv)
   bool _tech = false;
@@ -142,6 +143,11 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
   void initState() {
     super.initState();
     _msgSub = s.messages.listen(_onMessage);
+    // Moi giay ve lai dong trang thai ("updated 7 s ago", "No new data for 20 s")
+    _ageTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final age = s.dataAge;
+      if (mounted && s.ready && age != null && age > DeviceSession.ageShownAfter) setState(() {});
+    });
     s.addListener(_applyWake);
   }
 
@@ -158,6 +164,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
     s.removeListener(_applyWake);
     if (_awake) _setWake(false);
     _msgSub?.cancel();
+    _ageTimer?.cancel();
     _tabs?.dispose();
     super.dispose();
   }
@@ -281,11 +288,21 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
 
   /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi (mau tren nen thanh dam)
   (String, Color) _link() => switch (s.status) {
-        LinkStatus.ready => (context.l.connected, VpBars.of(context).ok),
+        LinkStatus.ready => _fresh(),
         LinkStatus.connecting || LinkStatus.loading => (context.l.connecting, Vp.barCaution),
         LinkStatus.reconnecting => (context.l.reconnecting, Vp.barCaution),
         _ => (context.l.disconnected, Vp.barStop),
       };
+
+  /// Dang ket noi: kem tuoi cua so lieu. Qua 5 s: "updated N s ago"; qua 15 s: chu vang "No new data"
+  (String, Color) _fresh() {
+    final age = s.dataAge;
+    if (age != null && age > DeviceSession.staleAfter) return (context.l.noNewData(age.inSeconds), Vp.barCaution);
+    if (age != null && age > DeviceSession.ageShownAfter) {
+      return (context.l.connectedUpdated(age.inSeconds), VpBars.of(context).ok);
+    }
+    return (context.l.connected, VpBars.of(context).ok);
+  }
 
   /// Ngat ket noi: lam ngay; con thay doi chua luu thi hoi lai truoc
   Future<void> _disconnect() async {
@@ -467,7 +484,8 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
         Expanded(
           // Mat ket noi: giu gia tri cu, lam mo va khong cho bam
           child: Opacity(
-            opacity: lost ? 0.5 : 1,
+            // So lieu cu (khong co goi moi qua 15 s): lam mo nhe nhung van bam duoc
+            opacity: lost ? 0.5 : (s.stale ? 0.6 : 1),
             child: IgnorePointer(
               ignoring: lost,
               child: Column(
@@ -623,7 +641,7 @@ class _MenuScreenPage extends StatelessWidget {
                     ),
                   Expanded(
                     child: Opacity(
-                      opacity: lost ? 0.5 : 1,
+                      opacity: lost ? 0.5 : (s.stale ? 0.6 : 1),
                       child: IgnorePointer(ignoring: lost, child: ScreenView(session: s, index: index)),
                     ),
                   ),

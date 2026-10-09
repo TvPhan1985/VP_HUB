@@ -23,6 +23,17 @@ class TrendPoint {
 /// Loai thong bao thanh cong; UI doi sang chu theo ngon ngu dang chon
 enum MsgKind { saved, interfaceReloaded, commandSent, turnedOn, turnedOff, changedTo }
 
+/// Kho lich su bieu do theo thiet bi, song suot luc app con chay: thoat man Thiet bi roi vao lai
+/// (hoac ket noi lai) van con duong cu. Moi truong giu toi da 1 gio (DeviceSession.trendWindow).
+class TrendStore {
+  static final TrendStore instance = TrendStore();
+  final Map<String, Map<String, List<TrendPoint>>> _byDevice = {};
+
+  Map<String, List<TrendPoint>> of(String deviceId) => _byDevice.putIfAbsent(deviceId, () => {});
+
+  void clear() => _byDevice.clear();
+}
+
 /// Thong bao mot lan cho nguoi dung (SnackBar): thanh cong ([kind]) hoac loi ([error])
 class SessionMessage {
   final MsgKind? kind;
@@ -46,6 +57,12 @@ class SessionMessage {
 class DeviceSession extends ChangeNotifier {
   static const Duration trendWindow = Duration(hours: 1);
 
+  /// Qua khoang nay khong co VALUES moi: hien "updated N s ago"
+  static const Duration ageShownAfter = Duration(seconds: 5);
+
+  /// Qua khoang nay khong co VALUES moi: coi so lieu la cu (chu vang, so mo di)
+  static const Duration staleAfter = Duration(seconds: 15);
+
   final TransportConnector connector;
   final List<Duration> reconnectDelays;
 
@@ -67,8 +84,13 @@ class DeviceSession extends ChangeNotifier {
   bool hasEverConnected = false;
   DeviceTransport? transport;
 
-  /// Lich su cac truong co goi y trend (RAM, toi da 1 gio)
-  final Map<String, List<TrendPoint>> trends = {};
+  /// Lich su cac truong co goi y trend (RAM, toi da 1 gio). Thiet bi that: lay tu TrendStore
+  /// theo deviceId nen khong mat khi thoat man roi vao lai. Thiet bi mau: rieng cua phien.
+  late final Map<String, List<TrendPoint>> trends;
+
+  /// Thoi diem nhan goi VALUES gan nhat
+  DateTime? lastValuesAt;
+  final DateTime Function() _clock;
 
   /// Cac truong dang cho RESULT
   final Set<String> busy = {};
@@ -89,13 +111,27 @@ class DeviceSession extends ChangeNotifier {
     this.title = '',
     this.deviceId,
     this.rssiReader,
+    DateTime Function()? clock,
+    TrendStore? trendStore,
     this.reconnectDelays = const [
       Duration(seconds: 1),
       Duration(seconds: 2),
       Duration(seconds: 5),
       Duration(seconds: 10),
     ],
-  });
+  }) : _clock = clock ?? DateTime.now {
+    final id = deviceId;
+    trends = id == null ? {} : (trendStore ?? TrendStore.instance).of(id);
+  }
+
+  /// Da bao lau khong co VALUES moi; null khi chua nhan goi nao
+  Duration? get dataAge {
+    final t = lastValuesAt;
+    return t == null ? null : _clock().difference(t);
+  }
+
+  /// Dang ket noi nhung so lieu da cu (qua staleAfter khong co goi moi)
+  bool get stale => ready && (dataAge ?? Duration.zero) > staleAfter;
 
   Stream<SessionMessage> get messages => _messages.stream;
   bool get ready => status == LinkStatus.ready;
@@ -236,7 +272,8 @@ class DeviceSession extends ChangeNotifier {
 
   void _onValues(Map<String, dynamic> m) {
     values = {...values, ...m};
-    final now = DateTime.now();
+    final now = _clock();
+    lastValuesAt = now;
     for (final e in m.entries) {
       final f = _fieldById[e.key];
       if (f == null || !f.hint('trend') || e.value is! num) continue;

@@ -183,10 +183,10 @@ Màn `SettingsScreen`:
 
 ## H7. Độ tin cậy số liệu
 
-- [ ] `DeviceSession` lưu thời điểm nhận VALUES cuối (`lastValuesAt`).
-- [ ] Dưới tên thiết bị (dòng trạng thái): `Connected · updated 3 s ago` khi > 5 s; > 15 s → chữ vàng `No new data for 20 s`; số trên các thẻ mờ đi (opacity 0.6). Ngưỡng: 15 s mặc định.
-- [ ] Biểu đồ: bật chạm để xem giá trị + giờ (`LineTouchData`), định dạng theo `dp`, đơn vị.
-- [ ] Lịch sử biểu đồ giữ theo **thiết bị** trong suốt lúc app còn chạy (lưu ở một kho nhớ theo `deviceId`, không mất khi thoát màn rồi vào lại). Giới hạn 1 giờ như cũ.
+- [x] `DeviceSession` lưu thời điểm nhận VALUES cuối (`lastValuesAt`).
+- [x] Dưới tên thiết bị (dòng trạng thái): `Connected · updated 3 s ago` khi > 5 s; > 15 s → chữ vàng `No new data for 20 s`; số trên các thẻ mờ đi (opacity 0.6). Ngưỡng: 15 s mặc định.
+- [x] Biểu đồ: bật chạm để xem giá trị + giờ (`LineTouchData`), định dạng theo `dp`, đơn vị.
+- [x] Lịch sử biểu đồ giữ theo **thiết bị** trong suốt lúc app còn chạy (lưu ở một kho nhớ theo `deviceId`, không mất khi thoát màn rồi vào lại). Giới hạn 1 giờ như cũ.
 
 ---
 

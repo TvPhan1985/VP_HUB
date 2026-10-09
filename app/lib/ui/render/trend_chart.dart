@@ -6,7 +6,16 @@ import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
 import '../../l10n/l10n.dart';
 
-String _hm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+String _two(int v) => v.toString().padLeft(2, '0');
+String _hm(DateTime t) => '${_two(t.hour)}:${_two(t.minute)}';
+String _hms(DateTime t) => '${_hm(t)}:${_two(t.second)}';
+
+/// Chu trong o chu thich khi cham bieu do: "25.4 °C" va gio "12:05:33"
+String trendTooltip(VphField field, double value, DateTime at) {
+  final v = fmtNum(value, dp: field.decimals ?? 1);
+  final u = field.unit;
+  return '${u == null ? v : '$v $u'}\n${_hms(at)}';
+}
 
 /// Bieu do duong cua mot truong co goi y trend (lich su RAM, toi da 1 gio)
 class TrendChart extends StatelessWidget {
@@ -48,7 +57,22 @@ class TrendChart extends StatelessWidget {
             maxX: maxX,
             minY: lo - pad,
             maxY: hi + pad,
-            lineTouchData: const LineTouchData(enabled: false),
+            // Cham vao bieu do de xem gia tri (theo dp, kem don vi) va gio cua diem do
+            lineTouchData: LineTouchData(
+              enabled: true,
+              touchTooltipData: LineTouchTooltipData(
+                getTooltipColor: (_) => cs.inverseSurface,
+                fitInsideHorizontally: true,
+                fitInsideVertically: true,
+                getTooltipItems: (touched) => [
+                  for (final t in touched)
+                    LineTooltipItem(
+                      trendTooltip(field, t.y, t0.add(Duration(milliseconds: (t.x * 1000).round()))),
+                      TextStyle(color: cs.onInverseSurface, fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                ],
+              ),
+            ),
             gridData: FlGridData(
               drawVerticalLine: false,
               getDrawingHorizontalLine: (_) => FlLine(color: cs.outlineVariant, strokeWidth: 0.5),
