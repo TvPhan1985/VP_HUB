@@ -30,6 +30,12 @@ class AboutScreen extends StatelessWidget {
           Text(S.aboutSupported, style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(S.aboutSupportedList),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.description_outlined),
+            label: Text(S.licenses),
+            onPressed: () => showLicensePage(context: context, applicationName: S.appName),
+          ),
         ],
       ),
     );

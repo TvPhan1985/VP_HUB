@@ -11,7 +11,7 @@ Một app Android duy nhất để **quét, đọc, điều khiển** mọi thi�
 | Mục | Chọn |
 |---|---|
 | Framework | Flutter stable (máy đã có 3.47.5 ở `D:\flutter`) |
-| BLE | `flutter_blue_plus` 2.x, `connect(license: License.nonprofit)` (dùng cá nhân) |
+| BLE | `universal_ble` 2.3.0 (BSD-3-Clause), xem §11.49 và `docs/LICENSES.md` |
 | Biểu đồ | `fl_chart` |
 | Lưu cục bộ | `shared_preferences` (thiết bị đã biết, cache schema) |
 | Quyền | `permission_handler` |
@@ -203,3 +203,11 @@ Các mục dưới đây thay cho mô tả cũ ở §3, §4 và mục 25, 37 khi
 46. **Nút OFF của gợi ý `btns`** cùng kiểu và cùng màu với nút ON (nút đặc màu nhấn); nút nào không bấm được thì xám.
 47. **Hai bộ giao diện theo lĩnh vực** (1.3, người dùng yêu cầu 2026-10-08; PROTOCOL §4 khóa `dom`): thiết bị khai `dom:"agri"` → màn Thiết bị (và các trang con mở từ nó) dùng bộ **nông nghiệp** theo mẫu Smart Farm của quy chuẩn: thanh đầu `#14532D`, thanh tab `#166534`, tab đang chọn và màu nhấn xanh lá (`#15803D` sáng / `#22C55E` tối). Không có `dom` hoặc `dom:"ind"` → bộ **công nghiệp** (mẫu Factory SCADA) như mục 38. Màn Quét và các màn chung của app luôn dùng bộ công nghiệp. UI chỉ đọc `info.domain`, không xét `model`. Adapter relay C3 (`c3relay_v1`) khai `agri` vì phần cứng này dùng cho nông nghiệp; lò nung giữ `ind`; thiết bị mẫu Demo Relay khai `agri`. Màu cảnh báo (vàng) và dừng khẩn (đỏ) giống nhau ở cả hai bộ.
 48. **Bộ quy chuẩn cho dự án mới** (2026-10-08): `docs/QUY_TAC_THIET_BI_MOI.md` viết lại thành quy chuẩn đầy đủ (7 bước, bảng "muốn hiện gì thì khai gì", lỗi hay gặp, bảng nghiệm thu). Hai file mẫu `docs/mau/mau_nong_nghiep.json` và `docs/mau/mau_cong_nghiep.json` mở được bằng Demo Devices → Open JSON File; test kiểm tra hai file vẽ đủ mọi màn và VALUES mỗi màn ≤ 240 byte. `tools/make_kit.py` đóng gói quy chuẩn + PROTOCOL + mẫu + `vph_ble` + `vph_demo` + APK thành `release/VPH_KIT_<bản>.zip`. Firmware mẫu `vph_demo` 1.2.0: nhãn tiếng Anh, khai `.domain`.
+
+### Bản 1.4 "Hoàn thiện" (PLAN_HOAN_THIEN, 2026-10-09)
+
+Các mục dưới đây thay cho mô tả cũ ở §1, §3, §4, §5 và mục 13, 34, 38, 39, 45 khi có khác nhau.
+
+49. **Thư viện BLE `universal_ble` 2.3.0** (BSD-3-Clause, Navideck Labs OÜ; đã đọc file LICENSE trong gói và nhãn license trên pub.dev) thay `flutter_blue_plus` 2.x (license riêng, công ty có lợi nhuận phải mua). Lớp `UbGattLink` (`core/transport/ub_gatt_link.dart`) giữ nguyên interface `GattLink`: kết nối timeout 10 s, `requestMtu(512)` trên Android, gắn nơi nhận trước khi bật notify, ghi có phản hồi, thử lại khi "busy". Việc quét gom vào `DeviceScanner` (`core/transport/ble_scanner.dart`; bộ thật `UbScanner`) để màn Quét test được bằng bộ quét giả; thư viện không có timeout quét nên app tự dừng bằng `Timer`. Quyền: gọi `UniversalBle.requestPermissions()` (Android 12+: Nearby devices; Android 11 trở xuống: vị trí), `permission_handler` chỉ còn dùng để mở cài đặt.
+    - **Lệnh dài hơn MTU−3**: đã đọc mã nguồn plugin (`UniversalBlePlugin.kt`, `writeValue`): plugin gọi thẳng `BluetoothGatt.writeCharacteristic` với `WRITE_TYPE_DEFAULT`, **không tự chặn** theo độ dài; với kiểu ghi này Android tự chuyển sang long write (prepared write) khi dữ liệu dài hơn MTU−3, tối đa 512 byte. Vì vậy `VphTransport.maxWrite` giữ **500**. Chưa thử được trên phần cứng — có trong `TEST_ON_HW.md` mục "Cần thử cho 1.4".
+    - Rà license mọi gói: `docs/LICENSES.md` (sinh bằng `tools/gen_licenses.py`). Hai gói kéo theo `bluez`, `dbus` là MPL-2.0, chỉ dùng cho Linux, đã có từ bản 1.3; ghi đỏ trong file đó.

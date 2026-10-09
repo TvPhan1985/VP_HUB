@@ -1,15 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../core/device_session.dart';
 import '../../core/known_devices.dart';
 import '../../core/schema_cache.dart';
-import '../../core/transport/fbp_gatt_link.dart';
+import '../../core/transport/ble_scanner.dart';
 import '../../core/transport/transport_registry.dart';
-import '../../core/transport/uuids.dart';
+import '../../core/transport/ub_gatt_link.dart' show logVph;
 import '../../l10n/strings.dart';
 import '../app_drawer.dart';
 import '../device_icon.dart';
@@ -21,7 +20,10 @@ import 'device_screen.dart';
 /// Man Quet (SPEC §3): thiet bi da dung + ket qua quet loc theo 3 UUID dich vu
 class ScanScreen extends StatefulWidget {
   final KvStore store;
-  const ScanScreen({super.key, required this.store});
+
+  /// Bo quet; null = bo quet BLE that (test truyen bo quet gia)
+  final DeviceScanner? scanner;
+  const ScanScreen({super.key, required this.store, this.scanner});
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -30,48 +32,30 @@ class ScanScreen extends StatefulWidget {
 class _ScanScreenState extends State<ScanScreen> {
   late final KnownDevices _known = KnownDevices(widget.store);
   late final SchemaCache _cache = SchemaCache(widget.store);
-  List<ScanResult> _results = [];
-  bool _scanning = false;
-  bool _adapterOn = true;
+  late final DeviceScanner _scanner = widget.scanner ?? UbScanner();
   bool _permDenied = false;
   bool _busy = false;
   String? _message;
-  StreamSubscription? _adapterSub, _scanSub, _scanningSub;
+
+  bool get _scanning => _scanner.scanning;
+  bool get _adapterOn => _scanner.adapterOn;
 
   @override
   void initState() {
     super.initState();
-    _adapterSub = FlutterBluePlus.adapterState.listen((s) {
-      if (!mounted) return;
-      setState(() => _adapterOn = s != BluetoothAdapterState.off && s != BluetoothAdapterState.unavailable);
-    });
-    _scanSub = FlutterBluePlus.scanResults.listen((list) {
-      if (!mounted) return;
-      setState(() {
-        _results = list.where((r) => _kindOf(r) != null).toList()..sort((a, b) => b.rssi.compareTo(a.rssi));
-      });
-    });
-    _scanningSub = FlutterBluePlus.isScanning.listen((v) {
-      if (mounted) setState(() => _scanning = v);
-    });
+    _scanner.addListener(_onScanner);
     WidgetsBinding.instance.addPostFrameCallback((_) => _startup());
   }
 
   @override
   void dispose() {
-    _adapterSub?.cancel();
-    _scanSub?.cancel();
-    _scanningSub?.cancel();
+    _scanner.removeListener(_onScanner);
+    if (widget.scanner == null) _scanner.dispose();
     super.dispose();
   }
 
-  static TransportKind? _kindOf(ScanResult r) =>
-      kindForServices(r.advertisementData.serviceUuids.map((g) => g.str128));
-
-  static String _nameOf(ScanResult r) {
-    final n = r.advertisementData.advName;
-    if (n.isNotEmpty) return n;
-    return r.device.platformName.isNotEmpty ? r.device.platformName : r.device.remoteId.str;
+  void _onScanner() {
+    if (mounted) setState(() {});
   }
 
   Future<void> _startup() async {
@@ -83,10 +67,8 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  /// Android 12+: quyen "Thiet bi o gan". Android cu hon: thu vien BLE tu xin quyen vi tri khi quet.
   Future<bool> _ensurePermissions() async {
-    final st = await [Permission.bluetoothScan, Permission.bluetoothConnect].request();
-    final ok = st.values.every((s) => s.isGranted || s.isLimited);
+    final ok = await _scanner.ensurePermissions();
     if (mounted) setState(() => _permDenied = !ok);
     return ok;
   }
@@ -94,44 +76,34 @@ class _ScanScreenState extends State<ScanScreen> {
   Future<void> _scan() async {
     if (_scanning || _busy) return;
     if (!await _ensurePermissions()) return;
-    setState(() {
-      _results = [];
-      _message = null;
-    });
+    setState(() => _message = null);
     try {
-      await FlutterBluePlus.startScan(
-        withServices: [for (final u in kScanServices) Guid(u)],
-        timeout: const Duration(seconds: 10),
-      );
+      await _scanner.start();
     } catch (e) {
       logVph('Loi quet: $e');
       if (mounted) setState(() => _message = S.scanFailed(e));
     }
   }
 
-  Future<void> _stopScan() async {
-    try {
-      await FlutterBluePlus.stopScan();
-    } catch (_) {}
-  }
+  Future<void> _stopScan() => _scanner.stop();
 
   Future<void> _openKnown(KnownDevice d) =>
-      _open(BluetoothDevice.fromId(d.id), d.name, legacyHint: d.legacy, iconHint: d.icon);
+      _open(d.id, d.name, legacyHint: d.legacy);
 
-  Future<void> _open(BluetoothDevice dev, String name, {bool legacyHint = false, String iconHint = 'generic'}) async {
+  Future<void> _open(String id, String name, {bool legacyHint = false}) async {
     if (_busy) return;
     _busy = true;
     await _stopScan();
     if (!mounted) return;
     final session = DeviceSession(
-      connector: () => connectTransport(FbpGattLink(dev, name: name), _cache),
+      connector: () => connectTransport(_scanner.link(id, name), _cache),
       title: name,
     );
     Future<void> remember() async {
       final i = session.info;
       if (i == null) return;
       await _known.remember(KnownDevice(
-        id: dev.remoteId.str,
+        id: id,
         name: session.displayName,
         model: i.model,
         icon: i.icon,
@@ -331,9 +303,10 @@ class _ScanScreenState extends State<ScanScreen> {
   Widget build(BuildContext context) {
     final known = _known.list();
     // Thiet bi da dung ma dang thay quanh day: danh dau tai cho, khong lap lai o muc "gan day"
-    final seen = {for (final r in _results) r.device.remoteId.str: r};
+    final hits = _scanner.hits;
+    final seen = {for (final r in hits) r.id: r};
     final knownIds = {for (final d in known) d.id};
-    final fresh = [for (final r in _results) if (!knownIds.contains(r.device.remoteId.str)) r];
+    final fresh = [for (final r in hits) if (!knownIds.contains(r.id)) r];
     return Scaffold(
       drawer: _drawer(context),
       appBar: AppBar(
@@ -356,13 +329,7 @@ class _ScanScreenState extends State<ScanScreen> {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           if (!_adapterOn)
-            _notice(Icons.bluetooth_disabled, S.btOff, S.btTurnOn, () async {
-              try {
-                await FlutterBluePlus.turnOn();
-              } catch (e) {
-                logVph('Bat Bluetooth loi: $e');
-              }
-            }),
+            _notice(Icons.bluetooth_disabled, S.btOff, S.btTurnOn, _scanner.turnOnBluetooth),
           if (_permDenied) _notice(Icons.lock_outline, S.permMissing, S.openSettings, openAppSettings),
           if (_message != null)
             Padding(
@@ -402,13 +369,13 @@ class _ScanScreenState extends State<ScanScreen> {
           for (final r in fresh)
             _deviceCard(
               context,
-              icon: deviceIcon(iconForKind(_kindOf(r))),
-              name: _nameOf(r),
-              detail: r.device.remoteId.str,
-              legacy: _kindOf(r) != TransportKind.vph,
+              icon: deviceIcon(iconForKind(r.kind)),
+              name: r.name,
+              detail: r.id,
+              legacy: r.kind != TransportKind.vph,
               rssi: r.rssi,
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => _open(r.device, _nameOf(r), legacyHint: _kindOf(r) != TransportKind.vph),
+              onTap: () => _open(r.id, r.name, legacyHint: r.kind != TransportKind.vph),
             ),
         ],
       ),

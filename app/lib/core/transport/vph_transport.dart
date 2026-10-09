@@ -15,7 +15,7 @@ class VphTransport implements DeviceTransport {
   static const int supportedPv = 1;
   static const int pageSize = 480;
   static const int maxPages = 8;
-  /// PROTOCOL §8 (v1.1). Goi dai hon MTU-3 thi GattLink gui bang long write.
+  /// PROTOCOL §8 (v1.1). Goi dai hon MTU-3: Android tu gui bang long write (SPEC §11.49).
   static const int maxWrite = 500;
 
   final GattLink link;

@@ -206,6 +206,7 @@ class S {
   static String get aboutSupportedList => tr(
       '• Any device that speaks the VPH v1 protocol\n• ESP32-C3 relay controller (legacy firmware)\n• MAX31856 kiln controller (legacy firmware)',
       '• Mọi thiết bị nói giao thức VPH v1\n• Bộ relay ESP32-C3 (firmware cũ)\n• Bộ điều khiển lò nung MAX31856 (firmware cũ)');
+  static String get licenses => tr('Open-source licenses', 'Giấy phép mã nguồn mở');
   static String version(String v) => tr('Version $v', 'Phiên bản $v');
 
   static String _short(Object e) {
