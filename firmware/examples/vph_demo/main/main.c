@@ -1,4 +1,4 @@
-// vph_demo - firmware mau cho giao thuc VPH v1.1 (ESP32-C3 SuperMini, WS2812 o GPIO8).
+// vph_demo - firmware mau cho giao thuc VPH v1.3 (ESP32-C3 SuperMini, WS2812 o GPIO8).
 // Day la MAU CHUAN de chep khi lam du an moi: khai bao man hinh, dien VALUES, xu ly ghi.
 // Xem docs/QUY_TAC_THIET_BI_MOI.md va firmware/components/vph_ble/README.md.
 #include <math.h>
@@ -207,6 +207,7 @@ static cJSON *build_overview(void)
     vph_confirm(rb, "Restart the device?");
     vph_icon(rb, "reset");
     vph_group(rb, "Device");
+    vph_advanced(rb);       // v1.3: chi nguoi ky thuat moi thay nut khoi dong lai
     return s;
 }
 
@@ -432,7 +433,7 @@ void app_main(void)
     static const char *const hdr[] = {"t", "led", "al", NULL};
     const vph_info_t info = {
         .model = "vphdemo",
-        .fw = "1.2.0",
+        .fw = "1.3.0",
         .hw = "esp32c3",
         .icon = "light",
         .domain = "ind",            // linh vuc: "ind" cong nghiep | "agri" nong nghiep (app chon bo giao dien)

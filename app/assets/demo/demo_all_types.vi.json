@@ -16,7 +16,7 @@
       {"id": "note", "l": "Ghi chú dài", "t": "text"},
       {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20},
       {"id": "mode", "l": "Chế độ", "t": "enum", "opt": [["off", "Tắt"], ["manual", "Tay"], ["auto", "Tự động"]]},
-      {"id": "baud", "l": "Tốc độ", "t": "enum", "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [115200, "115200"]]},
+      {"id": "baud", "l": "Tốc độ", "t": "enum", "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [115200, "115200"]], "adv": 1},
       {"id": "fan", "l": "Quạt (chỉ khi chế độ Tay)", "t": "bool", "en": "mode==manual"},
       {"id": "boost", "l": "Tăng tốc (ẩn khi Tắt)", "t": "act", "if": "mode!=off&&run==true"},
       {"id": "start", "l": "Giờ bắt đầu", "t": "time"},
@@ -28,9 +28,9 @@
       {"id": "odd", "l": "Gợi ý lạ", "t": "num", "u": "V", "ro": 1, "w": "hologram"}
     ]},
     {"id": "groups", "l": "Nhóm & lặp", "save": "batch", "f": [
-      {"id": "kp", "l": "Kp", "t": "num", "min": 0, "max": 100, "st": 0.1, "g": "PID"},
-      {"id": "ki", "l": "Ki", "t": "num", "min": 0, "max": 10, "st": 0.01, "g": "PID"},
-      {"id": "kd", "l": "Kd", "t": "num", "min": 0, "max": 500, "st": 1, "g": "PID"},
+      {"id": "kp", "l": "Kp", "t": "num", "min": 0, "max": 100, "st": 0.1, "g": "PID", "adv": 1},
+      {"id": "ki", "l": "Ki", "t": "num", "min": 0, "max": 10, "st": 0.01, "g": "PID", "adv": 1},
+      {"id": "kd", "l": "Kd", "t": "num", "min": 0, "max": 500, "st": 1, "g": "PID", "adv": 1},
       {"id": "lo", "l": "Ngưỡng thấp", "t": "num", "u": "°C", "min": -40, "max": 120, "st": 0.5, "g": "Báo động"},
       {"id": "hi", "l": "Ngưỡng cao", "t": "num", "u": "°C", "min": -40, "max": 120, "st": 0.5, "g": "Báo động"},
       {"id": "steps", "l": "Số bước", "t": "num", "min": 1, "max": 4, "st": 1}

@@ -22,14 +22,19 @@
       {"id": "p_hi", "l": "High pressure", "t": "num", "u": "bar", "min": 0, "max": 10, "st": 0.1, "dp": 1, "g": "Alarm thresholds"},
       {"id": "t_hi", "l": "High temperature", "t": "num", "u": "°C", "min": 0, "max": 200, "st": 1, "dp": 0, "g": "Alarm thresholds"}
     ]},
+    {"id": "cal", "l": "Calibration", "ic": "gauge", "nav": "menu", "adv": 1, "save": "batch", "f": [
+      {"id": "p_off", "l": "Pressure offset", "t": "num", "u": "bar", "min": -1, "max": 1, "st": 0.01, "dp": 2, "g": "Sensor calibration",
+       "d": "Added to the measured pressure."},
+      {"id": "t_off", "l": "Temperature offset", "t": "num", "u": "°C", "min": -10, "max": 10, "st": 0.1, "dp": 1, "g": "Sensor calibration"}
+    ]},
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "c": "Restart the device?"}
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart the device?"}
     ]}
   ],
   "values": {
     "press": 4.25, "temp": 88, "flow": 120, "run": true, "sp": 4.5, "fault": false, "why": "", "hours": 93600,
-    "p_lo": 2.0, "p_hi": 6.0, "t_hi": 120, "_name": "BOILER-3F0C", "fw": "1.0.0"
+    "p_lo": 2.0, "p_hi": 6.0, "t_hi": 120, "p_off": 0.0, "t_off": 0.0, "_name": "BOILER-3F0C", "fw": "1.0.0"
   }
 }

@@ -1,6 +1,6 @@
 # QUY CHUẨN DỰ ÁN THIẾT BỊ MỚI — để app VP Hub tự nhận và tự vẽ đúng giao diện
 
-Bản 1.3 (2026-10-08). Áp dụng cho **mọi** dự án ESP32 (ESP-IDF) có điều khiển / cài đặt qua điện thoại.
+Bản 1.4 (2026-10-09). Áp dụng cho **mọi** dự án ESP32 (ESP-IDF) có điều khiển / cài đặt qua điện thoại.
 Đọc file này **trước khi viết dòng code BLE đầu tiên**. Chi tiết từng byte nằm ở `PROTOCOL.md`; file này nói **phải làm gì và làm theo thứ tự nào**.
 
 Nguyên tắc: **không làm app mới, không sửa app**. Thiết bị tự khai mình là gì và có những màn hình nào; app VP Hub đọc lời khai đó rồi vẽ.
@@ -14,7 +14,7 @@ Nguyên tắc: **không làm app mới, không sửa app**. Thiết bị tự kh
 | 1 | Chọn `model`, lĩnh vực (`dom`), icon thiết bị (§2) | Đã ghi vào `CLAUDE.md` của dự án |
 | 2 | Vẽ nháp các màn hình trên giấy: màn nào dùng hằng ngày, màn nào là cài đặt (§3) | Có danh sách màn + trường |
 | 3 | Chép một file mẫu trong `docs/mau/` rồi sửa thành schema của mình (§4, §5) | File JSON mở được trong app |
-| 4 | **Xem trên điện thoại trước khi viết firmware**: VP Hub → [≡] → Demo Devices → Open JSON File (§8) | Giao diện đúng ý |
+| 4 | **Xem trên điện thoại trước khi viết firmware**: VP Hub → [≡] → Settings → bật Technician mode → Developer tools → Open JSON file (§8) | Giao diện đúng ý |
 | 5 | Viết firmware từ mẫu `firmware/examples/vph_demo`, dùng component `vph_ble` (§9) | Build được |
 | 6 | Kiểm tra kích thước và xử lý ghi (§6, §7) | Log không có cảnh báo vượt kích thước |
 | 7 | Nạp, kết nối bằng VP Hub, đi hết bảng nghiệm thu (§11) | Mọi dòng đạt |
@@ -62,6 +62,7 @@ App **không đoán** theo tên `model`. Khai sai thì giao diện sai màu; s�
 | Dùng hằng ngày (Overview, Schedule, Monitor…) | bình thường | **Tab** ở thanh trên, chữ in hoa |
 | Cài đặt ít đụng tới (Modbus, ngưỡng báo động, hiệu chuẩn…) | `vph_nav_menu(screen)` | Trong **menu [≡]**, mở thành trang riêng |
 | Thông tin / đổi tên / khởi động lại thiết bị | `vph_nav_menu(screen)` | Trong **menu [≡]** |
+| Cài đặt chỉ dành cho người kỹ thuật (Modbus, PID, hiệu chuẩn, bảo vệ) | `vph_nav_menu(screen)` + `vph_advanced(screen)` | Trong **menu [≡]**, **chỉ hiện khi app ở chế độ Technician** |
 
 Quy tắc:
 - Màn đầu tiên là màn tổng quan, `save:"live"`. Nên có 2–4 tab; nhiều hơn thì thanh tab phải cuộn.
@@ -69,6 +70,21 @@ Quy tắc:
 - `save:"live"`: bấm là gửi ngay (công tắc, setpoint). `save:"batch"`: sửa nhiều ô rồi bấm Save — dùng khi các ô ràng buộc nhau (ngưỡng bật < ngưỡng tắt, giờ bật / giờ tắt).
 - Tên màn viết kiểu thường (`Overview`); app tự đổi thành in hoa trên tab.
 - Tối đa 16 màn (`VPH_MAX_SCREENS`).
+- Không đặt tên màn là `Settings` (trùng mục Settings của app trong menu). Dùng tên nói rõ nội dung: `Alarm settings`, `Sensor setup`, `Calibration`.
+
+### Hai chế độ người dùng của app: Standard và Technician (v1.3)
+
+App mặc định ở chế độ **Standard** (người vận hành: công nhân, nông dân). Người kỹ thuật bật **Technician** trong Settings của app (có thể đặt PIN). Thiết bị tự khai phần nào là nâng cao bằng khóa `adv`:
+
+| Nội dung | Khai | Standard | Technician |
+|---|---|---|---|
+| Số đo, bật/tắt, chế độ, lịch, ngưỡng báo động, đổi tên | bình thường | Có | Có |
+| **Tham số cài đặt phần cứng, giao tiếp (Modbus, baud, địa chỉ), hiệu chuẩn, PID, bảo vệ, khởi động lại** | `vph_advanced(screen)` hoặc `vph_advanced(field)` | **Không** | Có |
+
+- Cả một màn là nâng cao → `vph_advanced(screen)`. Chỉ vài trường trong màn → `vph_advanced(field)` cho từng trường.
+- Trường `adv` bị ẩn vẫn nằm trong VALUES, vẫn dùng được trong `if` / `en`, làm `sub`, nằm trong `hdr`.
+- `adv` **không phải bảo mật**, chỉ để giao diện gọn. Firmware vẫn phải kiểm tra mọi lệnh ghi (§7).
+- App cũ (trước 1.4) bỏ qua khóa này và hiện hết.
 
 ---
 
@@ -103,6 +119,7 @@ Thứ tự trường trong schema **chính là** thứ tự trên màn hình. Ap
 | Ẩn / hiện theo điều kiện | bất kỳ | | `if` | `vph_show_if(f,"src!=schedule");` |
 | Khóa không cho sửa theo điều kiện | bất kỳ | | `en` + `d` giải thích | `vph_enable_if(f,"mode==manual"); vph_desc(f,"...");` |
 | Chú thích nhỏ dưới trường | bất kỳ | | `d` | `vph_desc(f,"...");` |
+| Chỉ hiện cho người kỹ thuật (chế độ Technician) | bất kỳ, hoặc cả màn | | `adv` | `vph_advanced(f);` |
 
 ### Chuông báo động trên thanh đầu
 
@@ -159,7 +176,7 @@ App tự đếm và hiện số trên chuông: mỗi bit đang bật của mọi
 
 1. Chép `docs/mau/mau_nong_nghiep.json` hoặc `docs/mau/mau_cong_nghiep.json`, sửa thành thiết bị của mình. File có 3 phần: `info`, `screens`, `values` (giá trị mẫu của mọi trường, kể cả id sinh từ `rep` như `s1_en`).
 2. Chép file vào điện thoại.
-3. VP Hub → [≡] → **Demo Devices** → **Open JSON File**.
+3. VP Hub → [≡] → **Settings** → bật **Technician mode** → **Developer tools** → **Open JSON file**.
 4. Sửa file cho tới khi giao diện đúng, rồi mới chuyển từng màn thành code `vph_screen(...)`.
 
 Thiết bị giả không kiểm tra hợp lệ — việc đó là của firmware thật.
@@ -236,6 +253,7 @@ static cJSON *build_overview(void)
 - [ ] Mọi màn có `ic`; màn cài đặt và màn thông tin thiết bị có `vph_nav_menu`.
 - [ ] Màn đầu có số đo chính dạng `tile` / `big`, tải chính dạng `hero`, báo động dạng `alarm`.
 - [ ] Trường báo động nằm trong `hdr`; chuông hiện đúng số.
+- [ ] Tham số phần cứng / giao tiếp / hiệu chuẩn / PID / bảo vệ đã đánh `adv`: mở app ở **Standard mode không thấy tham số kỹ thuật**, bật Technician thì thấy đủ.
 - [ ] Mọi nút nguy hiểm có `c`; mọi trường khóa bằng `en` có `d`.
 - [ ] Mọi chữ gửi lên là tiếng Anh.
 - [ ] Log khởi động không có cảnh báo kích thước; có unit test kích thước.
@@ -261,9 +279,10 @@ Chỉ khi cần **kiểu dữ liệu, gợi ý hiển thị, icon hoặc lĩnh v
 - Dùng component `vph_ble` (D:\2026\vp_hub\firmware\components\vph_ble), bắt đầu từ mẫu
   `vp_hub/firmware/examples/vph_demo`.
 - model = `<điền>`; lĩnh vực `.domain = "<agri hoặc ind>"`; tên quảng bá mặc định `<TÊN>-XXXX`.
-- Thiết kế schema bằng file JSON (mẫu `vp_hub/docs/mau/`), xem trên VP Hub (Demo Devices → Open JSON File)
+- Thiết kế schema bằng file JSON (mẫu `vp_hub/docs/mau/`), xem trên VP Hub (Settings → Technician mode → Developer tools → Open JSON file)
   trước khi viết firmware.
 - Mọi chữ gửi lên app (nhãn, nhóm, chú thích, câu hỏi, lỗi) viết tiếng Anh.
+- Tham số phần cứng, giao tiếp, hiệu chuẩn, PID, bảo vệ → đánh `vph_advanced(...)` (chỉ hiện ở chế độ Technician).
 - Schema mỗi màn ≤ 1920 byte, mỗi VALUES (kể cả hdr) ≤ 240 byte, có test kiểm tra.
 - Kiểm tra bằng app VP Hub trên điện thoại (cài `vp_hub/release/VPHub_*.apk`), không viết app mới.
 ```

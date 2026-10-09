@@ -286,7 +286,7 @@ class C3RelayTransport implements DeviceTransport {
       name: st['name'] is String ? st['name'] as String : (link.name.isNotEmpty ? link.name : 'C3-RELAY'),
       fw: st['fw'] is String ? st['fw'] as String : '?',
       hw: 'esp32c3',
-      n: 4,
+      n: 5,
       hdr: const ['t', 'h', 'out', 'mode', 'alarm'],
       caps: const ['time'],
       icon: 'relay',

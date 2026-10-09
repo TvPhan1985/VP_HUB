@@ -95,6 +95,7 @@ Viết UUID trong NimBLE: `BLE_UUID128_INIT` nhận byte **ngược** so với c
 | `f` | Mảng trường (§5.1) |
 | `rep` | Khối lặp (§5.3), tùy chọn |
 | `ic` | Icon của tab (§5.6), tùy chọn (v1.1) |
+| `adv` | `1` = màn **nâng cao** (v1.3): chỉ hiện khi app ở chế độ **Technician**; ở chế độ Standard app ẩn màn này khỏi thanh tab và menu. Dùng cho màn cài đặt phần cứng, giao tiếp, hiệu chuẩn, PID, bảo vệ. Đây chỉ là cách làm gọn giao diện, **không phải bảo mật** — firmware vẫn phải kiểm tra mọi lệnh ghi (§1 điều 3). App cũ bỏ qua khóa này (hiện hết) |
 | `nav` | Vị trí của màn trong app, tùy chọn (v1.1). Không có = một **tab**. `"menu"` = màn cài đặt / thông tin ít dùng: không làm tab, app đưa vào **menu hệ thống** (Navigation Drawer, nút [≡] góc trên bên trái; app 1.1 dùng menu ⋮), bấm thì mở thành trang riêng. Dữ liệu trên đường truyền không đổi (vẫn SELECT theo số thứ tự màn). Giá trị lạ → coi như tab |
 
 App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`, `fields`=`f`, `repeat`=`rep`.
@@ -123,6 +124,7 @@ App chấp nhận cả khóa dài để tương thích lò nung cũ: `title`=`l`
 | `g` | Tên nhóm: các trường cùng `g` liền nhau được gom vào một thẻ | |
 | `ic` | Icon của trường (thẻ số, thẻ trạng thái, nút), tên trong §5.6 (v1.1) | |
 | `d` | Dòng chú thích nhỏ dưới trường. Trường bị khóa do `en` sai thì chú thích hiện rõ hơn, để giải thích vì sao khóa (v1.1) | |
+| `adv` | `1` = trường **nâng cao** (v1.3): chỉ hiện ở chế độ Technician của app. Trường bị ẩn vẫn có trong VALUES và vẫn dùng được trong `if` / `en`, làm `sub`, nằm trong `hdr`. Trên màn `batch`, lệnh `set` chỉ chứa các trường người dùng đã sửa nên trường ẩn không bao giờ bị gửi | |
 | `sub` | Id một trường khác; giá trị của nó hiện làm dòng phụ của thẻ `hero` (vd thẻ Relay hiện "Chế độ: Tự động") (v1.1) | |
 
 ### 5.2 Kiểu dữ liệu
@@ -297,6 +299,7 @@ void   vph_unit / vph_dp / vph_readonly / vph_nullable / vph_hint / vph_confirm 
 void   vph_icon / vph_desc / vph_sub (cJSON *screen_or_field, const char *s);
 void   vph_bool_labels(cJSON *f, const char *off, const char *on);
 void   vph_nav_menu(cJSON *screen);   // màn cài đặt/thông tin: nằm trong menu hệ thống [≡] thay vì làm tab
+void   vph_advanced(cJSON *screen_or_field);  // v1.3: chỉ hiện ở chế độ Technician của app (adv:1)
 void   vph_options_ic(cJSON *f, const char *const *vals, const char *const *labels,
                       const char *const *icons, int n);
 void   vph_options(cJSON *f, const char *const *vals, const char *const *labels, int n);
@@ -377,3 +380,6 @@ Chuỗi này khoảng 1,3 KB (3 trang), vẫn dưới 1920 byte.
 - **v1.2 (2026-10-08)**, giữ `pv:1`, tương thích hai chiều.
   - §4: khóa `dom` của INFO (`"ind"` / `"agri"`). Lý do: quy chuẩn giao diện có hai bộ mẫu (Factory SCADA và Smart Farm); bộ relay C3 dùng cho nông nghiệp nên phải hiện theo mẫu nông nghiệp, lò nung theo mẫu công nghiệp. App không được đoán theo `model`, nên thiết bị tự khai lĩnh vực. Thiết bị cũ không có `dom` → công nghiệp như trước; app cũ bỏ qua khóa này.
   - §10: trường `domain` trong `vph_info_t`.
+- **v1.3 (2026-10-09)**, giữ `pv:1`, tương thích hai chiều.
+  - §5, §5.1: khóa `adv` cho màn hình và trường. Lý do: người vận hành (công nhân, nông dân) chỉ cần xem số đo, bật/tắt, lịch, báo động; các tham số Modbus, PID, hiệu chuẩn, bảo vệ làm họ rối và dễ sửa nhầm. App 1.4 có hai chế độ Standard / Technician; thiết bị tự khai phần nào là nâng cao, app không đoán theo `model`. App cũ bỏ qua khóa lạ nên vẫn hiện đủ như trước; thiết bị cũ không có `adv` thì hiện đủ ở cả hai chế độ.
+  - §10: hàm `vph_advanced` (`vph_ble` 1.2.0).

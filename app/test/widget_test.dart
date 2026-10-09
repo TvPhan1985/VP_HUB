@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vphub/core/app_settings.dart';
 import 'package:vphub/core/device_session.dart';
 import 'package:vphub/core/transport/demo_transport.dart';
 import 'package:vphub/l10n/strings.dart';
@@ -19,8 +20,13 @@ class _Rig {
   late DeviceSession session;
 }
 
+/// Cai dat cua app cho test. Mac dinh Technician de moi man / truong (ke ca adv) deu hien.
+AppSettings _settings({bool tech = true, String? pin}) => AppSettings(MemoryStore()
+  ..data['user_mode'] = tech ? 'technician' : 'standard'
+  ..data.addAll({'tech_pin': ?pin}));
+
 /// Mo man Thiet bi voi mot chuoi JSON demo, man hinh rat cao de moi truong deu duoc ve
-Future<_Rig> _openJson(WidgetTester tester, String json) async {
+Future<_Rig> _openJson(WidgetTester tester, String json, {AppSettings? settings}) async {
   tester.view.devicePixelRatio = 1.0;
   tester.view.physicalSize = const Size(900, 5000);
   addTearDown(tester.view.reset);
@@ -29,15 +35,19 @@ Future<_Rig> _openJson(WidgetTester tester, String json) async {
     connector: () async => rig.demo = DemoTransport.fromJson(json, tick: null, seed: 7),
   );
   await rig.session.connect();
-  await tester.pumpWidget(MaterialApp(
-    theme: vpHubTheme(Brightness.light),
-    home: DeviceScreen(session: rig.session),
+  await tester.pumpWidget(SettingsScope(
+    settings: settings ?? _settings(),
+    child: MaterialApp(
+      theme: vpHubTheme(Brightness.light),
+      home: DeviceScreen(session: rig.session),
+    ),
   ));
   await tester.pumpAndSettle();
   return rig;
 }
 
-Future<_Rig> _open(WidgetTester tester, String file) => _openJson(tester, _demo(file));
+Future<_Rig> _open(WidgetTester tester, String file, {AppSettings? settings}) =>
+    _openJson(tester, _demo(file), settings: settings);
 
 Future<void> _close(WidgetTester tester, _Rig rig) async {
   // Cho SnackBar tu dong (2-5 s) de khong con Timer treo
@@ -251,10 +261,10 @@ void main() {
     final s = rig.session;
     // Chi 2 man thuong lam tab
     expect(tester.widget<TabBar>(find.byType(TabBar)).tabs.length, 2);
-    expect(find.widgetWithText(Tab, 'ADVANCED'), findsNothing);
+    expect(find.widgetWithText(Tab, 'ALARM SETTINGS'), findsNothing);
     await _goto(tester, 'Schedule');
     expect(s.current, 1);
-    await _openFromMenu(tester, 'Advanced');
+    await _openFromMenu(tester, 'Alarm settings');
     expect(s.current, 2);
     expect(find.byType(TabBar), findsNothing);
     expect(find.text('Alarm thresholds'), findsOneWidget);
@@ -382,7 +392,7 @@ void main() {
     // Khoi thong tin: ten thiet bi + trang thai ket noi
     expect(inDrawer('DEMO-RELAY'), findsOneWidget);
     expect(inDrawer(S.linkOk), findsOneWidget);
-    for (final t in ['DEVICE', 'SUPPORT', S.menuDeviceList, 'Advanced', 'Device', S.menuInfo, S.menuReload, S.menuAbout, S.menuDisconnect]) {
+    for (final t in ['DEVICE', 'APP', S.menuDeviceList, 'Alarm settings', 'Sensor setup', 'Device', S.menuInfo, S.menuReload, S.settings, S.helpAbout, S.menuDisconnect]) {
       expect(inDrawer(t), findsOneWidget, reason: t);
     }
     // Cham vung mo ben phai de dong menu
@@ -405,17 +415,17 @@ void main() {
     await _close(tester, rig);
   });
 
-  testWidgets('menu Theme: doi sang/toi ap dung ngay va luu lai', (tester) async {
+  testWidgets('Settings > Theme: doi sang/toi ap dung ngay va luu lai', (tester) async {
     final store = MemoryStore();
-    final ctl = ThemeController(store);
+    final ctl = AppSettings(store);
     expect(ctl.mode, ThemeMode.system);
     final rig = _Rig();
     rig.session = DeviceSession(
       connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
     );
     await rig.session.connect();
-    await tester.pumpWidget(ThemeScope(
-      controller: ctl,
+    await tester.pumpWidget(SettingsScope(
+      settings: ctl,
       child: ListenableBuilder(
         listenable: ctl,
         builder: (context, _) => MaterialApp(
@@ -429,13 +439,17 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
+    await tester.tap(find.text(S.settings));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(S.menuTheme));
     await tester.pumpAndSettle();
     await tester.tap(find.text(S.themeDark));
     await tester.pumpAndSettle();
     expect(ctl.mode, ThemeMode.dark);
     expect(store.getString('theme'), 'dark');
-    expect(ThemeController(store).mode, ThemeMode.dark);
+    expect(AppSettings(store).mode, ThemeMode.dark);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     final theme = Theme.of(tester.element(find.byType(DeviceScreen)));
     expect(theme.scaffoldBackgroundColor, Vp.darkBg);
     expect(theme.colorScheme.surface, Vp.darkCard);
@@ -468,21 +482,21 @@ void main() {
     expect(d.colorScheme.onSurface, isNot(const Color(0xFFFFFFFF)));
   });
 
-  testWidgets('menu Language: doi Anh -> Viet ap dung ngay ca man dang mo va luu lai', (tester) async {
+  testWidgets('Settings > Language: doi Anh -> Viet ap dung ngay ca man dang mo va luu lai', (tester) async {
     addTearDown(() => Lang.code = Lang.en);
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(900, 5000);
     addTearDown(tester.view.reset);
     final store = MemoryStore();
-    final ctl = ThemeController(store);
+    final ctl = AppSettings(store);
     expect(ctl.lang, Lang.en);
     final rig = _Rig();
     rig.session = DeviceSession(
       connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
     );
     await rig.session.connect();
-    await tester.pumpWidget(ThemeScope(
-      controller: ctl,
+    await tester.pumpWidget(SettingsScope(
+      settings: ctl,
       child: MaterialApp(theme: vpHubTheme(Brightness.light), home: DeviceScreen(session: rig.session)),
     ));
     await tester.pumpAndSettle();
@@ -490,9 +504,13 @@ void main() {
     expect(_button('ON'), findsOneWidget);
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Language'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tiếng Việt'));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
     await tester.pumpAndSettle();
     expect(ctl.lang, Lang.vi);
     expect(store.getString('lang'), 'vi');
@@ -503,7 +521,7 @@ void main() {
     expect(_button('TẮT'), findsOneWidget);
     // Mo lai app: van la tieng Viet
     Lang.code = Lang.en;
-    expect(ThemeController(store).lang, Lang.vi);
+    expect(AppSettings(store).lang, Lang.vi);
     expect(Lang.isVi, isTrue);
     await _close(tester, rig);
   });
@@ -543,7 +561,7 @@ void main() {
     expect(theme.colorScheme.primary, const Color(0xFF15803D));
     expect(VpBars.of(tester.element(find.byType(TabBar))).tabs, const Color(0xFF166534));
     // Trang con mo tu menu he thong giu bo nong nghiep
-    await _openFromMenu(tester, 'Advanced');
+    await _openFromMenu(tester, 'Alarm settings');
     expect(Theme.of(tester.element(find.text('Alarm thresholds'))).colorScheme.primary, const Color(0xFF15803D));
     await tester.pageBack();
     await tester.pumpAndSettle();

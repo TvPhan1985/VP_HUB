@@ -69,6 +69,10 @@ void vph_maxlen(cJSON *f, int max);                 // do dai toi da cua kieu st
 void vph_icon(cJSON *screen_or_field, const char *name);
 // Man cai dat / thong tin it dung: app dua vao menu he thong [≡] thay vi lam tab (nav:"menu")
 void vph_nav_menu(cJSON *screen);
+// v1.3: man hoac truong chi danh cho nguoi ky thuat (adv:1). App o che do Standard an di,
+// che do Technician moi hien. Chi de giao dien gon, KHONG phai bao mat: firmware van phai
+// kiem tra moi lenh ghi. App cu bo qua khoa nay (hien het).
+void vph_advanced(cJSON *screen_or_field);
 void vph_desc(cJSON *f, const char *text);          // dong chu thich nho duoi truong
 void vph_sub(cJSON *f, const char *field_id);       // the hero: gia tri truong nay lam dong phu
 // bool: chu cho 2 trang thai thay "TẮT"/"BẬT", vd ("Dừng", "Đang đốt")

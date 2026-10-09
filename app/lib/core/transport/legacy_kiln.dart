@@ -122,6 +122,8 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     'program_steps': 'timer',
   };
   if (icons.containsKey(id)) s['ic'] = icons[id];
+  // PID, tu do, hieu chuan, nguong bao ve: chi danh cho nguoi ky thuat (PROTOCOL v1.3 `adv`)
+  if (const {'pid', 'alarm', 'calibration', 'autotune'}.contains(id)) s['adv'] = 1;
   if (id == 'operation') {
     for (final f in fields) {
       if (f is! Map) continue;

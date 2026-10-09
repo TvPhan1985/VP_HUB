@@ -35,11 +35,10 @@ class KnownDevice {
   }
 }
 
-/// Danh sach thiet bi da dung (toi da 20, moi nhat dung truoc) va tuy chon tu ket noi
+/// Danh sach thiet bi da dung (toi da 20, moi nhat dung truoc)
 class KnownDevices {
   static const int maxDevices = 20;
   static const _kList = 'known_devices';
-  static const _kAuto = 'auto_connect';
 
   final KvStore store;
   KnownDevices(this.store);
@@ -66,9 +65,4 @@ class KnownDevices {
   }
 
   Future<void> forget(String id) async => _save(list()..removeWhere((e) => e.id == id));
-
-  /// Mac dinh bat (SPEC §3)
-  bool get autoConnect => store.getString(_kAuto) != '0';
-
-  Future<void> setAutoConnect(bool v) => store.setString(_kAuto, v ? '1' : '0');
 }

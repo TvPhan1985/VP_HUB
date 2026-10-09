@@ -54,6 +54,9 @@ class FakeGattLink implements GattLink {
   }
 
   @override
+  Future<int?> readRssi() async => -60;
+
+  @override
   Future<void> disconnect() async {
     disconnected = true;
   }

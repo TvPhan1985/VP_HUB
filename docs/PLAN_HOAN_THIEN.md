@@ -43,17 +43,17 @@
 Người vận hành (công nhân, nông dân) chỉ cần: xem số đo, bật/tắt, chế độ, lịch, báo động. Người kỹ thuật cần thêm: tham số Modbus, PID, hiệu chuẩn, chẩn đoán BLE, schema.
 
 ### H2.1 Chế độ của app
-- [ ] Cài đặt `userMode`: `standard` (mặc định) | `technician`. Lưu khóa `user_mode`.
-- [ ] Bật Technician: Settings → "Technician mode". Có thể đặt **PIN 4 số** (tùy chọn, mặc định không có PIN). Có PIN thì hỏi PIN khi bật. Tắt thì không hỏi.
-- [ ] Khi đang ở Technician: thanh đầu màn Thiết bị có chip nhỏ `TECH` (màu vàng cảnh báo), để người dùng biết đang ở chế độ có thể đổi tham số quan trọng.
-- [ ] **GHI CHÚ trong SPEC:** ẩn trong app chỉ để gọn, không phải bảo mật. Tham số nguy hiểm vẫn phải được firmware kiểm tra.
+- [x] Cài đặt `userMode`: `standard` (mặc định) | `technician`. Lưu khóa `user_mode`.
+- [x] Bật Technician: Settings → "Technician mode". Có thể đặt **PIN 4 số** (tùy chọn, mặc định không có PIN). Có PIN thì hỏi PIN khi bật. Tắt thì không hỏi.
+- [x] Khi đang ở Technician: thanh đầu màn Thiết bị có chip nhỏ `TECH` (màu vàng cảnh báo), để người dùng biết đang ở chế độ có thể đổi tham số quan trọng.
+- [x] **GHI CHÚ trong SPEC:** ẩn trong app chỉ để gọn, không phải bảo mật. Tham số nguy hiểm vẫn phải được firmware kiểm tra.
 
 ### H2.2 Giao thức: khóa `adv` (PROTOCOL v1.3, tương thích ngược)
-- [ ] Màn hoặc trường có `"adv":1` → chỉ hiện ở Technician. App cũ bỏ qua khóa lạ → hiện hết (không hỏng).
-- [ ] Màn `adv` ẩn khỏi tab và Drawer. Trường `adv` ẩn, nhưng vẫn dùng được trong `if`/`en`, `sub`, `hdr`.
-- [ ] Màn batch có trường `adv` đang ẩn: lệnh `set` chỉ gửi trường đã sửa (như hiện nay), không đụng trường ẩn.
-- [ ] `vph_ble` 1.2.0: hàm `vph_advanced(x)` dùng cho cả màn và trường; README component; test Unity cho chuỗi schema có `adv`.
-- [ ] Ghi PROTOCOL §5 + §12; QUY_TAC_THIET_BI_MOI thêm quy tắc: "Tham số cài đặt phần cứng, giao tiếp, hiệu chuẩn, PID, bảo vệ → `adv`".
+- [x] Màn hoặc trường có `"adv":1` → chỉ hiện ở Technician. App cũ bỏ qua khóa lạ → hiện hết (không hỏng).
+- [x] Màn `adv` ẩn khỏi tab và Drawer. Trường `adv` ẩn, nhưng vẫn dùng được trong `if`/`en`, `sub`, `hdr`.
+- [x] Màn batch có trường `adv` đang ẩn: lệnh `set` chỉ gửi trường đã sửa (như hiện nay), không đụng trường ẩn.
+- [x] `vph_ble` 1.2.0: hàm `vph_advanced(x)` dùng cho cả màn và trường; README component; test Unity cho chuỗi schema có `adv`.
+- [x] Ghi PROTOCOL §5 + §12; QUY_TAC_THIET_BI_MOI thêm quy tắc: "Tham số cài đặt phần cứng, giao tiếp, hiệu chuẩn, PID, bảo vệ → `adv`".
 
 ### H2.3 Phân chia nội dung có sẵn
 | Nội dung | Standard | Technician |
@@ -66,7 +66,7 @@ Người vận hành (công nhân, nông dân) chỉ cần: xem số đo, bật/
 | Lò nung — PID, autotune, calibration, safety config | Không | Có |
 | Mẫu `docs/mau/*.json`, demo, `vph_demo` | Đánh `adv` theo cùng nguyên tắc | |
 
-- [ ] Sửa `assets/legacy/c3relay_v1.json` (+ `.vi.json`), bảng vá trong `legacy_kiln.dart`, 2 file demo, 2 file mẫu, `vph_demo` cho đúng bảng trên.
+- [x] Sửa `assets/legacy/c3relay_v1.json` (+ `.vi.json`), bảng vá trong `legacy_kiln.dart`, 2 file demo, 2 file mẫu, `vph_demo` cho đúng bảng trên.
 
 ### H2.4 Phân chia phần của app
 | Phần | Standard | Technician |

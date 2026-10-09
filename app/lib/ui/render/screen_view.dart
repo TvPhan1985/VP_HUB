@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/app_settings.dart';
 import '../../core/cond.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
@@ -87,7 +88,10 @@ class ScreenView extends StatelessWidget {
     bool isHero(VphField f) => f.hint('hero') && f.type == 'bool';
 
     final items = <Widget>[];
-    final visible = [for (final f in screen.fields) if (evalCond(f.ifCond, cond)) f];
+    // Truong adv chi hien o che do Technician (van dung duoc trong if/en, sub, hdr)
+    final tech = SettingsScope.technician(context);
+    bool show(VphField f) => (tech || !f.adv) && evalCond(f.ifCond, cond);
+    final visible = [for (final f in screen.fields) if (show(f)) f];
 
     // The so lon dua len dau tab
     for (final f in visible.where(isBig)) {
@@ -175,7 +179,7 @@ class ScreenView extends StatelessWidget {
       final cnt = rep.cnt == null ? null : cond[rep.cnt];
       if (cnt is num) shown = cnt.toInt().clamp(0, shown);
       for (final g in screen.repGroups.take(shown)) {
-        final fs = [for (final f in g.fields) if (evalCond(f.ifCond, cond)) fw(f)];
+        final fs = [for (final f in g.fields) if (show(f)) fw(f)];
         if (fs.isNotEmpty) items.add(_card(context, '${rep.label ?? S.repDefault} ${g.index}', fs));
       }
     }

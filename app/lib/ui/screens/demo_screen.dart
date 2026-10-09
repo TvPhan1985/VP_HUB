@@ -18,7 +18,7 @@ String demoAllTypesAsset() =>
 class DemoScreen extends StatelessWidget {
   const DemoScreen({super.key});
 
-  Future<void> _open(BuildContext context, String title, Future<String> Function() load) async {
+  static Future<void> _open(BuildContext context, String title, Future<String> Function() load) async {
     final nav = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     final String src;
@@ -39,7 +39,8 @@ class DemoScreen extends StatelessWidget {
     session.dispose();
   }
 
-  Future<void> _pick(BuildContext context) async {
+  /// Chon file JSON tren dien thoai roi mo thanh thiet bi mau
+  static Future<void> pickAndOpen(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
       final files = await FilePicker.pickFiles(type: FileType.any);
@@ -87,7 +88,7 @@ class DemoScreen extends StatelessWidget {
               leading: const Icon(Icons.folder_open),
               title: Text(S.openJson),
               subtitle: Text(S.openJsonSub),
-              onTap: () => _pick(context),
+              onTap: () => pickAndOpen(context),
             ),
           ),
         ],

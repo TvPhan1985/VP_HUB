@@ -55,6 +55,9 @@ class VphField {
   /// Chu cho 2 trang thai [tat, bat] cua bool (opt 2 phan tu), null = mac dinh
   final List<String>? boolLabels;
 
+  /// adv:1 (PROTOCOL v1.3): chi hien o che do Technician
+  final bool adv;
+
   const VphField({
     required this.id,
     required this.label,
@@ -77,6 +80,7 @@ class VphField {
     this.desc,
     this.sub,
     this.boolLabels,
+    this.adv = false,
   });
 
   bool get known => knownTypes.contains(type);
@@ -143,6 +147,7 @@ class VphField {
       desc: _str(j['d']),
       sub: _str(j['sub']),
       boolLabels: boolLabels,
+      adv: _flag(j['adv']),
     );
   }
 
@@ -168,6 +173,7 @@ class VphField {
         desc: desc,
         sub: sub == null ? null : (rename[sub] ?? sub),
         boolLabels: boolLabels,
+        adv: adv,
       );
 }
 
@@ -212,6 +218,9 @@ class VphScreen {
 
   /// nav:"menu": man cai dat / thong tin, nam trong menu he thong (Navigation Drawer) thay vi lam tab
   final bool menu;
+
+  /// adv:1 (PROTOCOL v1.3): man chi hien o che do Technician
+  final bool adv;
   final bool batch;
   final List<VphField> fields;
   final VphRepeat? rep;
@@ -225,6 +234,7 @@ class VphScreen {
     required this.title,
     this.icon,
     this.menu = false,
+    this.adv = false,
     this.batch = false,
     this.fields = const [],
     this.rep,
@@ -266,6 +276,7 @@ class VphScreen {
       title: _str(_pick(j, 'l', 'title')) ?? id,
       icon: _str(j['ic']),
       menu: j['nav'] == 'menu',
+      adv: _flag(j['adv']),
       batch: j['save'] == 'batch',
       fields: [if (f is List) for (final e in f) if (e is Map) VphField.fromJson(e)],
       rep: rep is Map ? VphRepeat.fromJson(rep) : null,

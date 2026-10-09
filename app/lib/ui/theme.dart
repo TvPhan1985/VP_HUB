@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle;
 
-import '../core/schema_cache.dart';
-import '../l10n/strings.dart';
 
 /// Mau va kich thuoc dung chung (design token), theo quy chuan giao dien
 /// "Top Navigation & Theme System" (docs/, muc 5-7). Widget khong tu dat mau trang thai rieng.
@@ -232,57 +230,4 @@ ThemeData _buildTheme(Brightness b, bool agri) {
     progressIndicatorTheme: ProgressIndicatorThemeData(color: cs.primary, linearTrackColor: cs.outlineVariant),
     snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
   );
-}
-
-/// Cai dat cua app: che do giao dien (Theo he thong / Sang / Toi) va ngon ngu (Anh / Viet).
-/// Luu trong kho cua app; doi la ap dung ngay, khong can mo lai app.
-class ThemeController extends ChangeNotifier {
-  static const _key = 'theme';
-  static const _langKey = 'lang';
-  final KvStore store;
-  ThemeMode _mode;
-
-  ThemeController(this.store) : _mode = _parse(store.getString(_key)) {
-    Lang.code = store.getString(_langKey) == Lang.vi ? Lang.vi : Lang.en;
-  }
-
-  String get lang => Lang.code;
-
-  Future<void> setLang(String code) async {
-    if (code == Lang.code) return;
-    Lang.code = code == Lang.vi ? Lang.vi : Lang.en;
-    notifyListeners();
-    // Chu nam trong nhieu widget khong nghe controller nay: ve lai ca cay
-    void visit(Element e) {
-      e.markNeedsBuild();
-      e.visitChildren(visit);
-    }
-
-    WidgetsBinding.instance.rootElement?.visitChildren(visit);
-    await store.setString(_langKey, Lang.code);
-  }
-
-  static ThemeMode _parse(String? s) => switch (s) {
-        'light' => ThemeMode.light,
-        'dark' => ThemeMode.dark,
-        _ => ThemeMode.system,
-      };
-
-  ThemeMode get mode => _mode;
-
-  Future<void> setMode(ThemeMode m) async {
-    if (m == _mode) return;
-    _mode = m;
-    notifyListeners();
-    await store.setString(_key, m.name);
-  }
-}
-
-/// Dua ThemeController xuong cay widget (menu he thong dung de doi giao dien)
-class ThemeScope extends InheritedNotifier<ThemeController> {
-  const ThemeScope({super.key, required ThemeController controller, required super.child})
-      : super(notifier: controller);
-
-  static ThemeController? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<ThemeScope>()?.notifier;
 }

@@ -112,7 +112,7 @@ class S {
   static String get openMenu => tr('Open menu', 'Mở menu');
   static String get secDevices => tr('Devices', 'Thiết bị');
   static String get secDevice => tr('Device', 'Thiết bị');
-  static String get secApp => tr('App Settings', 'Cài đặt ứng dụng');
+  static String get secApp => tr('App', 'Ứng dụng');
   static String get secSupport => tr('Support', 'Hỗ trợ');
   static String get menuDeviceList => tr('Device List', 'Danh sách thiết bị');
   static String get menuTheme => tr('Theme', 'Giao diện');
@@ -122,6 +122,54 @@ class S {
   static String get menuLanguage => tr('Language', 'Ngôn ngữ');
   static String get on => tr('On', 'Bật');
   static String get off => tr('Off', 'Tắt');
+
+  // ----- Cai dat (SettingsScreen) -----
+  static String get settings => tr('Settings', 'Cài đặt');
+  static String get helpAbout => tr('Help & about', 'Trợ giúp & giới thiệu');
+  static String get secGeneral => tr('General', 'Chung');
+  static String get secAdvanced => tr('Advanced', 'Nâng cao');
+  static String get secDeveloper => tr('Developer tools', 'Công cụ nhà phát triển');
+  static String get secAbout => tr('About', 'Giới thiệu');
+  static String get autoConnect => tr('Auto-connect to last device', 'Tự kết nối thiết bị dùng gần nhất');
+  static String get keepAwake => tr('Keep screen on while connected', 'Giữ màn hình sáng khi đang kết nối');
+  static String get techMode => tr('Technician mode', 'Chế độ kỹ thuật viên');
+  static String get techModeSub => tr('Shows setup, calibration and diagnostic options.',
+      'Hiện các mục cài đặt, hiệu chuẩn và chẩn đoán.');
+  static const techChip = 'TECH';
+  static String get setPin => tr('Set PIN', 'Đặt mã PIN');
+  static String get removePin => tr('Remove PIN', 'Xóa mã PIN');
+  static String get pinSub => tr('Ask for a 4-digit PIN before turning on Technician mode.',
+      'Hỏi mã PIN 4 số trước khi bật chế độ kỹ thuật viên.');
+  static String get enterPin => tr('Enter PIN', 'Nhập mã PIN');
+  static String get newPin => tr('New PIN', 'Mã PIN mới');
+  static String get confirmPin => tr('Confirm PIN', 'Nhập lại mã PIN');
+  static String get pinWrong => tr('Incorrect PIN. Try again.', 'Mã PIN không đúng. Hãy thử lại.');
+  static String get pinFormat => tr('Enter 4 digits.', 'Hãy nhập 4 chữ số.');
+  static String get pinMismatch => tr("The PINs don't match.", 'Hai mã PIN không giống nhau.');
+  static String get removePinTitle => tr('Remove PIN?', 'Xóa mã PIN?');
+  static String get removePinBody => tr('Technician mode will turn on without asking for a PIN.',
+      'Chế độ kỹ thuật viên sẽ bật mà không hỏi mã PIN.');
+  static String get remove => tr('Remove', 'Xóa');
+  static String get pinSet => tr('PIN set', 'Đã đặt mã PIN');
+  static String get pinRemoved => tr('PIN removed', 'Đã xóa mã PIN');
+  static String get turnOn => tr('Turn on', 'Bật');
+  static String get showAddr => tr('Show device addresses', 'Hiện địa chỉ thiết bị');
+  static String get clearCache => tr('Clear saved interfaces', 'Xóa giao diện đã lưu');
+  static String get clearCacheTitle => tr('Clear saved interfaces?', 'Xóa giao diện đã lưu?');
+  static String get clearCacheBody => tr('VP Hub will load each device interface again the next time you connect.',
+      'VP Hub sẽ đọc lại giao diện của từng thiết bị ở lần kết nối tới.');
+  static String get clear => tr('Clear', 'Xóa');
+  static String get cacheCleared => tr('Saved interfaces cleared', 'Đã xóa giao diện đã lưu');
+  static String get versionLabel => tr('Version', 'Phiên bản');
+  static String get infoSignal => tr('Signal', 'Sóng');
+  static String get infoStatus => tr('Status', 'Trạng thái');
+  static String get infoAddr => tr('Address', 'Địa chỉ');
+  static String signalLevel(int bars) => switch (bars) {
+        4 => tr('Excellent', 'Rất mạnh'),
+        3 => tr('Good', 'Mạnh'),
+        2 => tr('Fair', 'Trung bình'),
+        _ => tr('Weak', 'Yếu'),
+      };
 
   // ----- Man Thiet bi -----
   static String get connecting => tr('Connecting...', 'Đang kết nối...');

@@ -38,7 +38,14 @@
       {"id": "on", "l": "On time", "t": "time"},
       {"id": "off", "l": "Off time", "t": "time", "d": "Off time earlier than on time = overnight"}
     ]}},
-    {"id": "advanced", "l": "Advanced", "ic": "tune", "nav": "menu", "save": "batch", "f": [
+    {"id": "alarms", "l": "Alarm settings", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
+      {"id": "al_en", "l": "Temperature / humidity alarm", "t": "bool", "g": "Alarm thresholds"},
+      {"id": "al_t_lo", "l": "Low temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_t_hi", "l": "High temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_h_lo", "l": "Low humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"},
+      {"id": "al_h_hi", "l": "High humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"}
+    ]},
+    {"id": "sensor", "l": "Sensor setup", "ic": "sensor", "nav": "menu", "adv": 1, "save": "batch", "f": [
       {"id": "mb_addr", "l": "Address", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Modbus RTU sensor"},
       {"id": "mb_baud", "l": "Baud", "t": "enum", "g": "Modbus RTU sensor",
        "opt": [[1200, "1200"], [2400, "2400"], [4800, "4800"], [9600, "9600"], [19200, "19200"], [38400, "38400"], [57600, "57600"], [115200, "115200"]]},
@@ -49,18 +56,13 @@
       {"id": "mb_idx_t", "l": "Temperature index", "t": "num", "min": 0, "max": 9, "dp": 0, "g": "Modbus RTU sensor"},
       {"id": "mb_scale", "l": "Scale divisor", "t": "num", "min": 0.1, "max": 10000, "dp": 1, "g": "Modbus RTU sensor",
        "d": "Actual value = register / divisor"},
-      {"id": "mb_period", "l": "Poll interval", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Modbus RTU sensor"},
-      {"id": "al_en", "l": "Temperature / humidity alarm", "t": "bool", "g": "Alarm thresholds"},
-      {"id": "al_t_lo", "l": "Low temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
-      {"id": "al_t_hi", "l": "High temperature", "t": "num", "u": "°C", "dp": 1, "g": "Alarm thresholds"},
-      {"id": "al_h_lo", "l": "Low humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"},
-      {"id": "al_h_hi", "l": "High humidity", "t": "num", "u": "%", "dp": 1, "g": "Alarm thresholds"}
+      {"id": "mb_period", "l": "Poll interval", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Modbus RTU sensor"}
     ]},
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device",
        "d": "Up to 20 ASCII characters"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset",
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1,
        "c": "Restart the device? It will disconnect for a few seconds, then the app reconnects automatically."}
     ]}
   ]

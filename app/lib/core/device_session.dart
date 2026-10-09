@@ -37,6 +37,12 @@ class DeviceSession extends ChangeNotifier {
   /// Ten hien truoc khi doc duoc INFO
   final String title;
 
+  /// Dia chi thiet bi (MAC); null voi thiet bi mau
+  final String? deviceId;
+
+  /// Doc cuong do song (dBm) cua ket noi hien tai; null neu khong ho tro
+  final Future<int?> Function()? rssiReader;
+
   LinkStatus status = LinkStatus.closed;
   String? error;
   VphInfo? info;
@@ -66,6 +72,8 @@ class DeviceSession extends ChangeNotifier {
   DeviceSession({
     required this.connector,
     this.title = '',
+    this.deviceId,
+    this.rssiReader,
     this.reconnectDelays = const [
       Duration(seconds: 1),
       Duration(seconds: 2),

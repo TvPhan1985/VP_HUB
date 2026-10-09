@@ -627,6 +627,33 @@ TEST_CASE("_reboot: goi project truoc (de luu NVS), bao can reset", "[reserved]"
     cJSON_Delete(r);
 }
 
+// ---------- v1.3: khoa adv (man / truong chi hien o che do Technician) ----------
+
+TEST_CASE("v1.3 schema: vph_advanced cho man va truong", "[schema][v13]")
+{
+    cJSON *s = vph_screen("setup", "Sensor setup", "batch");
+    vph_nav_menu(s);
+    vph_advanced(s);
+    cJSON *a = vph_field(s, "mb_addr", "Address", "num");
+    vph_advanced(a);
+    vph_field(s, "name", "Name", "str");
+
+    const vph_info_t info = {.model = "x", .fw = "1.3.0"};
+    cJSON *one[1] = {s};
+    vph_core_deinit();
+    TEST_ASSERT_EQUAL(ESP_OK, vph_core_init(&info, one, 1, fill, on_write, NULL));
+    TEST_ASSERT_NOT_NULL(strstr(vph_core_schema(0), "\"adv\":1"));
+    cJSON *j = parse(vph_core_schema(0));
+    TEST_ASSERT_EQUAL(1, cJSON_GetObjectItemCaseSensitive(j, "adv")->valueint);
+    TEST_ASSERT_EQUAL_STRING("menu", str_of(j, "nav"));
+    const cJSON *f = cJSON_GetObjectItemCaseSensitive(j, "f");
+    TEST_ASSERT_EQUAL(1, cJSON_GetObjectItemCaseSensitive(cJSON_GetArrayItem(f, 0), "adv")->valueint);
+    // Truong khong danh dau thi khong co khoa adv
+    TEST_ASSERT_NULL(cJSON_GetObjectItemCaseSensitive(cJSON_GetArrayItem(f, 1), "adv"));
+    cJSON_Delete(j);
+    vph_core_deinit();
+}
+
 // ---------- v1.1: tu vung hien thi + WRITE 500 byte ----------
 
 TEST_CASE("v1.1 schema: ic, d, sub, opt cua bool, opt co icon", "[schema][v11]")

@@ -29,14 +29,15 @@
       {"id": "on", "l": "Start time", "t": "time", "en": "en==true"},
       {"id": "dur", "l": "Duration", "t": "num", "u": "min", "min": 1, "max": 240, "st": 1, "en": "en==true"}
     ]}},
-    {"id": "setup", "l": "Settings", "ic": "tune", "nav": "menu", "save": "batch", "f": [
+    {"id": "setup", "l": "Alarm settings", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
       {"id": "al_en", "l": "Tank-empty alarm", "t": "bool", "g": "Alarm"},
-      {"id": "al_lvl", "l": "Tank low level", "t": "num", "u": "%", "min": 0, "max": 50, "st": 1, "g": "Alarm", "en": "al_en==true"}
+      {"id": "al_lvl", "l": "Tank low level", "t": "num", "u": "%", "min": 0, "max": 50, "st": 1, "g": "Alarm", "en": "al_en==true"},
+      {"id": "soil_off", "l": "Soil sensor offset", "t": "num", "u": "%", "min": -10, "max": 10, "st": 0.5, "dp": 1, "adv": 1, "g": "Calibration"}
     ]},
     {"id": "device", "l": "Device", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Device name", "t": "str", "max": 20, "ic": "device", "d": "Up to 20 ASCII characters"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "c": "Restart the device?"}
+      {"id": "_reboot", "l": "Restart device", "t": "act", "ic": "reset", "adv": 1, "c": "Restart the device?"}
     ]}
   ],
   "values": {
@@ -46,6 +47,6 @@
     "s1_en": true, "s1_days": 127, "s1_on": "06:00", "s1_dur": 15,
     "s2_en": false, "s2_days": 31, "s2_on": "17:00", "s2_dur": 10,
     "s3_en": false, "s3_days": 96, "s3_on": "12:00", "s3_dur": 5,
-    "al_en": true, "al_lvl": 15, "_name": "FARM-A1B2", "fw": "1.0.0"
+    "al_en": true, "al_lvl": 15, "soil_off": 0.0, "_name": "FARM-A1B2", "fw": "1.0.0"
   }
 }

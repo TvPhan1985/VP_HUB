@@ -178,6 +178,10 @@ class AppDrawer extends StatelessWidget {
                 children: [
                   for (final sec in sections)
                     if (sec.items.isNotEmpty) ...[
+                      // Nhom khong tieu de: chi cach mot khoang
+                      if (sec.title.isEmpty)
+                        const SizedBox(height: 10)
+                      else
                       Padding(
                         padding: const EdgeInsets.fromLTRB(20, 18, 16, 6),
                         child: Text(
@@ -197,76 +201,6 @@ class AppDrawer extends StatelessWidget {
     );
   }
 }
-
-String themeModeLabel(ThemeMode m) => switch (m) {
-      ThemeMode.light => S.themeLight,
-      ThemeMode.dark => S.themeDark,
-      ThemeMode.system => S.themeSystem,
-    };
-
-/// Muc "Theme" cua menu he thong; null khi app khong co ThemeScope (vd trong test)
-DrawerEntry? themeEntry(BuildContext context) {
-  final ctl = ThemeScope.maybeOf(context);
-  if (ctl == null) return null;
-  return DrawerEntry(
-    icon: Icons.palette_outlined,
-    label: S.menuTheme,
-    value: themeModeLabel(ctl.mode),
-    onTap: () => showThemeDialog(context, ctl),
-  );
-}
-
-/// Muc "Language" cua menu he thong; null khi app khong co ThemeScope
-DrawerEntry? languageEntry(BuildContext context) {
-  final ctl = ThemeScope.maybeOf(context);
-  if (ctl == null) return null;
-  return DrawerEntry(
-    icon: Icons.language,
-    label: S.menuLanguage,
-    value: Lang.nameOf(ctl.lang),
-    onTap: () => showDialog<void>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(S.menuLanguage),
-        children: [
-          for (final c in const [Lang.en, Lang.vi])
-            ListTile(
-              leading: Icon(
-                c == ctl.lang ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                color: c == ctl.lang ? Theme.of(ctx).colorScheme.primary : null,
-              ),
-              title: Text(Lang.nameOf(c)),
-              onTap: () {
-                Navigator.of(ctx).pop();
-                ctl.setLang(c);
-              },
-            ),
-        ],
-      ),
-    ),
-  );
-}
-
-Future<void> showThemeDialog(BuildContext context, ThemeController ctl) => showDialog<void>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(S.menuTheme),
-        children: [
-          for (final m in const [ThemeMode.system, ThemeMode.light, ThemeMode.dark])
-            ListTile(
-              leading: Icon(
-                m == ctl.mode ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-                color: m == ctl.mode ? Theme.of(ctx).colorScheme.primary : null,
-              ),
-              title: Text(themeModeLabel(m)),
-              onTap: () {
-                ctl.setMode(m);
-                Navigator.of(ctx).pop();
-              },
-            ),
-        ],
-      ),
-    );
 
 /// Nut [≡] goc tren ben trai cua Top App Bar
 class MenuButton extends StatelessWidget {

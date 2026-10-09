@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../core/app_settings.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_value.dart';
 import '../../core/transport/vph_transport.dart';
@@ -16,6 +18,7 @@ import '../render/screen_view.dart';
 import '../theme.dart';
 import 'about_screen.dart';
 import 'info_screen.dart';
+import 'settings_screen.dart';
 
 enum _Leave { stay, discard, save }
 
@@ -117,19 +120,46 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
   bool _inMenu = false;
   StreamSubscription<SessionMessage>? _msgSub;
 
+  /// Dang o che do Technician (hien ca man / truong adv)
+  bool _tech = false;
+  AppSettings? _settings;
+  bool _awake = false;
+
   DeviceSession get s => widget.session;
 
   @override
   void initState() {
     super.initState();
     _msgSub = s.messages.listen(_onMessage);
+    s.addListener(_applyWake);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _settings = SettingsScope.maybeOf(context);
+    _tech = _settings?.technician ?? false;
+    _applyWake();
   }
 
   @override
   void dispose() {
+    s.removeListener(_applyWake);
+    if (_awake) _setWake(false);
     _msgSub?.cancel();
     _tabs?.dispose();
     super.dispose();
+  }
+
+  /// Giu man hinh sang khi dang ket noi, neu nguoi dung bat tuy chon nay
+  void _applyWake() {
+    final want = (_settings?.keepScreenOn ?? false) && s.ready;
+    if (want != _awake) _setWake(want);
+  }
+
+  void _setWake(bool on) {
+    _awake = on;
+    WakelockPlus.toggle(enable: on).catchError((_) {});
   }
 
   void _onMessage(SessionMessage m) {
@@ -146,7 +176,8 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
 
   /// Tao lai TabController khi so man hinh doi (ket noi xong, doc lai schema)
   void _syncTabs() {
-    final all = [for (var i = 0; i < s.screens.length; i++) i];
+    // Man adv chi co o che do Technician
+    final all = [for (var i = 0; i < s.screens.length; i++) if (_tech || !s.screens[i].adv) i];
     var idx = [for (final i in all) if (!s.screens[i].menu) i];
     // Moi man deu la menu thi coi tat ca la tab, khong de man Thiet bi trong
     if (idx.isEmpty) idx = all;
@@ -279,15 +310,16 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
     );
   }
 
-  /// Menu he thong: thong tin thiet bi + ket noi o tren, roi cac nhom Thiet bi / Cai dat app / Ho tro
+  /// Menu he thong: thong tin thiet bi + ket noi o tren, roi cac muc dieu huong
   Widget _drawer(BuildContext context, List<int> menuIdx) {
     final link = _link();
     final i = s.info;
-    final sub = i == null ? (s.transport?.protoLabel ?? S.appName) : '${i.model} · ${S.infoFw} ${i.fw}';
-    final theme = themeEntry(context), language = languageEntry(context);
+    final sub = i == null ? S.appName : '${i.model} · ${S.infoFw} ${i.fw}';
     final pageTheme = Theme.of(context);
-    void push(Widget page) =>
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => Theme(data: pageTheme, child: page)));
+    final nav = Navigator.of(context);
+    // Trang cua thiet bi giu bo giao dien cua thiet bi; trang cua app dung giao dien chung
+    void push(Widget page) => nav.push(MaterialPageRoute(builder: (_) => Theme(data: pageTheme, child: page)));
+    void pushApp(Widget page) => nav.push(MaterialPageRoute(builder: (_) => page));
     return AppDrawer(
       avatar: Text(AppDrawer.initials(s.displayName)),
       title: s.displayName,
@@ -295,8 +327,10 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       status: link.$1,
       statusColor: link.$2,
       sections: [
-        DrawerSection(S.secDevice, [
+        DrawerSection('', [
           DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, onTap: _leaveScreen),
+        ]),
+        DrawerSection(S.secDevice, [
           // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
           for (final m in menuIdx)
             DrawerEntry(
@@ -311,11 +345,11 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
             enabled: s.info != null,
             onTap: () => push(InfoScreen(session: s)),
           ),
-          DrawerEntry(icon: Icons.sync, label: S.menuReload, enabled: s.ready, onTap: s.reloadSchema),
+          if (_tech) DrawerEntry(icon: Icons.sync, label: S.menuReload, enabled: s.ready, onTap: s.reloadSchema),
         ]),
-        DrawerSection(S.secApp, [?theme, ?language]),
-        DrawerSection(S.secSupport, [
-          DrawerEntry(icon: Icons.menu_book_outlined, label: S.menuAbout, onTap: () => push(const AboutScreen())),
+        DrawerSection(S.secApp, [
+          DrawerEntry(icon: Icons.settings_outlined, label: S.settings, onTap: () => pushApp(const SettingsScreen())),
+          DrawerEntry(icon: Icons.menu_book_outlined, label: S.helpAbout, onTap: () => pushApp(const AboutScreen())),
           DrawerEntry(icon: Icons.logout, label: S.menuDisconnect, danger: true, onTap: _disconnect),
         ]),
       ],
@@ -430,7 +464,10 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
         final tabs = _tabs;
         final link = _link();
         final n = _tabIdx.length;
-        final menuIdx = [for (var i = 0; i < s.screens.length; i++) if (!_tabIdx.contains(i)) i];
+        final menuIdx = [
+          for (var i = 0; i < s.screens.length; i++)
+            if (!_tabIdx.contains(i) && (_tech || !s.screens[i].adv)) i,
+        ];
         final showTabs = tabs != null && s.hasEverConnected && n >= 2;
         final alarms = s.hasEverConnected ? activeAlarms(s).length : 0;
         return PopScope(
@@ -451,6 +488,18 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
                 ],
               ),
               actions: [
+                // Dang o che do Technician: nhac nguoi dung la co the doi tham so quan trong
+                if (_tech)
+                  Container(
+                    margin: const EdgeInsets.only(right: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Vp.barCaution),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: const Text(S.techChip,
+                        style: TextStyle(color: Vp.barCaution, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.6)),
+                  ),
                 // Top Action Item: chuong thong bao kem so bao dong dang bat
                 IconButton(
                   tooltip: S.alarmsTooltip,

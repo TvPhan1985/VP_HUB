@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'core/app_settings.dart';
 import 'core/schema_cache.dart';
 import 'l10n/strings.dart';
 import 'ui/screens/scan_screen.dart';
@@ -16,26 +17,26 @@ class VpHubApp extends StatefulWidget {
 }
 
 class _VpHubAppState extends State<VpHubApp> {
-  late final ThemeController _theme = ThemeController(widget.store);
+  late final AppSettings _settings = AppSettings(widget.store);
 
   @override
   void dispose() {
-    _theme.dispose();
+    _settings.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => ThemeScope(
-        controller: _theme,
+  Widget build(BuildContext context) => SettingsScope(
+        settings: _settings,
         // ThemeMode.system: MaterialApp tu doi theo he dieu hanh, khong can mo lai app
         child: ListenableBuilder(
-          listenable: _theme,
+          listenable: _settings,
           builder: (context, _) => MaterialApp(
             title: S.appName,
             debugShowCheckedModeBanner: false,
             theme: vpHubTheme(Brightness.light),
             darkTheme: vpHubTheme(Brightness.dark),
-            themeMode: _theme.mode,
+            themeMode: _settings.mode,
             home: ScanScreen(store: widget.store),
           ),
         ),

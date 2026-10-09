@@ -28,6 +28,9 @@ abstract class GattLink {
   /// Phat khi mat ket noi ngoai y muon
   Stream<void> get lost;
 
+  /// Cuong do song hien tai (dBm), null neu khong doc duoc
+  Future<int?> readRssi();
+
   Future<void> disconnect();
 }
 

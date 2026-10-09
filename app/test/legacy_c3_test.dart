@@ -194,13 +194,18 @@ void main() {
   });
 
   group('schema luu san c3relay_v1.json', () {
-    test('4 man hinh, dung dinh dang VPH, moi id deu co nguon du lieu', () async {
+    test('5 man hinh, dung dinh dang VPH, moi id deu co nguon du lieu', () async {
       final j = jsonDecode(await _schema()) as Map<String, dynamic>;
       final raw = j['screens'] as List;
       final screens = [for (var i = 0; i < raw.length; i++) VphScreen.tryFromMap(raw[i], index: i)];
-      expect(screens.length, 4);
+      expect(screens.length, 5);
       expect(screens.every((s) => s.error == null), isTrue);
-      expect(screens.map((s) => s.batch), [false, true, true, false]);
+      expect(screens.map((s) => s.batch), [false, true, true, true, false]);
+      // Standard thay Alarm settings; Sensor setup (Modbus) va nut Restart chi danh cho Technician
+      expect(screens.map((s) => s.id), ['overview', 'auto', 'alarms', 'sensor', 'device']);
+      expect(screens.map((s) => s.adv), [false, false, false, true, false]);
+      expect(screens[4].field('_reboot')!.adv, isTrue);
+      expect(screens[4].field('_name')!.adv, isFalse);
       expect(screens[1].repGroups.length, 5);
       final known = {
         ...c3FlattenStatus(jsonDecode(_status) as Map<String, dynamic>).keys,
@@ -231,10 +236,10 @@ void main() {
       expect(info.model, 'c3relay');
       expect(info.name, 'C3-RELAY-A1B2');
       expect(info.fw, '1.0.0');
-      expect(info.n, 4);
+      expect(info.n, 5);
       expect(info.hdr, ['t', 'h', 'out', 'mode', 'alarm']);
       expect(info.hasTime, isTrue);
-      expect((await t.loadScreens()).length, 4);
+      expect((await t.loadScreens()).length, 5);
       final all = <String, dynamic>{};
       t.values.listen(all.addAll);
       await t.start();

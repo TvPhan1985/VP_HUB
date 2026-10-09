@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../core/app_settings.dart';
 import '../../core/device_session.dart';
 import '../../core/known_devices.dart';
 import '../../core/schema_cache.dart';
 import '../../core/transport/ble_scanner.dart';
+import '../../core/transport/gatt_link.dart';
 import '../../core/transport/transport_registry.dart';
 import '../../core/transport/ub_gatt_link.dart' show logVph;
 import '../../l10n/strings.dart';
@@ -14,8 +16,8 @@ import '../app_drawer.dart';
 import '../device_icon.dart';
 import '../theme.dart';
 import 'about_screen.dart';
-import 'demo_screen.dart';
 import 'device_screen.dart';
+import 'settings_screen.dart';
 
 /// Man Quet (SPEC §3): thiet bi da dung + ket qua quet loc theo 3 UUID dich vu
 class ScanScreen extends StatefulWidget {
@@ -60,7 +62,8 @@ class _ScanScreenState extends State<ScanScreen> {
 
   Future<void> _startup() async {
     final list = _known.list();
-    if (_known.autoConnect && list.isNotEmpty && await _ensurePermissions()) {
+    final auto = SettingsScope.maybeOf(context)?.autoConnect ?? true;
+    if (auto && list.isNotEmpty && await _ensurePermissions()) {
       await _openKnown(list.first);
     } else {
       await _scan();
@@ -95,9 +98,12 @@ class _ScanScreenState extends State<ScanScreen> {
     _busy = true;
     await _stopScan();
     if (!mounted) return;
+    GattLink? link;
     final session = DeviceSession(
-      connector: () => connectTransport(_scanner.link(id, name), _cache),
+      connector: () => connectTransport(link = _scanner.link(id, name), _cache),
       title: name,
+      deviceId: id,
+      rssiReader: () async => link?.readRssi(),
     );
     Future<void> remember() async {
       final i = session.info;
@@ -158,9 +164,8 @@ class _ScanScreenState extends State<ScanScreen> {
         ),
       );
 
-  /// Menu he thong cua man Quet: trang thai Bluetooth o tren, roi Thiet bi / Cai dat app / Ho tro
+  /// Menu he thong cua man Quet: chi con dieu huong (Devices, Settings, Help & about)
   Widget _drawer(BuildContext context) {
-    final theme = themeEntry(context), language = languageEntry(context);
     Future<void> push(Widget page) async {
       await _stopScan();
       if (!context.mounted) return;
@@ -174,26 +179,14 @@ class _ScanScreenState extends State<ScanScreen> {
       status: !_adapterOn ? S.btOffShort : (_scanning ? S.scanning : S.btReady),
       statusColor: !_adapterOn ? Vp.barStop : (_scanning ? Vp.barCaution : Vp.barOk),
       sections: [
-        DrawerSection(S.secDevices, [
+        DrawerSection('', [
           DrawerEntry(icon: Icons.devices_other, label: S.menuDeviceList, selected: true, onTap: () {}),
-          DrawerEntry(icon: Icons.science_outlined, label: S.menuDemo, onTap: () => push(const DemoScreen())),
-        ]),
-        DrawerSection(S.secApp, [
-          ?theme,
-          ?language,
           DrawerEntry(
-            icon: Icons.bluetooth_connected,
-            label: S.menuAuto,
-            value: _known.autoConnect ? S.on : S.off,
-            keepOpen: true,
-            onTap: () async {
-              await _known.setAutoConnect(!_known.autoConnect);
-              if (mounted) setState(() {});
-            },
+            icon: Icons.settings_outlined,
+            label: S.settings,
+            onTap: () => push(const SettingsScreen()),
           ),
-        ]),
-        DrawerSection(S.secSupport, [
-          DrawerEntry(icon: Icons.menu_book_outlined, label: S.menuAbout, onTap: () => push(const AboutScreen())),
+          DrawerEntry(icon: Icons.menu_book_outlined, label: S.helpAbout, onTap: () => push(const AboutScreen())),
         ]),
       ],
     );
@@ -206,6 +199,7 @@ class _ScanScreenState extends State<ScanScreen> {
     required String name,
     required String detail,
     required bool legacy,
+    required bool tech,
     required VoidCallback onTap,
     required Widget trailing,
     int? rssi,
@@ -245,14 +239,18 @@ class _ScanScreenState extends State<ScanScreen> {
           ],
         ),
         title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-        subtitle: Row(children: [
-          _tag(context, legacy),
-          const SizedBox(width: 8),
-          Flexible(child: Text(detail, overflow: TextOverflow.ellipsis)),
-        ]),
+        // Standard: chi ten va model. Technician: them nhan giao thuc, dia chi, so dBm.
+        subtitle: !tech
+            ? (detail.isEmpty ? null : Text(detail, overflow: TextOverflow.ellipsis))
+            : Row(children: [
+                _tag(context, legacy),
+                const SizedBox(width: 8),
+                Flexible(child: Text(detail, overflow: TextOverflow.ellipsis)),
+              ]),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (rssi != null && tech) Text(S.rssi(rssi), style: Theme.of(context).textTheme.labelSmall),
             if (rssi != null) SignalBars(rssi: rssi),
             trailing,
           ],
@@ -302,6 +300,10 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     final known = _known.list();
+    final st = SettingsScope.maybeOf(context);
+    final tech = st?.technician ?? false;
+    final addr = tech && (st?.showAddresses ?? true);
+    String detail(String model, String id) => [if (model.isNotEmpty) model, if (addr) id].join(' · ');
     // Thiet bi da dung ma dang thay quanh day: danh dau tai cho, khong lap lai o muc "gan day"
     final hits = _scanner.hits;
     final seen = {for (final r in hits) r.id: r};
@@ -343,8 +345,9 @@ class _ScanScreenState extends State<ScanScreen> {
                 context,
                 icon: deviceIcon(d.icon),
                 name: d.name,
-                detail: d.model,
+                detail: detail(d.model, d.id),
                 legacy: d.legacy,
+                tech: tech,
                 rssi: seen[d.id]?.rssi,
                 seen: seen.containsKey(d.id),
                 trailing: IconButton(
@@ -371,8 +374,9 @@ class _ScanScreenState extends State<ScanScreen> {
               context,
               icon: deviceIcon(iconForKind(r.kind)),
               name: r.name,
-              detail: r.id,
+              detail: detail('', r.id),
               legacy: r.kind != TransportKind.vph,
+              tech: tech,
               rssi: r.rssi,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _open(r.id, r.name, legacyHint: r.kind != TransportKind.vph),

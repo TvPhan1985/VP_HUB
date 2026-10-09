@@ -7,6 +7,7 @@ abstract class KvStore {
   String? getString(String key);
   Future<void> setString(String key, String value);
   Future<void> remove(String key);
+  Iterable<String> get keys;
 }
 
 class MemoryStore implements KvStore {
@@ -20,6 +21,9 @@ class MemoryStore implements KvStore {
 
   @override
   Future<void> remove(String key) async => data.remove(key);
+
+  @override
+  Iterable<String> get keys => data.keys.toList();
 }
 
 class PrefsStore implements KvStore {
@@ -34,6 +38,9 @@ class PrefsStore implements KvStore {
 
   @override
   Future<void> remove(String key) => prefs.remove(key);
+
+  @override
+  Iterable<String> get keys => prefs.getKeys();
 }
 
 /// Cache chuoi schema tho cua tung man hinh, khoa theo model+sch (hoac model+fw voi doi cu)
@@ -41,7 +48,8 @@ class SchemaCache {
   final KvStore store;
   SchemaCache(this.store);
 
-  static String _k(String key) => 'schema:$key';
+  static const _prefix = 'schema:';
+  static String _k(String key) => '$_prefix$key';
 
   List<String>? get(String key) {
     final s = store.getString(_k(key));
@@ -56,4 +64,13 @@ class SchemaCache {
   Future<void> put(String key, List<String> screens) => store.setString(_k(key), jsonEncode(screens));
 
   Future<void> remove(String key) => store.remove(_k(key));
+
+  /// Xoa moi schema da luu. Tra ve so muc da xoa.
+  Future<int> clearAll() async {
+    final ks = [for (final k in store.keys) if (k.startsWith(_prefix)) k];
+    for (final k in ks) {
+      await store.remove(k);
+    }
+    return ks.length;
+  }
 }

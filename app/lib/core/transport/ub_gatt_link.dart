@@ -122,6 +122,16 @@ class UbGattLink implements GattLink {
   }
 
   @override
+  Future<int?> readRssi() async {
+    if (!_up) return null;
+    try {
+      return await UniversalBle.readRssi(deviceId);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<void> disconnect() async {
     _closing = true;
     _up = false;

@@ -35,22 +35,26 @@
       {"id": "on", "l": "Giờ bật", "t": "time", "en": "en==true"},
       {"id": "off", "l": "Giờ tắt", "t": "time", "en": "en==true", "d": "Giờ tắt nhỏ hơn giờ bật = qua đêm"}
     ]}},
-    {"id": "adv", "l": "Nâng cao", "ic": "tune", "nav": "menu", "save": "batch", "f": [
+    {"id": "alarms", "l": "Cài đặt báo động", "ic": "alarm", "nav": "menu", "save": "batch", "f": [
       {"id": "al_en", "l": "Bật báo động nhiệt độ / độ ẩm", "t": "bool", "g": "Ngưỡng báo động"},
       {"id": "al_lo", "l": "Nhiệt độ thấp", "t": "num", "u": "°C", "min": -20, "max": 80, "st": 1, "g": "Ngưỡng báo động"},
       {"id": "al_hi", "l": "Nhiệt độ cao", "t": "num", "u": "°C", "min": -20, "max": 80, "st": 1, "g": "Ngưỡng báo động"}
     ]},
+    {"id": "sensor", "l": "Cài đặt cảm biến", "ic": "sensor", "nav": "menu", "adv": 1, "save": "batch", "f": [
+      {"id": "mb_addr", "l": "Địa chỉ", "t": "num", "min": 1, "max": 247, "dp": 0, "g": "Cảm biến Modbus RTU"},
+      {"id": "mb_period", "l": "Chu kỳ đọc", "t": "num", "u": "s", "min": 1, "max": 3600, "dp": 0, "g": "Cảm biến Modbus RTU"}
+    ]},
     {"id": "device", "l": "Thiết bị", "ic": "device", "nav": "menu", "save": "live", "f": [
       {"id": "_name", "l": "Tên thiết bị", "t": "str", "max": 20, "ic": "device"},
       {"id": "fw", "l": "Firmware", "t": "text", "ic": "chip"},
-      {"id": "_reboot", "l": "Khởi động lại thiết bị", "t": "act", "ic": "reset", "c": "Khởi động lại thiết bị?"}
+      {"id": "_reboot", "l": "Khởi động lại thiết bị", "t": "act", "ic": "reset", "adv": 1, "c": "Khởi động lại thiết bị?"}
     ]}
   ],
   "values": {
     "t": 28.4, "h": 72.5, "ec": 120, "sal": 40, "tds": 60, "sok": true, "tok": false,
     "mode": "manual", "out": true, "alarm": 2, "muted": false, "time": "2026-10-07 09:15", "up": 7512,
     "src": "both", "on_at": 70, "off_at": 80,
-    "al_en": true, "al_lo": 10, "al_hi": 40, "_name": "DEMO-RELAY", "fw": "1.1.0",
+    "al_en": true, "al_lo": 10, "al_hi": 40, "mb_addr": 7, "mb_period": 5, "_name": "DEMO-RELAY", "fw": "1.1.0",
     "s1_en": true, "s1_days": 127, "s1_on": "08:00", "s1_off": "17:00",
     "s2_en": false, "s2_days": 31, "s2_on": "19:00", "s2_off": "21:30",
     "s3_en": false, "s3_days": 96, "s3_on": "06:00", "s3_off": "07:00"
