@@ -202,19 +202,19 @@ Màn `SettingsScreen`:
 
 ## H9. Đóng gói
 
-- [ ] **Icon thích ứng:** `flutter_launcher_icons` với `adaptive_icon_background` (màu `#0F172A`) + `adaptive_icon_foreground` (hình hub, vùng an toàn 66%), + `adaptive_icon_monochrome` (Android 13 themed icon). Màu icon theo app: nền xám đậm `#0F172A`, nút trung tâm `#38BDF8`, các nút vệ tinh trắng. Sửa `generate_icon.py` sinh 3 lớp.
-- [ ] **Màn khởi động:** `flutter_native_splash` (kiểm tra license), nền `#0F172A` ở cả sáng/tối, logo giữa; Android 12+ dùng API splash hệ thống. Không còn chớp trắng.
-- [ ] **Build:** `flutter build apk --release --split-per-abi`; chép `app-arm64-v8a-release.apk` thành `release/VPHub_1.4.0_arm64.apk` (bản chính) và `armeabi-v7a` thành `release/VPHub_1.4.0_arm32.apk` (máy cũ). Bật `minifyEnabled` + `shrinkResources` cho release nếu build và test vẫn qua.
-- [ ] Ghi kích thước APK cũ/mới vào PLAN (Nhật ký).
-- [ ] `release/CHANGELOG.md`: thay đổi 1.4.0 viết cho người dùng (tiếng Anh, ngắn).
-- [ ] `tools/make_kit.py`: thêm `COPY_STYLE.md`, `LICENSES.md`, APK mới.
+- [x] **Icon thích ứng:** `flutter_launcher_icons` với `adaptive_icon_background` (màu `#0F172A`) + `adaptive_icon_foreground` (hình hub, vùng an toàn 66%), + `adaptive_icon_monochrome` (Android 13 themed icon). Màu icon theo app: nền xám đậm `#0F172A`, nút trung tâm `#38BDF8`, các nút vệ tinh trắng. Sửa `generate_icon.py` sinh 3 lớp.
+- [x] **Màn khởi động:** `flutter_native_splash` (kiểm tra license), nền `#0F172A` ở cả sáng/tối, logo giữa; Android 12+ dùng API splash hệ thống. Không còn chớp trắng.
+- [x] **Build:** `flutter build apk --release --split-per-abi`; chép `app-arm64-v8a-release.apk` thành `release/VPHub_1.4.0_arm64.apk` (bản chính) và `armeabi-v7a` thành `release/VPHub_1.4.0_arm32.apk` (máy cũ). Bật `minifyEnabled` + `shrinkResources` cho release nếu build và test vẫn qua.
+- [x] Ghi kích thước APK cũ/mới vào PLAN (Nhật ký).
+- [x] `release/CHANGELOG.md`: thay đổi 1.4.0 viết cho người dùng (tiếng Anh, ngắn).
+- [x] `tools/make_kit.py`: thêm `COPY_STYLE.md`, `LICENSES.md`, APK mới.
 
 ---
 
 ## H10. Cập nhật tài liệu và kết thúc
 
-- [ ] PROTOCOL v1.3 (`adv`), SPEC (§3, §4, §5, §11 mục mới), QUY_TAC_THIET_BI_MOI (§5 câu chữ trỏ sang `COPY_STYLE.md`, quy tắc `adv`, bảng nghiệm thu thêm dòng "Standard mode không thấy tham số kỹ thuật"), README (thư viện BLE mới, APK chia theo CPU).
-- [ ] `docs/TEST_ON_HW.md` → mục **"Cần thử cho 1.4"** (người dùng tự làm), ít nhất:
+- [x] PROTOCOL v1.3 (`adv`), SPEC (§3, §4, §5, §11 mục mới), QUY_TAC_THIET_BI_MOI (§5 câu chữ trỏ sang `COPY_STYLE.md`, quy tắc `adv`, bảng nghiệm thu thêm dòng "Standard mode không thấy tham số kỹ thuật"), README (thư viện BLE mới, APK chia theo CPU).
+- [x] `docs/TEST_ON_HW.md` → mục **"Cần thử cho 1.4"** (người dùng tự làm), ít nhất:
   - Kết nối, đọc, ghi trên `vph_demo`, relay C3 (firmware cũ), lò nung (firmware cũ) bằng thư viện BLE mới.
   - Lưu màn batch có lệnh 300–500 byte (5 khung giờ đổi hết một lần).
   - Mở app khi thiết bị đã nhớ đang tắt: phải ở lại màn Quét, không treo.
@@ -222,8 +222,42 @@ Màn `SettingsScreen`:
   - Standard / Technician: màn Modbus, PID ẩn/hiện đúng; PIN đúng/sai.
   - Icon trên launcher, màn khởi động ở chế độ sáng và tối.
   - Điện thoại Android 11 trở xuống: tắt Location rồi quét.
-- [ ] Báo cáo cuối đợt (tiếng Việt): đã làm gì, file nào, kết quả test, kích thước APK, license các gói, việc người dùng cần thử.
+- [x] Báo cáo cuối đợt (tiếng Việt): đã làm gì, file nào, kết quả test, kích thước APK, license các gói, việc người dùng cần thử.
 
 ---
 
+## Nhật ký
+
+**2026-10-09 — làm xong H1 → H10.** Mỗi phase một commit `hN: ...`, `flutter analyze` sạch, `flutter test` qua (100 test lúc bắt đầu → 142 test).
+
+| Phase | Kết quả chính |
+|---|---|
+| H1 | `universal_ble` 2.3.0 (BSD-3) thay `flutter_blue_plus`; `UbGattLink`, `DeviceScanner`; `docs/LICENSES.md`; mục Open-source licenses |
+| H2 | `AppSettings` (Standard / Technician, PIN), khóa `adv` (PROTOCOL v1.3, `vph_ble` 1.2.0, `vph_demo` 1.3.0), màn Settings, Drawer chỉ còn điều hướng |
+| H3 | `docs/COPY_STYLE.md`; viết lại toàn bộ chữ của app, schema lưu sẵn, bảng lỗi relay C3, chuỗi lỗi `vph_ble` sang tiếng Anh |
+| H4 | Flutter gen-l10n (`app_en.arb` gốc, `app_vi.arb`), bỏ `Lang.code`; lõi trả `AppError` thay vì chuỗi |
+| H5 | Mở app quét 4 s rồi mới tự kết nối; onboarding; thẻ Location (Android 6–11); kéo để quét lại; Rename / Remove |
+| H6 | Bảng lỗi + nút Details (Technician); nhật ký chẩn đoán 500 dòng / 256 KB; Export diagnostics log |
+| H7 | `lastValuesAt`, dòng `updated N s ago` / `No new data`; biểu đồ chạm xem giá trị; lịch sử biểu đồ theo thiết bị |
+| H8 | Nút ← bên trái, ≡ bên phải; rung nhẹ; vòng chờ trên nút; nút xác nhận đỏ; `_syncTabs()` ra khỏi `build()` |
+| H9 | Icon thích ứng 3 lớp, màn khởi động, APK chia theo CPU + thu gọn mã, `CHANGELOG.md`, `make_kit.py` |
+| H10 | PROTOCOL v1.3, SPEC §11 mục 49–63, QUY_TAC, README, TEST_ON_HW mục "Cần thử cho 1.4" |
+
+**Kích thước APK**
+
+| Bản | File | Kích thước |
+|---|---|---|
+| 1.3.0 | `VPHub_1.3.0.apk` (một file cho mọi CPU) | 54,6 MB |
+| 1.4.0 | `VPHub_1.4.0_arm64.apk` (bản chính) | **20,8 MB** |
+| 1.4.0 | `VPHub_1.4.0_arm32.apk` (máy cũ) | 18,5 MB |
+
+Nhỏ đi khoảng 62% nhờ chia theo CPU, thu gọn mã (R8) và bỏ tài nguyên không dùng. Bộ quy chuẩn `VPH_KIT_1.4.0.zip`: 19,4 MB.
+
+**License**: mọi gói trong `pubspec.lock` là BSD / MIT / Apache, trừ `bluez` và `dbus` (MPL-2.0, chỉ dùng cho Linux desktop, đã có sẵn từ bản 1.3, không phải gói mới thêm) — ghi đỏ trong `docs/LICENSES.md`. Gói thêm trong đợt này: `universal_ble`, `wakelock_plus`, `path_provider`, `share_plus`, `intl`, `flutter_localizations` (BSD-3); `flutter_native_splash` (MIT, chỉ lúc phát triển).
+
+**Chưa làm được / cần người dùng**
+
+- Không có điện thoại cắm vào máy lúc làm (`adb devices` trống) nên **chưa cài và chưa chạy bản 1.4.0 trên máy thật**, chưa thử BLE với thư viện mới, chưa thử bản đã thu gọn mã. Danh sách việc cần thử: `docs/TEST_ON_HW.md` → "Cần thử cho 1.4".
+- Firmware `test_app` và `vph_demo` 1.3.0 chỉ mới build, chưa nạp.
+- Chưa đẩy lên GitHub và chưa tạo bản phát hành (chờ thử xong trên máy thật).
 

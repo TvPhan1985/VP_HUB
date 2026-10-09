@@ -29,7 +29,7 @@ Quyền Android: `BLUETOOTH_SCAN` (`neverForLocation`), `BLUETOOTH_CONNECT`; And
 ```
 lib/
   main.dart, app.dart
-  l10n/strings.dart
+  l10n/app_en.arb, app_vi.arb, l10n.dart   # bản 1.4: gen-l10n (§11.56)
   core/
     model/        vph_info.dart, vph_schema.dart (Screen, Field, Repeat, Cond), vph_value.dart
     transport/
@@ -38,6 +38,8 @@ lib/
       legacy_c3relay.dart     # adapter L1
       legacy_kiln.dart        # adapter L2
       transport_registry.dart # UUID dịch vụ → transport
+    app_settings.dart         # bản 1.4: theme, ngôn ngữ, Standard/Technician, PIN (§11.50)
+    errors.dart, diag_log.dart  # bản 1.4: AppError, nhật ký chẩn đoán (§11.58-59)
     device_session.dart       # ChangeNotifier: info, screens, values, lịch sử trend, gửi lệnh, tự kết nối lại
     cond.dart                 # đánh giá if/en
     schema_cache.dart
@@ -71,6 +73,8 @@ Thêm giao thức cũ khác trong tương lai = thêm 1 class transport. **UI kh
 
 ## 3. Màn hình Quét
 
+> Bản 1.4: xem §11 mục 49 (bộ quét), 54 (thẻ theo chế độ), 57 (mở app, onboarding, Location, kéo để quét lại). Phần dưới là mô tả gốc; chỗ nào khác thì theo §11.
+
 - Quét 10 s, lọc theo UUID dịch vụ: VPH + 2 UUID cũ.
 - Danh sách: biểu tượng (`icon` hoặc theo loại adapter), tên, RSSI, nhãn nhỏ "VPH" / "Đời cũ".
 - Trên cùng: **Thiết bị đã dùng** (nhớ tối đa 20), bấm là kết nối; có nút xóa khỏi danh sách.
@@ -78,6 +82,8 @@ Thêm giao thức cũ khác trong tương lai = thêm 1 class transport. **UI kh
 - Bluetooth tắt / thiếu quyền → hướng dẫn bằng tiếng Việt và nút mở cài đặt.
 
 ## 4. Màn hình Thiết bị (vẽ hoàn toàn từ schema)
+
+> Bản 1.4: xem §11 mục 50–53 (Standard / Technician, khóa `adv`, màn Settings, Drawer), 55 (câu chữ, hộp xác nhận), 58 (báo lỗi), 60–61 (độ mới số liệu, biểu đồ), 62 (nút ←, rung, vòng chờ). Phần dưới là mô tả gốc; chỗ nào khác thì theo §11.
 
 - **AppBar**: tên thiết bị, dòng phụ trạng thái kết nối ("Đã kết nối" xanh / "Đang kết nối lại…" vàng / "Mất kết nối" đỏ), menu (Thông tin thiết bị, Ngắt kết nối, Đọc lại schema).
 - **Điều hướng** (v1.1): `TabBar` **ở trên** (dưới tên thiết bị), mỗi tab có icon + chữ; icon lấy từ `ic` của màn (không có thì theo vị trí: dashboard / schedule / tune / info / settings). Từ 4 màn trở lên thì thanh tab cuộn ngang. Người dùng yêu cầu để ở trên (2026-10-07), không dùng `NavigationBar` dưới đáy như bản nháp PLAN_GIAO_DIEN §4.2.
@@ -95,6 +101,9 @@ Thêm giao thức cũ khác trong tương lai = thêm 1 class transport. **UI kh
 - Kiểu/gợi ý chưa biết → hiện chữ chỉ đọc `id: giá trị`. **Không bao giờ crash vì schema lạ** (bọc parse trong try, lỗi schema hiện thành thẻ cảnh báo).
 
 ## 5. Thông tin thiết bị
+
+> Bản 1.4: màn tên là **Device info**; Standard chỉ có Name, Model, Firmware, Hardware, Signal, Status — phần còn lại chỉ ở Technician (§11.54).
+
 Bảng INFO (model, fw, hw, pv, giao thức thật: VPH / adapter nào), MTU đã thương lượng, kích thước gói VALUES lớn nhất đã nhận (để dò vi phạm §8 của PROTOCOL).
 
 ## 6. Chế độ thử (Demo)
@@ -238,3 +247,4 @@ Các mục dưới đây thay cho mô tả cũ ở §1, §3, §4, §5 và mục 
     - Trong lúc chờ RESULT, vòng chờ nhỏ hiện **ngay trên nút vừa bấm** (nút ON hoặc OFF của `btns`, nút lệnh), không chỉ ở đầu hàng.
     - Nút xác nhận của hộp hỏi lại màu đỏ khi hành động là dừng / khởi động lại / xóa. App nhận ra từ schema, không theo model: nút lệnh có id `_reboot` hoặc icon `stop` / `reset`. Các hộp của app (Remove PIN, Clear saved interfaces, Disconnect) cũng dùng nút đỏ.
     - `_syncTabs()` không còn tạo `TabController` trong `build()`: tính lại trong listener của session và `didChangeDependencies` (đổi chế độ Technician), controller cũ được hủy sau khung hình.
+63. **Đóng gói 1.4.0** (`1.4.0+6`): icon thích ứng (`flutter_launcher_icons`: nền `#0F172A`, lớp hình hub trong vùng an toàn, lớp một màu cho themed icon của Android 13) — `assets/icon/generate_icon.py` sinh `icon.png`, `icon_bg.png`, `icon_fg.png`, `icon_mono.png` và 2 ảnh màn khởi động. Vì `flutter_launcher_icons` tự thu lớp hình còn 68% (inset 16%), lớp hình được vẽ chiếm 86% ảnh để phần nhìn thấy khoảng 58% khung icon. Màn khởi động bằng `flutter_native_splash` 2.4.8 (MIT, chỉ dùng lúc phát triển): nền `#0F172A` ở cả chế độ sáng và tối, logo giữa, Android 12+ dùng API splash của hệ thống. Build `flutter build apk --release --split-per-abi`, bật `isMinifyEnabled` + `isShrinkResources`; phát hành `release/VPHub_1.4.0_arm64.apk` (bản chính) và `VPHub_1.4.0_arm32.apk` (máy cũ), cùng khóa ký với 1.3.0. Việc thu gọn mã (R8) **chưa được chạy thử trên máy thật** — có trong `TEST_ON_HW.md` mục E.
