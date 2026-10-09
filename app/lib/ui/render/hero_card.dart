@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/model/vph_value.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import '../vp_widgets.dart';
 import 'field_widget.dart';
@@ -51,7 +52,7 @@ class HeroCard extends StatelessWidget {
                     child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
                   ),
                 StatusChip(
-                  text: boolText(f, state),
+                  text: boolText(context.l, f, state),
                   kind: on ? (warn ? ChipKind.stop : ChipKind.ok) : ChipKind.idle,
                 ),
                 if (!btns && !f.readOnly)

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 
 String _hm(DateTime t) => '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
@@ -21,7 +21,7 @@ class TrendChart extends StatelessWidget {
     if (points.length < 2) {
       return SizedBox(
         height: 60,
-        child: Center(child: Text(S.trendEmpty, style: theme.textTheme.bodySmall)),
+        child: Center(child: Text(context.l.trendEmpty, style: theme.textTheme.bodySmall)),
       );
     }
     final t0 = points.first.t;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'field_widget.dart';
 import 'icons.dart';
@@ -96,7 +96,7 @@ class _Tile extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
-                        displayValue(field, value),
+                        displayValue(context.l, field, value),
                         style: TextStyle(
                           fontSize: Vp.tileNumber,
                           fontWeight: FontWeight.w700,
@@ -113,7 +113,7 @@ class _Tile extends StatelessWidget {
                 top: 8,
                 right: 8,
                 child: Tooltip(
-                  message: S.showTrend,
+                  message: context.l.showTrend,
                   child: Icon(Icons.show_chart, size: 18, color: open ? cs.primary : Vp.idle(cs)),
                 ),
               ),
@@ -154,7 +154,7 @@ class MiniStrip extends StatelessWidget {
                         FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Text(
-                            displayValue(row[k], session.valueOf(screen, row[k].id)),
+                            displayValue(context.l, row[k], session.valueOf(screen, row[k].id)),
                             style: const TextStyle(fontSize: Vp.miniNumber, fontWeight: FontWeight.w700),
                           ),
                         ),

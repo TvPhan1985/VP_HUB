@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'field_widget.dart';
 import 'flags_field.dart' show activeFlags;
@@ -20,7 +21,7 @@ class AlarmCard extends StatelessWidget {
     final f = c.field;
     final cs = Theme.of(context).colorScheme;
     final unknown = c.value == null;
-    final flags = f.type == 'flags' ? activeFlags(f, c.value) : const <String>[];
+    final flags = f.type == 'flags' ? activeFlags(context.l, f, c.value) : const <String>[];
     final on = f.type == 'flags' ? flags.isNotEmpty : asBool(c.value) == true;
     final fg = on ? cs.onErrorContainer : null;
     final bullets = <String>[
@@ -50,7 +51,7 @@ class AlarmCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      on ? f.label : (unknown ? '${f.label}: ${S.noData}' : S.alarmNone),
+                      on ? f.label : (unknown ? '${f.label}: $kNoData' : context.l.alarmNone),
                       style: TextStyle(fontWeight: FontWeight.bold, color: fg),
                     ),
                   ),

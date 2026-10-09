@@ -16,8 +16,8 @@ class TransportStats {
 /// Giao dien chung cho moi giao thuc (VPH that, adapter doi cu, demo).
 /// UI chi lam viec voi lop nay, khong biet ben duoi la transport nao.
 abstract class DeviceTransport {
-  /// Ten giao thuc that, hien o man Thong tin
-  String get protoLabel;
+  /// Ma giao thuc that ('VPH v1', 'demo', 'kiln_v0', 'c3relay_v1'); UI doi sang chu o man Device info
+  String get protoId;
 
   /// true neu la adapter cho thiet bi doi cu
   bool get legacy;

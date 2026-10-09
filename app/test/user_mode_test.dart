@@ -4,15 +4,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vphub/core/app_settings.dart';
+import 'package:vphub/core/consts.dart';
 import 'package:vphub/core/device_session.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/core/transport/demo_transport.dart';
 import 'package:vphub/core/transport/legacy_kiln.dart';
-import 'package:vphub/l10n/strings.dart';
 import 'package:vphub/ui/screens/device_screen.dart';
 import 'package:vphub/ui/screens/settings_screen.dart';
-import 'package:vphub/ui/theme.dart';
 
+import 'helpers.dart';
 import 'kiln_schemas.dart';
 
 AppSettings _settings({bool tech = false, String? pin}) => AppSettings(MemoryStore()
@@ -65,10 +65,7 @@ Future<_Rig> _open(WidgetTester tester, String json, AppSettings st) async {
   final rig = _Rig();
   rig.session = DeviceSession(connector: () async => rig.demo = DemoTransport.fromJson(json, tick: null, seed: 7));
   await rig.session.connect();
-  await tester.pumpWidget(SettingsScope(
-    settings: st,
-    child: MaterialApp(theme: vpHubTheme(Brightness.light), home: DeviceScreen(session: rig.session)),
-  ));
+  await tester.pumpWidget(wrapApp(settings: st, home: DeviceScreen(session: rig.session)));
   await tester.pumpAndSettle();
   return rig;
 }
@@ -138,7 +135,7 @@ void main() {
     expect(_tab('Main'), findsOneWidget);
     expect(_tab('Limits'), findsOneWidget);
     expect(_tab('Tuning'), findsNothing);
-    expect(find.text(S.techChip), findsNothing);
+    expect(find.text(kTechChip), findsNothing);
     // Truong adv khong co hang rieng, nhung dong phu cua the hero va dieu kien if van dung gia tri cua no
     expect(find.text('Loop gain'), findsNothing);
     expect(find.text('Loop gain: 7'), findsOneWidget);
@@ -149,7 +146,7 @@ void main() {
   testWidgets('Technician: thay du, co chip TECH', (tester) async {
     final rig = await _open(tester, _json, _settings(tech: true));
     expect(_tab('Tuning'), findsOneWidget);
-    expect(find.text(S.techChip), findsOneWidget);
+    expect(find.text(kTechChip), findsOneWidget);
     expect(find.text('Loop gain'), findsOneWidget);
     await _close(tester, rig);
   });
@@ -165,7 +162,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(_tab('Tuning'), findsNothing);
     expect(find.text('Kp'), findsNothing);
-    expect(find.text(S.techChip), findsNothing);
+    expect(find.text(kTechChip), findsNothing);
     expect(rig.session.current, 0);
     expect(find.text('Pump'), findsOneWidget);
     // Bat lai: tab adv hien lai ngay
@@ -184,7 +181,7 @@ void main() {
     expect(find.text('Sensor offset'), findsNothing);
     await tester.tap(find.byIcon(Icons.add_circle_outline));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.save));
+    await tester.tap(find.text(l10n.save));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {
       'set': {'hi': 51},
@@ -204,9 +201,9 @@ void main() {
     await openDrawer();
     expect(inDrawer('Alarm settings'), findsOneWidget);
     expect(inDrawer('Sensor setup'), findsNothing);
-    expect(inDrawer(S.reloadInterface), findsNothing);
-    expect(inDrawer(S.deviceInfo), findsOneWidget);
-    expect(inDrawer(S.settings), findsOneWidget);
+    expect(inDrawer(l10n.reloadInterface), findsNothing);
+    expect(inDrawer(l10n.deviceInfo), findsOneWidget);
+    expect(inDrawer(l10n.settings), findsOneWidget);
     await tester.tap(inDrawer('Device'));
     await tester.pumpAndSettle();
     expect(find.text('Device name'), findsOneWidget);
@@ -218,7 +215,7 @@ void main() {
     rig = await _open(tester, src, _settings(tech: true));
     await openDrawer();
     expect(inDrawer('Sensor setup'), findsOneWidget);
-    expect(inDrawer(S.reloadInterface), findsOneWidget);
+    expect(inDrawer(l10n.reloadInterface), findsOneWidget);
     await tester.tap(inDrawer('Device'));
     await tester.pumpAndSettle();
     expect(find.text('Restart device'), findsOneWidget);
@@ -230,34 +227,31 @@ void main() {
   testWidgets('Settings: bat Technician co PIN - sai bao loi, dung thi bat; nhom Developer tools chi o Technician',
       (tester) async {
     final st = _settings(pin: '4821');
-    await tester.pumpWidget(SettingsScope(
-      settings: st,
-      child: MaterialApp(theme: vpHubTheme(Brightness.light), home: const SettingsScreen()),
-    ));
+    await tester.pumpWidget(wrapApp(settings: st, home: const SettingsScreen()));
     await tester.pumpAndSettle();
-    expect(find.text(S.secDeveloper), findsNothing);
-    expect(find.text(S.demoTitle), findsNothing);
-    await tester.tap(find.text(S.techMode));
+    expect(find.text(l10n.secDeveloper), findsNothing);
+    expect(find.text(l10n.demoTitle), findsNothing);
+    await tester.tap(find.text(l10n.techMode));
     await tester.pumpAndSettle();
-    expect(find.text(S.enterPin), findsWidgets);
+    expect(find.text(l10n.enterPin), findsWidgets);
     await tester.enterText(find.byType(TextField), '0000');
-    await tester.tap(find.text(S.turnOn));
+    await tester.tap(find.text(l10n.turnOn));
     await tester.pumpAndSettle();
-    expect(find.text(S.pinWrong), findsOneWidget);
+    expect(find.text(l10n.pinWrong), findsOneWidget);
     expect(st.technician, isFalse);
     await tester.enterText(find.byType(TextField), '4821');
-    await tester.tap(find.text(S.turnOn));
+    await tester.tap(find.text(l10n.turnOn));
     await tester.pumpAndSettle();
     expect(st.technician, isTrue);
-    expect(find.text(S.secDeveloper), findsOneWidget);
-    expect(find.text(S.demoTitle), findsOneWidget);
-    expect(find.text(S.clearCache), findsOneWidget);
-    expect(find.text(S.removePin), findsOneWidget);
+    expect(find.text(l10n.secDeveloper), findsOneWidget);
+    expect(find.text(l10n.demoTitle), findsOneWidget);
+    expect(find.text(l10n.clearCache), findsOneWidget);
+    expect(find.text(l10n.removePin), findsOneWidget);
     // Tat thi khong hoi PIN
-    await tester.tap(find.text(S.techMode));
+    await tester.tap(find.text(l10n.techMode));
     await tester.pumpAndSettle();
     expect(st.technician, isFalse);
-    expect(find.text(S.secDeveloper), findsNothing);
+    expect(find.text(l10n.secDeveloper), findsNothing);
   });
 
   test('lo nung: PID, canh bao lech, hieu chuan, tu do la man adv; van hanh va chuong trinh thi khong', () {

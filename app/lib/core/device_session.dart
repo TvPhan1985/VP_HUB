@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
-import '../l10n/strings.dart';
+import 'errors.dart';
 import 'model/vph_info.dart';
 import 'model/vph_schema.dart';
 import 'model/vph_value.dart';
@@ -19,11 +19,25 @@ class TrendPoint {
   const TrendPoint(this.t, this.v);
 }
 
-/// Thong bao mot lan cho nguoi dung (SnackBar)
+/// Loai thong bao thanh cong; UI doi sang chu theo ngon ngu dang chon
+enum MsgKind { saved, interfaceReloaded, commandSent, turnedOn, turnedOff, changedTo }
+
+/// Thong bao mot lan cho nguoi dung (SnackBar): thanh cong ([kind]) hoac loi ([error])
 class SessionMessage {
-  final bool ok;
-  final String text;
-  const SessionMessage(this.ok, this.text);
+  final MsgKind? kind;
+  final AppError? error;
+
+  /// Nhan cua truong lien quan
+  final String label;
+
+  /// Gia tri moi (chi voi changedTo)
+  final String value;
+  const SessionMessage.done(MsgKind this.kind, {this.label = '', this.value = ''}) : error = null;
+  const SessionMessage.failed(AppError this.error)
+      : kind = null,
+        label = '',
+        value = '';
+  bool get ok => error == null;
 }
 
 /// Mot phien lam viec voi mot thiet bi: info, schema, VALUES, lich su trend,
@@ -44,7 +58,7 @@ class DeviceSession extends ChangeNotifier {
   final Future<int?> Function()? rssiReader;
 
   LinkStatus status = LinkStatus.closed;
-  String? error;
+  AppError? error;
   VphInfo? info;
   List<VphScreen> screens = const [];
   Map<String, dynamic> values = {};
@@ -96,14 +110,12 @@ class DeviceSession extends ChangeNotifier {
     if (!_disposed) super.notifyListeners();
   }
 
-  void _say(bool ok, String text) {
-    if (!_messages.isClosed) _messages.add(SessionMessage(ok, text));
+  void _done(MsgKind kind, {String label = '', String value = ''}) {
+    if (!_messages.isClosed) _messages.add(SessionMessage.done(kind, label: label, value: value));
   }
 
-  static String _short(Object e) {
-    var s = e.toString();
-    if (s.startsWith('Exception: ')) s = s.substring(11);
-    return s.length > 160 ? '${s.substring(0, 160)}...' : s;
+  void _fail(AppError e) {
+    if (!_messages.isClosed) _messages.add(SessionMessage.failed(e));
   }
 
   // ---------- Ket noi ----------
@@ -149,7 +161,7 @@ class DeviceSession extends ChangeNotifier {
     } catch (e) {
       debugPrint('VPHUB Ket noi loi: $e');
       if (gen != _gen) return false;
-      error = _short(e);
+      error = AppError.from(e, fallback: ErrorKind.unreachable);
       await _teardown();
       status = LinkStatus.failed;
       notifyListeners();
@@ -250,7 +262,7 @@ class DeviceSession extends ChangeNotifier {
     try {
       await t.select(i);
     } catch (e) {
-      _say(false, S.errUnknown);
+      _fail(AppError.from(e));
     }
   }
 
@@ -275,7 +287,7 @@ class DeviceSession extends ChangeNotifier {
   Future<void> _sendLive(VphField f, dynamic v) async {
     final t = transport;
     if (t == null || !ready) {
-      _say(false, S.errNotConnected);
+      _fail(const AppError(ErrorKind.notConnected));
       return;
     }
     if (busy.contains(f.id)) return;
@@ -287,18 +299,18 @@ class DeviceSession extends ChangeNotifier {
     _pending.remove(f.id);
     if (r.ok) {
       if (f.type == 'act') {
-        _say(true, S.commandSent(f.label));
+        _done(MsgKind.commandSent, label: f.label);
       } else {
         values = {...values, f.id: v};
         if (f.type == 'bool') {
-          _say(true, asBool(v) == true ? S.turnedOn(f.label) : S.turnedOff(f.label));
+          _done(asBool(v) == true ? MsgKind.turnedOn : MsgKind.turnedOff, label: f.label);
         } else if (f.type == 'enum') {
-          _say(true, S.changedTo(f.label, f.optionLabel(v) ?? '$v'));
+          _done(MsgKind.changedTo, label: f.label, value: f.optionLabel(v) ?? '$v');
         }
       }
     } else {
       // Loi: bo gia tri tam, o tro ve gia tri thiet bi
-      _say(false, r.err ?? S.errRejected);
+      _fail(r.error ?? const AppError(ErrorKind.rejected));
     }
     notifyListeners();
   }
@@ -308,7 +320,7 @@ class DeviceSession extends ChangeNotifier {
     final t = transport;
     if (d == null || d.isEmpty) return true;
     if (t == null || !ready) {
-      _say(false, S.errNotConnected);
+      _fail(const AppError(ErrorKind.notConnected));
       return false;
     }
     if (saving) return false;
@@ -320,9 +332,9 @@ class DeviceSession extends ChangeNotifier {
     if (r.ok) {
       values = {...values, ...set};
       drafts.remove(screen);
-      _say(true, S.saved);
+      _done(MsgKind.saved);
     } else {
-      _say(false, r.err ?? S.errRejected);
+      _fail(r.error ?? const AppError(ErrorKind.rejected));
     }
     notifyListeners();
     return r.ok;
@@ -336,7 +348,7 @@ class DeviceSession extends ChangeNotifier {
   Future<void> reloadSchema() async {
     final t = transport;
     if (t == null || !ready) {
-      _say(false, S.errNotConnected);
+      _fail(const AppError(ErrorKind.notConnected));
       return;
     }
     try {
@@ -344,9 +356,9 @@ class DeviceSession extends ChangeNotifier {
       drafts.clear();
       if (current >= screens.length) current = 0;
       if (screens.isNotEmpty) await t.select(current);
-      _say(true, S.interfaceReloaded);
+      _done(MsgKind.interfaceReloaded);
     } catch (e) {
-      _say(false, _short(e));
+      _fail(AppError.from(e));
     }
     notifyListeners();
   }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vphub/l10n/strings.dart';
+import 'package:vphub/core/errors.dart';
 import 'package:vphub/core/model/vph_schema.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/core/transport/legacy_kiln.dart';
@@ -176,7 +176,7 @@ void main() {
       await t.select(0);
       final r = await t.write('running', true);
       expect(r.ok, isFalse);
-      expect(r.err, S.errNotAccepted);
+      expect(r.error!.kind, ErrorKind.notAccepted);
     });
 
     test('nut lenh va truong tu nha khong can xac nhan', () async {

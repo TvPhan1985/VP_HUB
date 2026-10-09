@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/device_session.dart';
 import '../../core/model/vph_value.dart';
+import '../../l10n/l10n.dart';
 import 'field_widget.dart' show LedDot;
 import 'flags_field.dart' show activeFlags;
 import 'num_field.dart' show numText;
@@ -43,7 +44,7 @@ class HeaderBar extends StatelessWidget {
       switch (type) {
         case 'flags':
           if (f == null || v == null) break;
-          final active = activeFlags(f, v);
+          final active = activeFlags(context.l, f, v);
           if (active.isEmpty) break;
           items.add(chip(
             Row(mainAxisSize: MainAxisSize.min, children: [
@@ -75,7 +76,7 @@ class HeaderBar extends StatelessWidget {
             color: warn ? cs.errorContainer : null,
           ));
         case 'num':
-          items.add(chip(pair(f == null ? (v == null ? '--' : fmtNum(asNum(v) ?? 0)) : numText(f, v))));
+          items.add(chip(pair(f == null ? (v == null ? '--' : fmtNum(asNum(v) ?? 0)) : numText(context.l, f, v))));
         case 'enum':
           items.add(chip(pair(f?.optionLabel(v) ?? '${v ?? '--'}')));
         default:

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
 import 'field_widget.dart';
 import 'icons.dart';
 
@@ -22,7 +22,7 @@ class EnumField extends StatelessWidget {
         busy: c.busy,
         draft: c.draft,
         trailing: Text(
-          f.optionLabel(c.value) ?? cur ?? S.noData,
+          f.optionLabel(c.value) ?? cur ?? kNoData,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       );
@@ -74,7 +74,7 @@ class EnumField extends StatelessWidget {
       draft: c.draft,
       trailing: DropdownButton<String>(
         value: known ? cur : null,
-        hint: Text(cur ?? S.noData),
+        hint: Text(cur ?? kNoData),
         underline: const SizedBox.shrink(),
         items: [for (final o in f.options) DropdownMenuItem(value: '${o.value}', child: Text(o.label))],
         onChanged: can

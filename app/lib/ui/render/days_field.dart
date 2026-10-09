@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 import 'field_widget.dart';
 
 /// days: bitmask 0..127, bit0 = Thu 2 ... bit6 = Chu nhat -> 7 nut T2..CN
@@ -36,7 +36,7 @@ class DaysField extends StatelessWidget {
                         height: 36,
                         alignment: Alignment.center,
                         child: Text(
-                          S.dayLabels[i],
+                          dayLabels(context.l)[i],
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: mask & (1 << i) != 0 ? cs.onPrimary : cs.onSurfaceVariant,

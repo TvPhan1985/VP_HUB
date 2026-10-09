@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import 'field_widget.dart';
 
 /// text: chu chi doc (trang thai, thong bao)
@@ -11,7 +12,7 @@ class TextRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final v = c.value;
-    final s = v == null || (v is String && v.isEmpty) ? S.noData : '$v';
+    final s = v == null || (v is String && v.isEmpty) ? kNoData : '$v';
     final style = Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600);
     // Chu dai thi xuong dong duoi nhan
     if (s.length > 18) {
@@ -38,9 +39,9 @@ class StrField extends StatelessWidget {
           void submit() {
             final s = ctl.text.trim();
             if (s.isEmpty) {
-              setState(() => err = S.notEmpty);
+              setState(() => err = context.l.notEmpty);
             } else if (max != null && s.length > max) {
-              setState(() => err = S.maxLen(max));
+              setState(() => err = context.l.maxLen(max));
             } else {
               Navigator.pop(ctx, s);
             }
@@ -56,8 +57,8 @@ class StrField extends StatelessWidget {
               onSubmitted: (_) => submit(),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
-              FilledButton(onPressed: submit, child: Text(S.apply)),
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l.cancel)),
+              FilledButton(onPressed: submit, child: Text(context.l.apply)),
             ],
           );
         },
@@ -70,7 +71,7 @@ class StrField extends StatelessWidget {
     final s = c.value == null ? '' : '${c.value}';
     final style = Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600);
     if (c.field.readOnly) {
-      return FieldRow(label: c.field.label, trailing: Text(s.isEmpty ? S.noData : s, style: style));
+      return FieldRow(label: c.field.label, trailing: Text(s.isEmpty ? kNoData : s, style: style));
     }
     return FieldRow(
       label: c.field.label,
@@ -78,7 +79,7 @@ class StrField extends StatelessWidget {
       draft: c.draft,
       trailing: TextButton.icon(
         icon: const Icon(Icons.edit, size: 18),
-        label: Text(s.isEmpty ? S.noData : s, style: style),
+        label: Text(s.isEmpty ? kNoData : s, style: style),
         onPressed: c.editable && !c.busy
             ? () async {
                 final nv = await _ask(context, s);

@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../l10n/strings.dart';
+import '../errors.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';
@@ -12,8 +12,9 @@ import 'transport.dart';
 import 'uuids.dart';
 
 const int kC3Slots = 5;
-/// Schema luu san cua relay C3, theo ngon ngu dang dung
-String c3SchemaAsset() => Lang.isVi ? 'assets/legacy/c3relay_v1.vi.json' : 'assets/legacy/c3relay_v1.json';
+/// Schema luu san cua relay C3 theo ngon ngu ('en' | 'vi')
+String c3SchemaAsset([String lang = 'en']) =>
+    lang == 'vi' ? 'assets/legacy/c3relay_v1.vi.json' : 'assets/legacy/c3relay_v1.json';
 
 /// Ban tieng Viet cua cac loi kiem tra CONFIG (c3BuildConfig tra loi tieng Anh, viet theo docs/COPY_STYLE.md)
 const Map<String, String> _c3ErrVi = {
@@ -42,7 +43,7 @@ const Map<String, String> _c3ErrVi = {
   'Remove " and \\ from the name.': 'Hãy bỏ ký tự " và \\ khỏi tên.',
 };
 
-String? c3ErrText(String? err) => Lang.isVi ? (_c3ErrVi[err] ?? err) : err;
+String c3ErrText(String err, [String lang = 'en']) => lang == 'vi' ? (_c3ErrVi[err] ?? err) : err;
 
 final RegExp _hhmm = RegExp(r'^([01]\d|2[0-3]):[0-5]\d$');
 final RegExp _ymd = RegExp(r'^\d{4}-\d{2}-\d{2}$');
@@ -244,6 +245,9 @@ class C3RelayTransport implements DeviceTransport {
   static const int maxConfig = 500;
 
   final GattLink link;
+
+  /// Ngon ngu cua schema luu san va cau loi kiem tra ('en' | 'vi'), lay luc ket noi
+  final String lang;
   final Future<String> Function() _loadSchema;
   final int Function() _epochNow;
   final Duration resultTimeout;
@@ -256,14 +260,15 @@ class C3RelayTransport implements DeviceTransport {
   final TransportStats stats = TransportStats();
 
   C3RelayTransport(this.link,
-      {Future<String> Function()? loadSchema,
+      {this.lang = 'en',
+      Future<String> Function()? loadSchema,
       int Function()? epochNow,
       this.resultTimeout = const Duration(seconds: 3)})
-      : _loadSchema = loadSchema ?? (() => rootBundle.loadString(c3SchemaAsset())),
+      : _loadSchema = loadSchema ?? (() => rootBundle.loadString(c3SchemaAsset(lang))),
         _epochNow = epochNow ?? (() => DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
   @override
-  String get protoLabel => S.protoC3;
+  String get protoId => 'c3relay_v1';
 
   @override
   bool get legacy => true;
@@ -332,7 +337,9 @@ class C3RelayTransport implements DeviceTransport {
     try {
       final j = jsonDecode(utf8.decode(data)) as Map;
       final ok = j['ok'] == true || j['ok'] == 1;
-      p.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.errRejected));
+      p.complete(ok
+          ? const VphResult.ok()
+          : VphResult.fail(j['err'] is String ? AppError.device(j['err'] as String) : const AppError(ErrorKind.rejected)));
     } catch (_) {}
   }
 
@@ -354,9 +361,9 @@ class C3RelayTransport implements DeviceTransport {
           await link.write(chr, utf8.encode(jsonEncode(body)));
           return await c.future.timeout(resultTimeout);
         } on TimeoutException {
-          return VphResult.fail(S.errNoResponse);
+          return const VphResult.fail(AppError(ErrorKind.noResponse));
         } catch (e) {
-          return VphResult.fail(S.errUnknown);
+          return VphResult.fail(AppError.from(e));
         } finally {
           _pending = null;
         }
@@ -377,9 +384,10 @@ class C3RelayTransport implements DeviceTransport {
   @override
   Future<VphResult> writeBatch(Map<String, dynamic> set) async {
     final b = c3BuildConfig(set, _cfgFlat);
-    if (b.json == null) return VphResult.fail(c3ErrText(b.err));
+    // Adapter dong vai thiet bi: cau loi kiem tra hien nguyen van nhu `err` cua thiet bi
+    if (b.json == null) return VphResult.fail(AppError.device(c3ErrText(b.err!, lang)));
     final len = utf8.encode(jsonEncode(b.json)).length;
-    if (len > maxConfig) return VphResult.fail(S.errTooLong);
+    if (len > maxConfig) return VphResult.fail(AppError(ErrorKind.tooLong, 'CONFIG $len byte, max $maxConfig'));
     final r = await _writeAndWait(kC3Config, b.json!);
     if (r.ok) await _readConfig();
     return r;
@@ -388,7 +396,7 @@ class C3RelayTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     final p = _pending;
-    if (p != null && !p.isCompleted) p.complete(VphResult.fail(S.disconnected));
+    if (p != null && !p.isCompleted) p.complete(const VphResult.fail(AppError(ErrorKind.notConnected)));
     await link.disconnect();
     await _values.close();
   }

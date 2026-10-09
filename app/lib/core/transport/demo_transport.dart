@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
-import '../../l10n/strings.dart';
+import '../errors.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';
@@ -29,15 +29,15 @@ class DemoTransport implements DeviceTransport {
 
   DemoTransport._(this._info, this._screens, this._state, this.tick, int? seed) : _rnd = Random(seed);
 
-  /// Nem FormatException (thong bao tieng Viet) neu file sai dinh dang
+  /// Nem AppError(fileFormat) neu file sai dinh dang
   factory DemoTransport.fromJson(String src, {Duration? tick = const Duration(seconds: 1), int? seed}) {
     dynamic j;
     try {
       j = jsonDecode(src);
     } catch (e) {
-      throw FormatException(S.errFileFormat);
+      throw AppError(ErrorKind.fileFormat, '$e');
     }
-    if (j is! Map || j['screens'] is! List) throw FormatException(S.errFileFormat);
+    if (j is! Map || j['screens'] is! List) throw const AppError(ErrorKind.fileFormat, 'thieu mang "screens"');
     final rawScreens = j['screens'] as List;
     final screens = [for (var i = 0; i < rawScreens.length; i++) VphScreen.tryFromMap(rawScreens[i], index: i)];
     final infoJson = <String, dynamic>{
@@ -53,14 +53,14 @@ class DemoTransport implements DeviceTransport {
     try {
       info = VphInfo.fromJson(infoJson);
     } catch (e) {
-      throw FormatException(S.errFileFormat);
+      throw AppError(ErrorKind.fileFormat, '$e');
     }
     final values = j['values'] is Map ? Map<String, dynamic>.from(j['values'] as Map) : <String, dynamic>{};
     return DemoTransport._(info, screens, values, tick, seed);
   }
 
   @override
-  String get protoLabel => S.protoDemo;
+  String get protoId => 'demo';
 
   @override
   bool get legacy => false;

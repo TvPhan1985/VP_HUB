@@ -1,0 +1,366 @@
+{
+  "@@locale": "en",
+  "appTagline": "Monitor and control your devices",
+  "cancel": "Cancel",
+  "save": "Save",
+  "apply": "Apply",
+  "confirm": "Confirm",
+  "retry": "Try again",
+  "back": "Back",
+  "stay": "Keep editing",
+  "discard": "Discard",
+  "close": "Close",
+  "remove": "Remove",
+  "clear": "Clear",
+  "undo": "Undo",
+  "details": "Details",
+  "turnOn": "Turn on",
+  "rename": "Rename",
+  "errBluetoothOff": "Bluetooth is off. Turn it on to connect.",
+  "errPermission": "VP Hub needs Bluetooth access to connect.",
+  "errUnreachable": "Can't reach the device. Move closer and make sure it's powered on.",
+  "errUnsupported": "This device isn't supported by VP Hub.",
+  "errBadData": "The device sent invalid data. Restart the device and try again.",
+  "errNoResponse": "The device didn't respond. Try again.",
+  "errRejected": "The device rejected the change.",
+  "errTooLong": "Too many changes at once. Save fewer changes and try again.",
+  "errNotConnected": "Not connected. Wait for the device to reconnect.",
+  "errNotAccepted": "The device didn't accept the value. Check the value and try again.",
+  "errUnknown": "Something went wrong. Try again.",
+  "errFile": "Can't open the file. Choose a different file.",
+  "errFileFormat": "This file isn't a valid device file.",
+  "errScan": "Can't scan for devices. Make sure Bluetooth is on and try again.",
+  "errorDetails": "Error details",
+  "saved": "Saved",
+  "interfaceReloaded": "Interface reloaded",
+  "commandSent": "{label}: command sent",
+  "@commandSent": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "turnedOn": "{label} turned on",
+  "@turnedOn": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "turnedOff": "{label} turned off",
+  "@turnedOff": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "changedTo": "{label}: {value}",
+  "@changedTo": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "protoDemo": "Demo device (no hardware)",
+  "protoKiln": "Legacy kiln controller (kiln_v0 adapter)",
+  "protoC3": "Legacy C3 relay (c3relay_v1 adapter)",
+  "demoTitle": "Demo devices",
+  "demoHint": "Simulated devices for exploring the interface without hardware. Readings drift slightly every second and every command succeeds.",
+  "demoRelay": "Demo relay",
+  "demoRelaySub": "Overview, schedule with repeating slots, and settings screens in the menu.",
+  "demoAll": "All data types",
+  "demoAllSub": "Every type and display hint, show and enable conditions, and one unknown type.",
+  "openJson": "Open JSON file",
+  "openJsonSub": "Choose a device file from phone storage to preview the schema of a new device.",
+  "onboardBody": "VP Hub connects to your sensors and controllers over Bluetooth.",
+  "onboardWhy": "To find devices near you and connect to them, VP Hub needs Bluetooth access. It is never used to track your location.",
+  "onboardAllow": "Allow Bluetooth access",
+  "scan": "Scan",
+  "scanAgain": "Scan again",
+  "stopScan": "Stop",
+  "scanning": "Scanning…",
+  "noNewDevices": "No new devices nearby.",
+  "myDevices": "My devices",
+  "nearby": "Nearby",
+  "inRange": "In range",
+  "scanEmptyTitle": "No devices nearby",
+  "scanEmptyHint": "Turn on your device and keep the phone within a few meters.",
+  "tagLegacy": "Legacy",
+  "removeDevice": "Remove device",
+  "deviceRemoved": "Device removed",
+  "renameDevice": "Rename device",
+  "renameDeviceHint": "This name is used in VP Hub only.",
+  "deviceNameLabel": "Name",
+  "btOff": "Bluetooth is off. Turn it on to find devices.",
+  "btTurnOn": "Turn on Bluetooth",
+  "permMissing": "VP Hub needs Bluetooth access to find and connect to devices. Allow it in the app settings.",
+  "openSettings": "Open settings",
+  "locationOff": "Turn on Location to find Bluetooth devices.",
+  "openLocationSettings": "Open location settings",
+  "btOn": "Bluetooth is on",
+  "btOffShort": "Bluetooth is off",
+  "rssiDbm": "{r} dBm",
+  "@rssiDbm": {
+    "placeholders": {
+      "r": {
+        "type": "int"
+      }
+    }
+  },
+  "openMenu": "Open menu",
+  "secDevice": "This device",
+  "secApp": "App",
+  "deviceList": "Device list",
+  "settings": "Settings",
+  "helpAbout": "Help & about",
+  "secGeneral": "General",
+  "secAdvanced": "Advanced",
+  "secDeveloper": "Developer tools",
+  "secAbout": "About",
+  "theme": "Theme",
+  "themeSystem": "System default",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "language": "Language",
+  "autoConnect": "Auto-connect to last device",
+  "keepAwake": "Keep screen on while connected",
+  "techMode": "Technician mode",
+  "techModeSub": "Shows setup, calibration and diagnostic options.",
+  "setPin": "Set PIN",
+  "removePin": "Remove PIN",
+  "pinSub": "Ask for a 4-digit PIN before turning on Technician mode.",
+  "enterPin": "Enter PIN",
+  "newPin": "New PIN",
+  "confirmPin": "Confirm PIN",
+  "pinWrong": "Incorrect PIN. Try again.",
+  "pinFormat": "Enter 4 digits.",
+  "pinMismatch": "The PINs don't match.",
+  "removePinTitle": "Remove PIN?",
+  "removePinBody": "Technician mode will turn on without asking for a PIN.",
+  "pinSet": "PIN set",
+  "pinRemoved": "PIN removed",
+  "showAddr": "Show device addresses",
+  "exportLog": "Export diagnostics log",
+  "exportLogEmpty": "The diagnostics log is empty.",
+  "clearCache": "Clear saved interfaces",
+  "clearCacheTitle": "Clear saved interfaces?",
+  "clearCacheBody": "VP Hub will load each device interface again the next time you connect.",
+  "cacheCleared": "Saved interfaces cleared",
+  "versionLabel": "Version",
+  "licenses": "Open-source licenses",
+  "connecting": "Connecting…",
+  "connected": "Connected",
+  "reconnecting": "Reconnecting…",
+  "disconnected": "Disconnected",
+  "connectedUpdated": "Connected · updated {sec} s ago",
+  "@connectedUpdated": {
+    "placeholders": {
+      "sec": {
+        "type": "int"
+      }
+    }
+  },
+  "noNewData": "No new data for {sec} s",
+  "@noNewData": {
+    "placeholders": {
+      "sec": {
+        "type": "int"
+      }
+    }
+  },
+  "onCaps": "ON",
+  "offCaps": "OFF",
+  "alarmNone": "No active alarms",
+  "alarmsTitle": "Active alarms",
+  "alarmsTooltip": "Alarms",
+  "showTrend": "Show chart",
+  "durDH": "{d} d {h} h",
+  "@durDH": {
+    "placeholders": {
+      "d": {
+        "type": "String"
+      },
+      "h": {
+        "type": "String"
+      }
+    }
+  },
+  "durHM": "{h} h {m} min",
+  "@durHM": {
+    "placeholders": {
+      "h": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "durMS": "{m} min {s} s",
+  "@durMS": {
+    "placeholders": {
+      "m": {
+        "type": "String"
+      },
+      "s": {
+        "type": "String"
+      }
+    }
+  },
+  "loadingDevice": "Loading device…",
+  "connectFailed": "Can't connect",
+  "lostRetrying": "Connection lost. Reconnecting…",
+  "lostGiveUp": "Can't reconnect to the device.",
+  "deviceInfo": "Device info",
+  "disconnect": "Disconnect",
+  "disconnectTitle": "Disconnect from {name}?",
+  "@disconnectTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "disconnectBody": "Changes you haven't saved will be lost.",
+  "reloadInterface": "Reload interface",
+  "needUpdate": "This device needs a newer version of VP Hub.",
+  "noScreens": "This device has nothing to show. Update the device firmware or contact support.",
+  "screenError": "This screen can't be displayed. Update the device firmware or contact support.",
+  "unsavedTitle": "Save changes?",
+  "noLimit": "No limit",
+  "flagsNone": "Normal",
+  "flagN": "Alarm {n}",
+  "@flagN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "invalidNumber": "Enter a number.",
+  "rangeHint": "From {min} to {max}",
+  "@rangeHint": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "outOfRange": "Enter a value from {min} to {max}.",
+  "@outOfRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "atLeast": "Enter {min} or more.",
+  "@atLeast": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "atMost": "Enter {max} or less.",
+  "@atMost": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "maxLen": "Use up to {n} characters.",
+  "@maxLen": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "notEmpty": "This can't be empty.",
+  "notSet": "Not set",
+  "trendEmpty": "Collecting data…",
+  "dayMon": "Mo",
+  "dayTue": "Tu",
+  "dayWed": "We",
+  "dayThu": "Th",
+  "dayFri": "Fr",
+  "daySat": "Sa",
+  "daySun": "Su",
+  "infoName": "Name",
+  "infoModel": "Model",
+  "infoFw": "Firmware",
+  "infoHw": "Hardware",
+  "infoSignal": "Signal",
+  "infoStatus": "Status",
+  "signalExcellent": "Excellent",
+  "signalGood": "Good",
+  "signalFair": "Fair",
+  "signalWeak": "Weak",
+  "infoPv": "Protocol version",
+  "infoProto": "Protocol",
+  "infoScreens": "Screens",
+  "infoSch": "Schema ID",
+  "infoCaps": "Capabilities",
+  "infoSchemaSrc": "Schema source",
+  "fromCache": "Saved in app",
+  "fromDevice": "Read from device",
+  "infoMtu": "MTU",
+  "infoMaxValues": "Largest data packet",
+  "infoPackets": "Data packets received",
+  "infoBad": "Corrupted packets",
+  "infoAddr": "Address",
+  "valuesTooBig": "A data packet is larger than 240 bytes. The firmware must split the screen or use shorter field IDs (PROTOCOL §8).",
+  "badPacketsWarn": "Corrupted data packets were received. The data may be too long for the MTU.",
+  "bytesN": "{n} bytes",
+  "@bytesN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "about": "About",
+  "aboutBody": "VP Hub connects to your sensors and controllers over Bluetooth.",
+  "aboutProtocol": "Protocol VPH v1.3",
+  "aboutSupported": "Supported devices",
+  "aboutSupportedList": "• Devices made for VP Hub\n• ESP32-C3 relay controller\n• MAX31856 kiln controller",
+  "versionN": "Version {v}",
+  "@versionN": {
+    "placeholders": {
+      "v": {
+        "type": "String"
+      }
+    }
+  },
+  "unsavedBody": "{n, plural, =1{This screen has 1 change that isn't saved to the device.} other{This screen has {n} changes that aren't saved to the device.}}",
+  "@unsavedBody": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "batchChanges": "{n, plural, =1{1 unsaved change} other{{n} unsaved changes}}",
+  "@batchChanges": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  }
+}

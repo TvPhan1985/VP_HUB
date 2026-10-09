@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../../l10n/strings.dart';
+import '../errors.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';
@@ -37,7 +37,7 @@ class VphTransport implements DeviceTransport {
       : _epochNow = epochNow ?? (() => DateTime.now().millisecondsSinceEpoch ~/ 1000);
 
   @override
-  String get protoLabel => 'VPH v${_info?.pv ?? supportedPv}';
+  String get protoId => 'VPH v${_info?.pv ?? supportedPv}';
 
   @override
   bool get legacy => false;
@@ -55,7 +55,7 @@ class VphTransport implements DeviceTransport {
     try {
       _info = VphInfo.fromJson(jsonDecode(utf8.decode(raw)) as Map<String, dynamic>);
     } catch (e) {
-      throw Exception(S.errBadData);
+      throw AppError(ErrorKind.badData, 'INFO: $e');
     }
     return _info!;
   }
@@ -119,7 +119,9 @@ class VphTransport implements DeviceTransport {
       final c = q is num ? _pending.remove(q.toInt()) : null;
       if (c == null || c.isCompleted) return;
       final ok = j['ok'] == 1 || j['ok'] == true;
-      c.complete(ok ? const VphResult.ok() : VphResult.fail(j['err'] is String ? j['err'] as String : S.errRejected));
+      c.complete(ok
+          ? const VphResult.ok()
+          : VphResult.fail(j['err'] is String ? AppError.device(j['err'] as String) : const AppError(ErrorKind.rejected)));
     } catch (_) {}
   }
 
@@ -139,16 +141,18 @@ class VphTransport implements DeviceTransport {
     _q = _q >= 65535 ? 1 : _q + 1;
     final q = _q;
     final payload = utf8.encode(jsonEncode({'q': q, ...body}));
-    if (payload.length > maxWrite) return VphResult.fail(S.errTooLong);
+    if (payload.length > maxWrite) {
+      return VphResult.fail(AppError(ErrorKind.tooLong, 'WRITE ${payload.length} byte, max $maxWrite'));
+    }
     final c = Completer<VphResult>();
     _pending[q] = c;
     try {
       await link.write(kVphWrite, payload);
       return await c.future.timeout(resultTimeout);
     } on TimeoutException {
-      return VphResult.fail(S.errNoResponse);
+      return const VphResult.fail(AppError(ErrorKind.noResponse));
     } catch (e) {
-      return VphResult.fail(S.errUnknown);
+      return VphResult.fail(AppError.from(e));
     } finally {
       _pending.remove(q);
     }
@@ -157,7 +161,7 @@ class VphTransport implements DeviceTransport {
   @override
   Future<void> close() async {
     for (final c in _pending.values) {
-      if (!c.isCompleted) c.complete(VphResult.fail(S.disconnected));
+      if (!c.isCompleted) c.complete(const VphResult.fail(AppError(ErrorKind.notConnected)));
     }
     _pending.clear();
     await link.disconnect();

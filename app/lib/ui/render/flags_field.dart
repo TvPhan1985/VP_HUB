@@ -2,16 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'field_widget.dart';
 
 /// Nhan cua cac bit dang bat trong mot truong flags
-List<String> activeFlags(VphField f, dynamic value) {
+List<String> activeFlags(AppLocalizations l, VphField f, dynamic value) {
   final mask = (asNum(value) ?? 0).toInt();
   return [
     for (var i = 0; i < 31; i++)
-      if (mask & (1 << i) != 0) i < f.flagLabels.length ? f.flagLabels[i] : S.flagN(i + 1),
+      if (mask & (1 << i) != 0) i < f.flagLabels.length ? f.flagLabels[i] : l.flagN(i + 1),
   ];
 }
 
@@ -23,7 +24,7 @@ class FlagsField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final active = activeFlags(c.field, c.value);
+    final active = activeFlags(context.l, c.field, c.value);
     if (c.value == null || active.isEmpty) {
       return FieldRow(
         label: c.field.label,
@@ -33,7 +34,7 @@ class FlagsField extends StatelessWidget {
             Icon(c.value == null ? Icons.help_outline : Icons.check_circle,
                 color: c.value == null ? Vp.idle(cs) : Vp.ok(cs), size: 20),
             const SizedBox(width: 6),
-            Text(c.value == null ? S.noData : S.flagsNone),
+            Text(c.value == null ? kNoData : context.l.flagsNone),
           ],
         ),
       );

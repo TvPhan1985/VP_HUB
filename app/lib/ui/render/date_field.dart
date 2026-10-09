@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 import 'field_widget.dart';
 import 'num_field.dart' show NullSwitch;
 
 String _two(int v) => v.toString().padLeft(2, '0');
 String _ymd(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
+
+/// Ngay hien cho nguoi dung: `dd MMM yyyy` theo ngon ngu dang chon (docs/COPY_STYLE.md).
+/// Gia tri gui xuong thiet bi van la "YYYY-MM-DD".
+String dateText(BuildContext context, DateTime d) {
+  try {
+    return DateFormat('dd MMM yyyy', Localizations.localeOf(context).toLanguageTag()).format(d);
+  } catch (_) {
+    return _ymd(d);
+  }
+}
 
 /// date: "YYYY-MM-DD" hoac null (nul:1 thi co cong tac "Khong gioi han")
 class DateField extends StatelessWidget {
@@ -34,7 +45,9 @@ class DateField extends StatelessWidget {
       if (d != null) c.onChanged(_ymd(d));
     }
 
-    final text = s ?? (f.nullable ? S.noLimit : S.notSet);
+    final text = s == null
+        ? (f.nullable ? context.l.noLimit : context.l.notSet)
+        : (parsed == null ? s : dateText(context, parsed));
     return FieldRow(
       label: f.label,
       busy: c.busy,

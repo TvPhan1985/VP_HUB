@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 
 /// Thanh duoi cung cua man batch: "Co N thay doi — [Huy] [Luu]"
 class BatchBar extends StatelessWidget {
@@ -31,18 +31,18 @@ class BatchBar extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  S.batchChanges(count),
+                  context.l.batchChanges(count),
                   style: TextStyle(color: cs.onTertiaryContainer, fontWeight: FontWeight.w600),
                 ),
               ),
-              TextButton(onPressed: saving ? null : onCancel, child: Text(S.cancel)),
+              TextButton(onPressed: saving ? null : onCancel, child: Text(context.l.cancel)),
               const SizedBox(width: 8),
               FilledButton.icon(
                 onPressed: saving || !enabled ? null : onSave,
                 icon: saving
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.save, size: 18),
-                label: Text(S.save),
+                label: Text(context.l.save),
               ),
             ],
           ),

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import '../../l10n/strings.dart';
+import '../errors.dart';
 import '../model/vph_info.dart';
 import '../model/vph_schema.dart';
 import '../model/vph_value.dart';
@@ -77,7 +77,10 @@ const Map<String, String> _kilnVi = {
   'min': 'phút',
 };
 
-String _l(String en) => Lang.isVi ? (_kilnVi[en] ?? en) : en;
+/// Ham dich nhan theo ngon ngu cua schema ('en' | 'vi')
+typedef _Tr = String Function(String en);
+
+_Tr _trFor(String lang) => (en) => lang == 'vi' ? (_kilnVi[en] ?? en) : en;
 
 const Map<String, String> _kilnConfirm = {
   'running': 'Start firing the kiln?',
@@ -86,29 +89,30 @@ const Map<String, String> _kilnConfirm = {
   'autotune_apply': 'Apply the auto-tune result to PID?',
 };
 
-void _patchField(Map<String, dynamic> f) {
+void _patchField(Map<String, dynamic> f, _Tr l) {
   final id = f['id'];
-  if (_kilnLabels.containsKey(id)) f['label'] = _l(_kilnLabels[id]!);
-  if (_kilnConfirm.containsKey(id)) f['c'] = _l(_kilnConfirm[id]!);
-  if (f['unit'] == 'min') f['unit'] = _l('min');
+  if (_kilnLabels.containsKey(id)) f['label'] = l(_kilnLabels[id]!);
+  if (_kilnConfirm.containsKey(id)) f['c'] = l(_kilnConfirm[id]!);
+  if (f['unit'] == 'min') f['unit'] = l('min');
 }
 
 /// Va schema lo nung (LEGACY L2). Ham thuan, khong sua [raw].
-Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
+Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw, {String lang = 'en'}) {
+  final l = _trFor(lang);
   final s = jsonDecode(jsonEncode(raw)) as Map<String, dynamic>;
   final id = s['id'];
   s['save'] = 'live';
-  if (_kilnTitles.containsKey(id)) s['title'] = _l(_kilnTitles[id]!);
+  if (_kilnTitles.containsKey(id)) s['title'] = l(_kilnTitles[id]!);
   final fields = s['fields'] is List ? s['fields'] as List : (s['fields'] = <dynamic>[]);
   for (final f in fields) {
-    if (f is Map<String, dynamic>) _patchField(f);
+    if (f is Map<String, dynamic>) _patchField(f, l);
   }
   final rep = s['repeat'];
   if (rep is Map<String, dynamic>) {
-    rep['label'] = _l('Step');
+    rep['label'] = l('Step');
     if (rep['fields'] is List) {
       for (final f in rep['fields'] as List) {
-        if (f is Map<String, dynamic>) _patchField(f);
+        if (f is Map<String, dynamic>) _patchField(f, l);
       }
     }
   }
@@ -135,7 +139,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (f['id'] == 'running') {
         f['w'] = 'hero';
         f['ic'] = 'fire';
-        f['opt'] = [_l('Stopped'), _l('Firing')];
+        f['opt'] = [l('Stopped'), l('Firing')];
         f['sub'] = 'sv';
       }
     }
@@ -144,10 +148,10 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
       if (!has(f['id'] as String)) fields.add(f);
     }
 
-    add({'id': 'sensor_ok', 'label': _l('Sensor'), 'type': 'bool', 'readonly': true, 'w': 'led'});
+    add({'id': 'sensor_ok', 'label': l('Sensor'), 'type': 'bool', 'readonly': true, 'w': 'led'});
     add({
       'id': 'program_info',
-      'label': _l('Program'),
+      'label': l('Program'),
       'type': 'text',
       'readonly': true,
       'if': 'program_running==true',
@@ -155,7 +159,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     // Khoa an toan thanh the bao dong, gom ly do va nut xoa loi (cung nhom)
     add({
       'id': 'safety_latched',
-      'label': _l('Safety lock'),
+      'label': l('Safety lock'),
       'type': 'bool',
       'readonly': true,
       'w': 'alarm,led,warn',
@@ -163,7 +167,7 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_reason',
-      'label': _l('Lock reason'),
+      'label': l('Lock reason'),
       'type': 'text',
       'readonly': true,
       'if': 'safety_latched==true',
@@ -171,11 +175,11 @@ Map<String, dynamic> patchKilnSchema(Map<String, dynamic> raw) {
     });
     add({
       'id': 'safety_clear',
-      'label': _l('Clear fault'),
+      'label': l('Clear fault'),
       'type': 'act',
       'ic': 'reset',
       'if': 'safety_latched==true',
-      'c': _l('Clear the safety lock and allow the kiln to run again?'),
+      'c': l('Clear the safety lock and allow the kiln to run again?'),
       'g': 'safety',
     });
   }
@@ -196,6 +200,9 @@ class KilnTransport implements DeviceTransport {
   final GattLink link;
   final SchemaCache cache;
 
+  /// Ngon ngu cua nhan va cho schema ('en' | 'vi'), lay luc ket noi
+  final String lang;
+
   /// Thoi gian cho VALUES xac nhan gia tri vua ghi
   final Duration verifyTimeout;
   final Duration verifyPoll;
@@ -209,12 +216,13 @@ class KilnTransport implements DeviceTransport {
   final TransportStats stats = TransportStats();
 
   KilnTransport(this.link, this.cache,
-      {this.verifyTimeout = const Duration(seconds: 2), this.verifyPoll = const Duration(milliseconds: 250)});
+      {this.lang = 'en',
+      this.verifyTimeout = const Duration(seconds: 2), this.verifyPoll = const Duration(milliseconds: 250)});
 
   static const String _cacheKey = 'kiln31856/?';
 
   @override
-  String get protoLabel => S.protoKiln;
+  String get protoId => 'kiln_v0';
 
   @override
   bool get legacy => true;
@@ -259,7 +267,7 @@ class KilnTransport implements DeviceTransport {
       }
       out.add(s);
     }
-    if (out.isEmpty) throw Exception(S.errBadData);
+    if (out.isEmpty) throw const AppError(ErrorKind.badData, 'khong doc duoc man hinh nao');
     _rawSchemas = out;
     stats.schemaFromCache = false;
     await cache.put(_cacheKey, out);
@@ -274,9 +282,9 @@ class KilnTransport implements DeviceTransport {
     return _screens;
   }
 
-  static VphScreen _parse(String raw, int index) {
+  VphScreen _parse(String raw, int index) {
     try {
-      return VphScreen.fromJson(patchKilnSchema(jsonDecode(raw) as Map<String, dynamic>));
+      return VphScreen.fromJson(patchKilnSchema(jsonDecode(raw) as Map<String, dynamic>, lang: lang));
     } catch (e) {
       return VphScreen(id: 'screen$index', title: '#${index + 1}', error: '$e');
     }
@@ -336,16 +344,18 @@ class KilnTransport implements DeviceTransport {
         final f = _field(id);
         final json = encodeWrite(id, v, type: f?.type);
         final payload = utf8.encode(json);
-        if (payload.length > maxWrite) return VphResult.fail(S.errTooLong);
+        if (payload.length > maxWrite) {
+          return VphResult.fail(AppError(ErrorKind.tooLong, 'WRITE ${payload.length} byte, max $maxWrite'));
+        }
         try {
           await link.write(kKilnWrite, payload);
         } catch (e) {
-          return VphResult.fail(S.errUnknown);
+          return VphResult.fail(AppError.from(e));
         }
         if (f == null || f.type == 'act' || _momentary.contains(id)) return const VphResult.ok();
         final expected = f.type == 'bool' ? (asBool(v) ?? false) : v;
         final tol = f.type == 'num' ? ((f.step ?? 0.1) / 2 + 0.011).clamp(0.06, 1e9).toDouble() : 1e-6;
-        return await _verify(id, expected, tol) ? const VphResult.ok() : VphResult.fail(S.errNotAccepted);
+        return await _verify(id, expected, tol) ? const VphResult.ok() : const VphResult.fail(AppError(ErrorKind.notAccepted));
       });
 
   /// Khong co RESULT: xem VALUES trong 2 giay toi co dung gia tri vua ghi khong

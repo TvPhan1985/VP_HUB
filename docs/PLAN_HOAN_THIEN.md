@@ -140,11 +140,11 @@ Màn `SettingsScreen`:
 
 ## H4. Ngôn ngữ: tiếng Anh là chính
 
-- [ ] Chuyển `lib/l10n/strings.dart` sang **Flutter gen-l10n** (`flutter_localizations` + `intl`, file `lib/l10n/app_en.arb` là bản gốc, `app_vi.arb` là bản dịch). Bỏ biến toàn cục `Lang.code` và đoạn `markNeedsBuild` đi qua cả cây widget.
-- [ ] `MaterialApp`: `supportedLocales: [en, vi]`, `locale` theo cài đặt; mặc định **English** (không theo ngôn ngữ máy), người dùng chọn Tiếng Việt trong Settings.
-- [ ] Nhờ `flutter_localizations`, hộp chọn giờ/ngày, nút hệ thống, định dạng ngày theo đúng ngôn ngữ đang chọn.
-- [ ] Chữ của thiết bị VPH vẫn hiện nguyên văn (tiếng Anh theo quy chuẩn). Schema lưu sẵn trong app (relay C3, lò, demo) vẫn có 2 bản `.json`/`.vi.json`.
-- [ ] Test: mọi khóa có ở `app_en.arb` đều có ở `app_vi.arb`; không còn chuỗi hiển thị viết cứng trong `lib/ui` (test grep đơn giản hoặc lint).
+- [x] Chuyển `lib/l10n/strings.dart` sang **Flutter gen-l10n** (`flutter_localizations` + `intl`, file `lib/l10n/app_en.arb` là bản gốc, `app_vi.arb` là bản dịch). Bỏ biến toàn cục `Lang.code` và đoạn `markNeedsBuild` đi qua cả cây widget.
+- [x] `MaterialApp`: `supportedLocales: [en, vi]`, `locale` theo cài đặt; mặc định **English** (không theo ngôn ngữ máy), người dùng chọn Tiếng Việt trong Settings.
+- [x] Nhờ `flutter_localizations`, hộp chọn giờ/ngày, nút hệ thống, định dạng ngày theo đúng ngôn ngữ đang chọn.
+- [x] Chữ của thiết bị VPH vẫn hiện nguyên văn (tiếng Anh theo quy chuẩn). Schema lưu sẵn trong app (relay C3, lò, demo) vẫn có 2 bản `.json`/`.vi.json`.
+- [x] Test: mọi khóa có ở `app_en.arb` đều có ở `app_vi.arb`; không còn chuỗi hiển thị viết cứng trong `lib/ui` (test grep đơn giản hoặc lint).
 
 ---
 

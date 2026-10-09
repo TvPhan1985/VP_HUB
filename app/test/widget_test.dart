@@ -6,12 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vphub/core/app_settings.dart';
 import 'package:vphub/core/device_session.dart';
 import 'package:vphub/core/transport/demo_transport.dart';
-import 'package:vphub/l10n/strings.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/ui/render/header_bar.dart';
 import 'package:vphub/ui/screens/device_screen.dart';
 import 'package:vphub/ui/theme.dart';
 import 'package:vphub/ui/vp_widgets.dart';
+
+import 'helpers.dart';
 
 String _demo(String name) => File('assets/demo/$name').readAsStringSync();
 
@@ -35,13 +36,7 @@ Future<_Rig> _openJson(WidgetTester tester, String json, {AppSettings? settings}
     connector: () async => rig.demo = DemoTransport.fromJson(json, tick: null, seed: 7),
   );
   await rig.session.connect();
-  await tester.pumpWidget(SettingsScope(
-    settings: settings ?? _settings(),
-    child: MaterialApp(
-      theme: vpHubTheme(Brightness.light),
-      home: DeviceScreen(session: rig.session),
-    ),
-  ));
+  await tester.pumpWidget(wrapApp(settings: settings ?? _settings(), home: DeviceScreen(session: rig.session)));
   await tester.pumpAndSettle();
   return rig;
 }
@@ -137,7 +132,7 @@ void main() {
     // Goi y la: van ve theo kieu num
     expect(find.text('3.3 V'), findsOneWidget);
     await _goto(tester, rig.session.screens.last.title);
-    expect(find.text(S.screenError), findsOneWidget);
+    expect(find.text(l10n.screenError), findsOneWidget);
     expect(tester.takeException(), isNull);
     await _close(tester, rig);
   });
@@ -157,21 +152,21 @@ void main() {
   testWidgets('man live: nut BAT/TAT gui ngay; en khoa khi dieu kien sai', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
     expect(rig.session.values['out'], true);
-    expect(find.widgetWithText(StatusChip, S.onCaps), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, l10n.onCaps), findsOneWidget);
     expect(find.text('Mode: Manual'), findsOneWidget);
-    expect(tester.widget<FilledButton>(_button(S.onCaps)).onPressed, isNull, reason: 'dang bat thi nut BAT mo');
-    await tester.tap(_button(S.offCaps));
+    expect(tester.widget<FilledButton>(_button(l10n.onCaps)).onPressed, isNull, reason: 'dang bat thi nut BAT mo');
+    await tester.tap(_button(l10n.offCaps));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'out', 'v': false});
-    expect(find.widgetWithText(StatusChip, S.offCaps), findsOneWidget);
-    expect(find.text(S.turnedOff('Relay')), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, l10n.offCaps), findsOneWidget);
+    expect(find.text(l10n.turnedOff('Relay')), findsOneWidget);
     // Doi che do sang Tu dong -> ca hai nut bi khoa (en: mode==manual), hien dong giai thich
     expect(find.text('Manual switching is available in Manual mode only.'), findsNothing);
     await tester.tap(find.text('Auto'));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.last, {'id': 'mode', 'v': 'auto'});
-    expect(tester.widget<FilledButton>(_button(S.onCaps)).onPressed, isNull);
-    expect(tester.widget<FilledButton>(_button(S.offCaps)).onPressed, isNull);
+    expect(tester.widget<FilledButton>(_button(l10n.onCaps)).onPressed, isNull);
+    expect(tester.widget<FilledButton>(_button(l10n.offCaps)).onPressed, isNull);
     expect(find.text('Manual switching is available in Manual mode only.'), findsOneWidget);
     await _close(tester, rig);
   });
@@ -200,13 +195,13 @@ void main() {
 
   testWidgets('tile co trend: cham de mo va dong bieu do', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
-    expect(find.text(S.trendEmpty), findsNothing);
+    expect(find.text(l10n.trendEmpty), findsNothing);
     await tester.tap(find.text('Temperature'));
     await tester.pumpAndSettle();
-    expect(find.text(S.trendEmpty), findsOneWidget);
+    expect(find.text(l10n.trendEmpty), findsOneWidget);
     await tester.tap(find.text('Temperature'));
     await tester.pumpAndSettle();
-    expect(find.text(S.trendEmpty), findsNothing);
+    expect(find.text(l10n.trendEmpty), findsNothing);
     await _close(tester, rig);
   });
 
@@ -214,7 +209,7 @@ void main() {
     final rig = await _open(tester, 'demo_all_types.json');
     await _goto(tester, 'New Hints');
     expect(find.widgetWithText(StatusChip, 'Firing'), findsOneWidget);
-    expect(find.widgetWithText(StatusChip, S.offCaps), findsOneWidget);
+    expect(find.widgetWithText(StatusChip, l10n.offCaps), findsOneWidget);
     expect(find.text('Pump mode: Auto'), findsOneWidget);
     expect(find.text('Sensor disconnected'), findsOneWidget);
     // n_al = 3 -> 2 gach dau dong; n_lock = true -> ly do thanh gach dau dong
@@ -272,14 +267,14 @@ void main() {
     final n = rig.demo.writes.length;
     await tester.tap(find.byIcon(Icons.add_circle_outline).first);
     await tester.pumpAndSettle();
-    expect(find.text(S.batchChanges(1)), findsOneWidget);
+    expect(find.text(l10n.batchChanges(1)), findsOneWidget);
     // Con thay doi ma quay lai thi hoi
     await tester.pageBack();
     await tester.pumpAndSettle();
-    expect(find.text(S.unsavedTitle), findsOneWidget);
-    await tester.tap(find.text(S.stay));
+    expect(find.text(l10n.unsavedTitle), findsOneWidget);
+    await tester.tap(find.text(l10n.stay));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.save));
+    await tester.tap(find.text(l10n.save));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.length, n + 1);
     expect(rig.demo.writes.last, {
@@ -311,7 +306,7 @@ void main() {
     await tester.tap(find.text('Clear warnings'));
     await tester.pumpAndSettle();
     expect(find.text('Clear all warnings?'), findsOneWidget);
-    await tester.tap(find.text(S.cancel));
+    await tester.tap(find.text(l10n.cancel));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.length, n);
     await tester.tap(find.text('Clear warnings'));
@@ -335,15 +330,15 @@ void main() {
     await tester.tap(find.byType(Switch).at(1));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.length, n, reason: 'chua bam Luu thi chua gui gi');
-    expect(find.text(S.batchChanges(2)), findsOneWidget);
+    expect(find.text(l10n.batchChanges(2)), findsOneWidget);
     expect(find.text('72 %'), findsOneWidget);
-    await tester.tap(find.text(S.save));
+    await tester.tap(find.text(l10n.save));
     await tester.pumpAndSettle();
     expect(rig.demo.writes.length, n + 1);
     expect(rig.demo.writes.last, {
       'set': {'on_at': 72, 's2_en': true},
     });
-    expect(find.text(S.batchChanges(2)), findsNothing);
+    expect(find.text(l10n.batchChanges(2)), findsNothing);
     await _close(tester, rig);
   });
 
@@ -353,16 +348,16 @@ void main() {
     final n = rig.demo.writes.length;
     await tester.tap(find.byIcon(Icons.remove_circle_outline).first);
     await tester.pumpAndSettle();
-    expect(find.text(S.batchChanges(1)), findsOneWidget);
+    expect(find.text(l10n.batchChanges(1)), findsOneWidget);
     await _goto(tester, 'Overview');
-    expect(find.text(S.unsavedTitle), findsOneWidget);
-    await tester.tap(find.text(S.stay));
+    expect(find.text(l10n.unsavedTitle), findsOneWidget);
+    await tester.tap(find.text(l10n.stay));
     await tester.pumpAndSettle();
     expect(rig.session.draftCount(1), 1);
-    expect(find.text(S.batchChanges(1)), findsOneWidget);
+    expect(find.text(l10n.batchChanges(1)), findsOneWidget);
     expect(tester.widget<TabBar>(find.byType(TabBar)).controller!.index, 1);
     // Nut Huy tren thanh duoi
-    await tester.tap(find.text(S.cancel));
+    await tester.tap(find.text(l10n.cancel));
     await tester.pumpAndSettle();
     expect(rig.session.draftCount(1), 0);
     expect(rig.demo.writes.length, n);
@@ -392,8 +387,8 @@ void main() {
     Finder inDrawer(String t) => find.descendant(of: find.byType(Drawer), matching: find.text(t));
     // Khoi thong tin: ten thiet bi + trang thai ket noi
     expect(inDrawer('DEMO-RELAY'), findsOneWidget);
-    expect(inDrawer(S.connected), findsOneWidget);
-    for (final t in [S.secDevice, S.secApp, S.deviceList, 'Alarm settings', 'Sensor setup', 'Device', S.deviceInfo, S.reloadInterface, S.settings, S.helpAbout, S.disconnect]) {
+    expect(inDrawer(l10n.connected), findsOneWidget);
+    for (final t in [l10n.secDevice, l10n.secApp, l10n.deviceList, 'Alarm settings', 'Sensor setup', 'Device', l10n.deviceInfo, l10n.reloadInterface, l10n.settings, l10n.helpAbout, l10n.disconnect]) {
       expect(inDrawer(t), findsOneWidget, reason: t);
     }
     // Cham vung mo ben phai de dong menu
@@ -406,11 +401,11 @@ void main() {
   testWidgets('chuong thong bao hien so bao dong dang bat va danh sach bao dong', (tester) async {
     final rig = await _open(tester, 'demo_relay.json');
     // alarm = 2 -> 1 bao dong
-    expect(activeAlarms(rig.session), ['Clock not set']);
+    expect(activeAlarms(l10n, rig.session), ['Clock not set']);
     expect(find.descendant(of: find.byType(AppBar), matching: find.text('1')), findsOneWidget);
     await tester.tap(find.byIcon(Icons.notifications_active));
     await tester.pumpAndSettle();
-    expect(find.text(S.alarmsTitle), findsOneWidget);
+    expect(find.text(l10n.alarmsTitle), findsOneWidget);
     await tester.tapAt(const Offset(10, 10));
     await tester.pumpAndSettle();
     await _close(tester, rig);
@@ -425,26 +420,15 @@ void main() {
       connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
     );
     await rig.session.connect();
-    await tester.pumpWidget(SettingsScope(
-      settings: ctl,
-      child: ListenableBuilder(
-        listenable: ctl,
-        builder: (context, _) => MaterialApp(
-          theme: vpHubTheme(Brightness.light),
-          darkTheme: vpHubTheme(Brightness.dark),
-          themeMode: ctl.mode,
-          home: DeviceScreen(session: rig.session),
-        ),
-      ),
-    ));
+    await tester.pumpWidget(wrapApp(settings: ctl, home: DeviceScreen(session: rig.session)));
     await tester.pumpAndSettle();
     await tester.tap(find.byIcon(Icons.menu));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.settings));
+    await tester.tap(find.text(l10n.settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.theme));
+    await tester.tap(find.text(l10n.theme));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(S.themeDark));
+    await tester.tap(find.text(l10n.themeDark));
     await tester.pumpAndSettle();
     expect(ctl.mode, ThemeMode.dark);
     expect(store.getString('theme'), 'dark');
@@ -484,22 +468,18 @@ void main() {
   });
 
   testWidgets('Settings > Language: doi Anh -> Viet ap dung ngay ca man dang mo va luu lai', (tester) async {
-    addTearDown(() => Lang.code = Lang.en);
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(900, 5000);
     addTearDown(tester.view.reset);
     final store = MemoryStore();
     final ctl = AppSettings(store);
-    expect(ctl.lang, Lang.en);
+    expect(ctl.lang, 'en');
     final rig = _Rig();
     rig.session = DeviceSession(
       connector: () async => rig.demo = DemoTransport.fromJson(_demo('demo_relay.json'), tick: null, seed: 7),
     );
     await rig.session.connect();
-    await tester.pumpWidget(SettingsScope(
-      settings: ctl,
-      child: MaterialApp(theme: vpHubTheme(Brightness.light), home: DeviceScreen(session: rig.session)),
-    ));
+    await tester.pumpWidget(wrapApp(settings: ctl, home: DeviceScreen(session: rig.session)));
     await tester.pumpAndSettle();
     expect(find.text('Connected'), findsOneWidget);
     expect(_button('ON'), findsOneWidget);
@@ -511,9 +491,11 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Tiếng Việt'));
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    // Man Settings da doi sang tieng Viet ngay
+    expect(find.text('Ngôn ngữ'), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
-    expect(ctl.lang, Lang.vi);
+    expect(ctl.lang, 'vi');
     expect(store.getString('lang'), 'vi');
     // Chu cua app tren man dang mo doi ngay
     expect(find.text('Đã kết nối'), findsOneWidget);
@@ -521,9 +503,8 @@ void main() {
     expect(_button('BẬT'), findsOneWidget);
     expect(_button('TẮT'), findsOneWidget);
     // Mo lai app: van la tieng Viet
-    Lang.code = Lang.en;
-    expect(AppSettings(store).lang, Lang.vi);
-    expect(Lang.isVi, isTrue);
+    expect(AppSettings(store).lang, 'vi');
+    expect(AppSettings(store).locale, const Locale('vi'));
     await _close(tester, rig);
   });
 

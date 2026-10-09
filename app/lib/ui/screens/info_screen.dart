@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/app_settings.dart';
 import '../../core/device_session.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 import 'scan_screen.dart' show SignalBars;
 
 /// Thong tin thiet bi (SPEC §5). Standard: ten, model, firmware, phan cung, song, trang thai.
@@ -30,10 +30,10 @@ class _InfoScreenState extends State<InfoScreen> {
   }
 
   String _status(LinkStatus s) => switch (s) {
-        LinkStatus.ready => S.connected,
-        LinkStatus.connecting || LinkStatus.loading => S.connecting,
-        LinkStatus.reconnecting => S.reconnecting,
-        _ => S.disconnected,
+        LinkStatus.ready => context.l.connected,
+        LinkStatus.connecting || LinkStatus.loading => context.l.connecting,
+        LinkStatus.reconnecting => context.l.reconnecting,
+        _ => context.l.disconnected,
       };
 
   @override
@@ -49,31 +49,31 @@ class _InfoScreenState extends State<InfoScreen> {
         final cs = Theme.of(context).colorScheme;
         final rssi = _rssi;
         final rows = <(String, String)>[
-          (S.infoName, session.displayName),
+          (context.l.infoName, session.displayName),
           if (i != null) ...[
-            (S.infoModel, i.model),
-            (S.infoFw, i.fw),
-            if (i.hw != null) (S.infoHw, i.hw!),
+            (context.l.infoModel, i.model),
+            (context.l.infoFw, i.fw),
+            if (i.hw != null) (context.l.infoHw, i.hw!),
           ],
           if (rssi != null)
-            (S.infoSignal, tech ? '${S.signalLevel(SignalBars.level(rssi))} (${S.rssiDbm(rssi)})' : S.signalLevel(SignalBars.level(rssi))),
-          (S.infoStatus, _status(session.status)),
+            (context.l.infoSignal, tech ? '${signalLevelText(context.l, SignalBars.level(rssi))} (${context.l.rssiDbm(rssi)})' : signalLevelText(context.l, SignalBars.level(rssi))),
+          (context.l.infoStatus, _status(session.status)),
           if (tech) ...[
-            if (i != null) (S.infoPv, '${i.pv}'),
-            if (t != null) (S.infoProto, t.protoLabel),
+            if (i != null) (context.l.infoPv, '${i.pv}'),
+            if (t != null) (context.l.infoProto, protoText(context.l, t.protoId)),
             if (i != null) ...[
-              (S.infoScreens, '${session.screens.length}'),
-              if (i.sch != null) (S.infoSch, i.sch!),
-              if (i.caps.isNotEmpty) (S.infoCaps, i.caps.join(', ')),
+              (context.l.infoScreens, '${session.screens.length}'),
+              if (i.sch != null) (context.l.infoSch, i.sch!),
+              if (i.caps.isNotEmpty) (context.l.infoCaps, i.caps.join(', ')),
             ],
             if (st != null) ...[
-              (S.infoSchemaSrc, st.schemaFromCache ? S.fromCache : S.fromDevice),
-              if (st.mtu > 0) (S.infoMtu, '${st.mtu}'),
-              (S.infoMaxValues, S.bytesN(st.maxValuesLen)),
-              (S.infoPackets, '${st.valuesCount}'),
-              (S.infoBad, '${st.badPackets}'),
+              (context.l.infoSchemaSrc, st.schemaFromCache ? context.l.fromCache : context.l.fromDevice),
+              if (st.mtu > 0) (context.l.infoMtu, '${st.mtu}'),
+              (context.l.infoMaxValues, context.l.bytesN(st.maxValuesLen)),
+              (context.l.infoPackets, '${st.valuesCount}'),
+              (context.l.infoBad, '${st.badPackets}'),
             ],
-            if (session.deviceId != null) (S.infoAddr, session.deviceId!),
+            if (session.deviceId != null) (context.l.infoAddr, session.deviceId!),
           ],
         ];
         Widget warn(String text) => Card(
@@ -84,14 +84,14 @@ class _InfoScreenState extends State<InfoScreen> {
               ),
             );
         return Scaffold(
-          appBar: AppBar(titleSpacing: null, title: Text(S.deviceInfo)),
+          appBar: AppBar(titleSpacing: null, title: Text(context.l.deviceInfo)),
           body: ListView(
             padding: const EdgeInsets.all(12),
             children: [
               // Canh bao ve goi du lieu chi co nghia voi nguoi ky thuat.
               // VALUES cua adapter doi cu khong di qua BLE nguyen goi nen khong ap gioi han 240 byte
-              if (tech && st != null && t != null && !t.legacy && st.maxValuesLen > 240) warn(S.valuesTooBig),
-              if (tech && st != null && st.badPackets > 0) warn(S.badPacketsWarn),
+              if (tech && st != null && t != null && !t.legacy && st.maxValuesLen > 240) warn(context.l.valuesTooBig),
+              if (tech && st != null && st.badPackets > 0) warn(context.l.badPacketsWarn),
               Card(
                 child: Column(
                   children: [

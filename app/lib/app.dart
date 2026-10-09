@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'core/app_settings.dart';
 import 'core/schema_cache.dart';
-import 'l10n/strings.dart';
+import 'core/consts.dart';
+import 'l10n/l10n.dart';
 import 'ui/screens/scan_screen.dart';
 import 'ui/theme.dart';
 
@@ -32,7 +33,11 @@ class _VpHubAppState extends State<VpHubApp> {
         child: ListenableBuilder(
           listenable: _settings,
           builder: (context, _) => MaterialApp(
-            title: S.appName,
+            title: kAppName,
+            // Mac dinh English (khong theo ngon ngu may); nguoi dung chon Tieng Viet trong Settings
+            locale: _settings.locale,
+            supportedLocales: AppLocalizations.supportedLocales,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             debugShowCheckedModeBanner: false,
             theme: vpHubTheme(Brightness.light),
             darkTheme: vpHubTheme(Brightness.dark),

@@ -4,7 +4,7 @@ import '../../core/app_settings.dart';
 import '../../core/cond.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
-import '../../l10n/strings.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'alarm_card.dart';
 import 'field_widget.dart';
@@ -65,7 +65,7 @@ class ScreenView extends StatelessWidget {
             color: cs.errorContainer,
             child: ListTile(
               leading: Icon(Icons.error_outline, color: cs.onErrorContainer),
-              title: Text(S.screenError, style: TextStyle(color: cs.onErrorContainer)),
+              title: Text(context.l.screenError, style: TextStyle(color: cs.onErrorContainer)),
               // Loi goc chi co ich voi nguoi ky thuat
               subtitle: SettingsScope.technician(context)
                   ? Text(screen.error!, style: TextStyle(color: cs.onErrorContainer))
@@ -144,7 +144,7 @@ class ScreenView extends StatelessWidget {
         final sf = f.sub == null ? null : session.fieldById(f.sub!);
         items.add(HeroCard(
           c: ctx(f),
-          subText: f.sub == null ? null : '${sf?.label ?? f.sub}: ${displayValue(sf, cond[f.sub])}',
+          subText: f.sub == null ? null : '${sf?.label ?? f.sub}: ${displayValue(context.l, sf, cond[f.sub])}',
           locked: !f.readOnly && !evalCond(f.enCond, cond),
         ));
         i++;

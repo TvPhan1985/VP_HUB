@@ -19,6 +19,9 @@ dependencies:
   file_picker: ^13.1.0
   universal_ble: ^2.3.0
   wakelock_plus: ^1.8.0
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -35,6 +38,8 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  # Sinh lib/l10n/app_localizations*.dart tu cac file .arb (l10n.yaml)
+  generate: true
   assets:
     - assets/demo/
     - assets/legacy/

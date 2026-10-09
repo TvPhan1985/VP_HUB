@@ -11,7 +11,8 @@ import '../../core/transport/ble_scanner.dart';
 import '../../core/transport/gatt_link.dart';
 import '../../core/transport/transport_registry.dart';
 import '../../core/transport/ub_gatt_link.dart' show logVph;
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../app_drawer.dart';
 import '../device_icon.dart';
 import '../theme.dart';
@@ -84,7 +85,7 @@ class _ScanScreenState extends State<ScanScreen> {
       await _scanner.start();
     } catch (e) {
       logVph('Loi quet: $e');
-      if (mounted) setState(() => _message = S.errScan);
+      if (mounted) setState(() => _message = context.l.errScan);
     }
   }
 
@@ -99,8 +100,10 @@ class _ScanScreenState extends State<ScanScreen> {
     await _stopScan();
     if (!mounted) return;
     GattLink? link;
+    // Chu cua schema luu san (relay C3, lo nung) lay theo ngon ngu luc ket noi
+    final lang = context.l.localeName;
     final session = DeviceSession(
-      connector: () => connectTransport(link = _scanner.link(id, name), _cache),
+      connector: () => connectTransport(link = _scanner.link(id, name), _cache, lang: lang),
       title: name,
       deviceId: id,
       rssiReader: () async => link?.readRssi(),
@@ -149,9 +152,9 @@ class _ScanScreenState extends State<ScanScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text(S.deviceRemoved),
+        content: Text(context.l.deviceRemoved),
         action: SnackBarAction(
-          label: S.undo,
+          label: context.l.undo,
           onPressed: () async {
             await _known.insertAt(index, d);
             if (mounted) setState(() {});
@@ -168,7 +171,7 @@ class _ScanScreenState extends State<ScanScreen> {
         color: legacy ? cs.surfaceContainerHighest : cs.primaryContainer,
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(legacy ? S.tagLegacy : S.tagVph, style: Theme.of(context).textTheme.labelSmall),
+      child: Text(legacy ? context.l.tagLegacy : kTagVph, style: Theme.of(context).textTheme.labelSmall),
     );
   }
 
@@ -193,19 +196,19 @@ class _ScanScreenState extends State<ScanScreen> {
 
     return AppDrawer(
       avatar: const Icon(Icons.hub, size: 24),
-      title: S.appName,
-      subtitle: S.appTagline,
-      status: !_adapterOn ? S.btOffShort : (_scanning ? S.scanning : S.btOn),
+      title: kAppName,
+      subtitle: context.l.appTagline,
+      status: !_adapterOn ? context.l.btOffShort : (_scanning ? context.l.scanning : context.l.btOn),
       statusColor: !_adapterOn ? Vp.barStop : (_scanning ? Vp.barCaution : Vp.barOk),
       sections: [
         DrawerSection('', [
-          DrawerEntry(icon: Icons.devices_other, label: S.deviceList, selected: true, onTap: () {}),
+          DrawerEntry(icon: Icons.devices_other, label: context.l.deviceList, selected: true, onTap: () {}),
           DrawerEntry(
             icon: Icons.settings_outlined,
-            label: S.settings,
+            label: context.l.settings,
             onTap: () => push(const SettingsScreen()),
           ),
-          DrawerEntry(icon: Icons.menu_book_outlined, label: S.helpAbout, onTap: () => push(const AboutScreen())),
+          DrawerEntry(icon: Icons.menu_book_outlined, label: context.l.helpAbout, onTap: () => push(const AboutScreen())),
         ]),
       ],
     );
@@ -243,7 +246,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 right: -1,
                 bottom: -1,
                 child: Tooltip(
-                  message: S.inRange,
+                  message: context.l.inRange,
                   child: Container(
                     width: 13,
                     height: 13,
@@ -269,7 +272,7 @@ class _ScanScreenState extends State<ScanScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (rssi != null && tech) Text(S.rssiDbm(rssi), style: Theme.of(context).textTheme.labelSmall),
+            if (rssi != null && tech) Text(context.l.rssiDbm(rssi), style: Theme.of(context).textTheme.labelSmall),
             if (rssi != null) SignalBars(rssi: rssi),
             trailing,
           ],
@@ -287,14 +290,14 @@ class _ScanScreenState extends State<ScanScreen> {
         children: [
           Icon(Icons.bluetooth_searching, size: 88, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
           const SizedBox(height: 16),
-          Text(_scanning ? S.scanning : S.scanEmptyTitle, style: theme.textTheme.titleMedium),
+          Text(_scanning ? context.l.scanning : context.l.scanEmptyTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
-          Text(S.scanEmptyHint, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
+          Text(context.l.scanEmptyHint, textAlign: TextAlign.center, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 20),
           FilledButton.icon(
             onPressed: _scanning ? _stopScan : _scan,
             icon: Icon(_scanning ? Icons.stop : Icons.search),
-            label: Text(_scanning ? S.stopScan : S.scanAgain),
+            label: Text(_scanning ? context.l.stopScan : context.l.scanAgain),
           ),
         ],
       ),
@@ -332,11 +335,11 @@ class _ScanScreenState extends State<ScanScreen> {
       drawer: _drawer(context),
       appBar: AppBar(
         leading: const MenuButton(),
-        title: const Text(S.appName),
+        title: const Text(kAppName),
         actions: [
           // Top Action Item: quet tim thiet bi
           IconButton(
-            tooltip: _scanning ? S.stopScan : S.scan,
+            tooltip: _scanning ? context.l.stopScan : context.l.scan,
             icon: Icon(_scanning ? Icons.stop_circle_outlined : Icons.search),
             onPressed: _scanning ? _stopScan : _scan,
           ),
@@ -350,15 +353,15 @@ class _ScanScreenState extends State<ScanScreen> {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           if (!_adapterOn)
-            _notice(Icons.bluetooth_disabled, S.btOff, S.btTurnOn, _scanner.turnOnBluetooth),
-          if (_permDenied) _notice(Icons.lock_outline, S.permMissing, S.openSettings, openAppSettings),
+            _notice(Icons.bluetooth_disabled, context.l.btOff, context.l.btTurnOn, _scanner.turnOnBluetooth),
+          if (_permDenied) _notice(Icons.lock_outline, context.l.permMissing, context.l.openSettings, openAppSettings),
           if (_message != null)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(_message!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             ),
           if (known.isNotEmpty) ...[
-            _section(context, S.myDevices),
+            _section(context, context.l.myDevices),
             for (final d in known)
               _deviceCard(
                 context,
@@ -370,20 +373,20 @@ class _ScanScreenState extends State<ScanScreen> {
                 rssi: seen[d.id]?.rssi,
                 seen: seen.containsKey(d.id),
                 trailing: IconButton(
-                  tooltip: S.removeDevice,
+                  tooltip: context.l.removeDevice,
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () => _remove(d),
                 ),
                 onTap: () => _openKnown(d),
               ),
           ],
-          if (fresh.isNotEmpty || known.isNotEmpty) _section(context, S.nearby),
+          if (fresh.isNotEmpty || known.isNotEmpty) _section(context, context.l.nearby),
           if (fresh.isEmpty)
             known.isEmpty
                 ? _empty(context)
                 : Padding(
                     padding: const EdgeInsets.all(24),
-                    child: Text(_scanning ? S.scanning : S.noNewDevices, textAlign: TextAlign.center),
+                    child: Text(_scanning ? context.l.scanning : context.l.noNewDevices, textAlign: TextAlign.center),
                   ),
           for (final r in fresh)
             _deviceCard(
@@ -415,7 +418,7 @@ class SignalBars extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final n = level(rssi);
     return Tooltip(
-      message: S.rssiDbm(rssi),
+      message: context.l.rssiDbm(rssi),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 6),
         child: Row(

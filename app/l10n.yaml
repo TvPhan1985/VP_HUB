@@ -1,0 +1,7 @@
+# Chu cua app: ban goc tieng Anh (app_en.arb), ban dich tieng Viet (app_vi.arb).
+# Sinh lai: flutter gen-l10n (tu chay khi flutter pub get / build).
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
 import 'field_widget.dart';
 
 final RegExp _hhmm = RegExp(r'^(\d{1,2}):(\d{2})');
@@ -26,10 +26,10 @@ class TimeField extends StatelessWidget {
       busy: c.busy,
       draft: c.draft,
       trailing: f.readOnly
-          ? Text(s ?? S.noData, style: style)
+          ? Text(s ?? kNoData, style: style)
           : OutlinedButton.icon(
               icon: const Icon(Icons.schedule, size: 18),
-              label: Text(s ?? S.noData, style: style),
+              label: Text(s ?? kNoData, style: style),
               onPressed: c.editable && !c.busy
                   ? () async {
                       final t = await showTimePicker(

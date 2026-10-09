@@ -4,40 +4,41 @@ import 'package:flutter/material.dart';
 
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import '../vp_widgets.dart';
 import 'field_widget.dart';
 import 'icons.dart';
 
-String numText(VphField f, dynamic value, {bool withUnit = true}) {
+String numText(AppLocalizations l, VphField f, dynamic value, {bool withUnit = true}) {
   final x = asNum(value);
-  if (x == null) return S.noData;
-  if (f.hint('dur')) return durText(x);
+  if (x == null) return kNoData;
+  if (f.hint('dur')) return durText(l, x);
   final s = fmtNum(x, dp: f.decimals);
   return withUnit && f.unit != null ? '$s ${f.unit}' : s;
 }
 
 /// Goi y dur: so giay -> "2 h 05 min" / "5 min 12 s"
-String durText(double seconds) {
+String durText(AppLocalizations l, double seconds) {
   final t = seconds.isFinite && seconds > 0 ? seconds.round() : 0;
   final d = t ~/ 86400, h = (t % 86400) ~/ 3600, m = (t % 3600) ~/ 60;
   // Don vi sau luon 2 chu so: "2 h 05 min" (docs/COPY_STYLE.md)
   String two(int v) => v.toString().padLeft(2, '0');
-  if (d > 0) return S.durDH('$d', two(h));
-  if (h > 0) return S.durHM('$h', two(m));
-  return S.durMS('$m', two(t % 60));
+  if (d > 0) return l.durDH('$d', two(h));
+  if (h > 0) return l.durHM('$h', two(m));
+  return l.durMS('$m', two(t % 60));
 }
 
 /// So gui di: so nguyen thi gui dang nguyen cho gon
 dynamic _wire(double x) => x == x.roundToDouble() && x.abs() < 1e15 ? x.toInt() : x;
 
-String? _rangeError(VphField f, double x) {
+String? _rangeError(AppLocalizations l, VphField f, double x) {
   final lo = f.min, hi = f.max;
   String t(double v) => fmtNum(v, dp: f.decimals);
-  if (lo != null && hi != null && (x < lo || x > hi)) return S.outOfRange(t(lo), t(hi));
-  if (lo != null && x < lo) return S.atLeast(t(lo));
-  if (hi != null && x > hi) return S.atMost(t(hi));
+  if (lo != null && hi != null && (x < lo || x > hi)) return l.outOfRange(t(lo), t(hi));
+  if (lo != null && x < lo) return l.atLeast(t(lo));
+  if (hi != null && x > hi) return l.atMost(t(hi));
   return null;
 }
 
@@ -52,7 +53,7 @@ Future<double?> showNumberDialog(BuildContext context, VphField f, double? curre
       builder: (ctx, setState) {
         void submit() {
           final x = asNum(ctl.text);
-          final e = x == null ? S.invalidNumber : _rangeError(f, x);
+          final e = x == null ? context.l.invalidNumber : _rangeError(context.l, f, x);
           if (e != null) {
             setState(() => err = e);
           } else {
@@ -70,14 +71,14 @@ Future<double?> showNumberDialog(BuildContext context, VphField f, double? curre
               suffixText: f.unit,
               errorText: err,
               helperText: f.min != null && f.max != null
-                  ? S.rangeHint(fmtNum(f.min!, dp: f.decimals), fmtNum(f.max!, dp: f.decimals))
+                  ? context.l.rangeHint(fmtNum(f.min!, dp: f.decimals), fmtNum(f.max!, dp: f.decimals))
                   : null,
             ),
             onSubmitted: (_) => submit(),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
-            FilledButton(onPressed: submit, child: Text(S.apply)),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l.cancel)),
+            FilledButton(onPressed: submit, child: Text(context.l.apply)),
           ],
         );
       },
@@ -110,7 +111,7 @@ class NumField extends StatelessWidget {
     if (f.hint('gauge') && f.min != null && f.max != null) {
       below = Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: SizedBox(height: 110, child: GaugeView(value: x, min: f.min!, max: f.max!, text: numText(f, x))),
+        child: SizedBox(height: 110, child: GaugeView(value: x, min: f.min!, max: f.max!, text: numText(context.l, f, x))),
       );
     }
 
@@ -120,7 +121,7 @@ class NumField extends StatelessWidget {
         busy: c.busy,
         draft: c.draft,
         below: below,
-        trailing: Text(numText(f, x), style: valueStyle),
+        trailing: Text(numText(context.l, f, x), style: valueStyle),
       );
     }
 
@@ -133,7 +134,7 @@ class NumField extends StatelessWidget {
               if (nv != null) c.onChanged(_wire(nv));
             }
           : null,
-      child: Text(unlimited ? S.noLimit : numText(f, x), style: valueStyle),
+      child: Text(unlimited ? context.l.noLimit : numText(context.l, f, x), style: valueStyle),
     );
     return FieldRow(
       label: f.label,
@@ -178,7 +179,7 @@ class NullSwitch extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(S.noLimit, style: Theme.of(context).textTheme.bodySmall),
+          Text(context.l.noLimit, style: Theme.of(context).textTheme.bodySmall),
           const SizedBox(width: 4),
           Switch(
             value: isNull,
@@ -221,7 +222,7 @@ class BigValueCard extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            x == null ? S.noData : fmtNum(x, dp: field.decimals ?? 1),
+                            x == null ? kNoData : fmtNum(x, dp: field.decimals ?? 1),
                             style: TextStyle(
                                 fontSize: Vp.bigNumber, fontWeight: FontWeight.w700, height: 1.15, color: cs.onSurface),
                           ),

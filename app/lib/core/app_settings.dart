@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/strings.dart';
 import 'schema_cache.dart';
 
 /// Hai che do nguoi dung (SPEC §11.50). Standard: nguoi van hanh. Technician: nguoi ky thuat.
@@ -21,12 +20,13 @@ class AppSettings extends ChangeNotifier {
   final KvStore store;
   ThemeMode _mode;
   UserMode _userMode;
+  String _lang;
 
   AppSettings(this.store)
       : _mode = _parseTheme(store.getString(_kTheme)),
-        _userMode = store.getString(_kMode) == 'technician' ? UserMode.technician : UserMode.standard {
-    Lang.code = store.getString(_kLang) == Lang.vi ? Lang.vi : Lang.en;
-  }
+        _userMode = store.getString(_kMode) == 'technician' ? UserMode.technician : UserMode.standard,
+        // Mac dinh tieng Anh, khong theo ngon ngu cua may; nguoi dung tu chon Tieng Viet
+        _lang = store.getString(_kLang) == 'vi' ? 'vi' : 'en';
 
   static ThemeMode _parseTheme(String? s) => switch (s) {
         'light' => ThemeMode.light,
@@ -50,20 +50,17 @@ class AppSettings extends ChangeNotifier {
     await store.setString(_kTheme, m.name);
   }
 
-  String get lang => Lang.code;
+  /// Ma ngon ngu cua app: 'en' (mac dinh) | 'vi'
+  String get lang => _lang;
+  Locale get locale => Locale(_lang);
 
   Future<void> setLang(String code) async {
-    if (code == Lang.code) return;
-    Lang.code = code == Lang.vi ? Lang.vi : Lang.en;
+    final c = code == 'vi' ? 'vi' : 'en';
+    if (c == _lang) return;
+    _lang = c;
+    // MaterialApp nghe lop nay va doi `locale`: ca cay widget tu ve lai
     notifyListeners();
-    // Chu nam trong nhieu widget khong nghe lop nay: ve lai ca cay
-    void visit(Element e) {
-      e.markNeedsBuild();
-      e.visitChildren(visit);
-    }
-
-    WidgetsBinding.instance.rootElement?.visitChildren(visit);
-    await store.setString(_kLang, Lang.code);
+    await store.setString(_kLang, c);
   }
 
   // ----- Che do nguoi dung -----

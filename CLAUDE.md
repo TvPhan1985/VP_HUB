@@ -15,7 +15,7 @@ Dự án tham khảo (CHỈ ĐỌC, không sửa ở Phần 0–C):
 
 ## Ngôn ngữ
 - Trao đổi, báo cáo, hỏi lại người dùng: **tiếng Việt**, từ phổ thông, dễ hiểu. Thuật ngữ (BLE, MTU, schema, commit…) giữ tiếng Anh.
-- Chữ hiển thị trong app: **tiếng Anh** (mặc định) dùng các từ ngữ chuyên nghiệp, kèm bản **tiếng Việt có dấu** để người dùng chọn trong menu (Language). Mỗi chữ mới phải có đủ 2 bản trong `lib/l10n/strings.dart` (`tr('English', 'Tiếng Việt')`); schema lưu sẵn có 2 file `.json` (Anh) và `.vi.json` (Việt).
+- Chữ hiển thị trong app: **tiếng Anh** (mặc định) dùng các từ ngữ chuyên nghiệp, kèm bản **tiếng Việt có dấu** để người dùng chọn trong menu (Language). Mỗi chữ mới thêm vào `lib/l10n/app_en.arb` (bản gốc) rồi `lib/l10n/app_vi.arb` (bản dịch), chạy `flutter gen-l10n`, dùng trong widget bằng `context.l.<khóa>`; viết theo `docs/COPY_STYLE.md`. Schema lưu sẵn có 2 file `.json` (Anh) và `.vi.json` (Việt).
 - Comment code và log firmware: tiếng Việt ngắn gọn (log firmware không dấu được), **không emoji**.
 - Cuối mỗi phase tóm tắt: đã làm gì, file nào, kết quả kiểm tra, người dùng cần làm gì tiếp.
 

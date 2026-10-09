@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vphub/l10n/strings.dart';
+import 'package:vphub/core/errors.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/core/transport/transport_registry.dart';
 import 'package:vphub/core/transport/uuids.dart';
@@ -129,7 +129,7 @@ void main() {
     await t.start();
     final r = await t.write('sv', 1);
     expect(r.ok, isFalse);
-    expect(r.err, S.errNoResponse);
+    expect(r.error!.kind, ErrorKind.noResponse);
   });
 
   test('lenh qua 500 byte bi tu choi truoc khi gui', () async {

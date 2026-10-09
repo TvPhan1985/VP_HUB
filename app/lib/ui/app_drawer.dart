@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../l10n/strings.dart';
+import '../l10n/l10n.dart';
 import 'theme.dart';
 
 /// Mot muc trong menu he thong
@@ -208,7 +208,7 @@ class MenuButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => IconButton(
-        tooltip: S.openMenu,
+        tooltip: context.l.openMenu,
         icon: const Icon(Icons.menu),
         onPressed: () => Scaffold.of(context).openDrawer(),
       );

@@ -4,7 +4,8 @@ import '../../core/cond.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_schema.dart';
 import '../../core/model/vph_value.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'act_button.dart';
 import 'date_field.dart';
@@ -36,22 +37,22 @@ class FieldCtx {
 }
 
 /// Chu cua trang thai bool: theo `opt` cua truong, mac dinh BẬT / TẮT
-String boolText(VphField f, bool? on) {
-  if (on == null) return S.noData;
-  final l = f.boolLabels;
-  if (l != null) return on ? l[1] : l[0];
-  return on ? S.onCaps : S.offCaps;
+String boolText(AppLocalizations l, VphField f, bool? on) {
+  if (on == null) return kNoData;
+  final own = f.boolLabels;
+  if (own != null) return on ? own[1] : own[0];
+  return on ? l.onCaps : l.offCaps;
 }
 
 /// Gia tri mot truong dang chu (dung cho dong phu `sub`, the tile, o mini)
-String displayValue(VphField? f, dynamic v) {
-  if (v == null || (v is String && v.isEmpty)) return S.noData;
+String displayValue(AppLocalizations l, VphField? f, dynamic v) {
+  if (v == null || (v is String && v.isEmpty)) return kNoData;
   if (f == null) return '$v';
   switch (f.type) {
     case 'num':
-      return numText(f, v);
+      return numText(l, f, v);
     case 'bool':
-      return boolText(f, asBool(v));
+      return boolText(l, f, asBool(v));
     case 'enum':
       return f.optionLabel(v) ?? '$v';
   }
@@ -71,7 +72,7 @@ FieldCtx fieldCtx(BuildContext context, DeviceSession session, int screen, VphFi
       // Cong tac chi hoi lai khi bat (vd dot lo), tat thi lam ngay
       final ask = c != null && (f.type != 'bool' || v == true);
       // Nut lenh: lap lai ten nut. Cong tac: "Turn on". Con lai: "Confirm".
-      final action = f.type == 'act' ? f.label : (f.type == 'bool' ? S.turnOn : S.confirm);
+      final action = f.type == 'act' ? f.label : (f.type == 'bool' ? context.l.turnOn : context.l.confirm);
       if (ask && !await confirmDialog(context, c, action: action)) return;
       await session.edit(screen, f, v);
     },
@@ -101,7 +102,7 @@ Future<bool> confirmDialog(BuildContext context, String question, {required Stri
     builder: (ctx) => AlertDialog(
       title: Text(question),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.cancel)),
+        TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l.cancel)),
         FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(action)),
       ],
     ),
@@ -247,7 +248,7 @@ class FieldWidget extends StatelessWidget {
     } catch (_) {
       // roi xuong hien chu chi doc
     }
-    return FieldRow(label: '${f.id}: ${v ?? S.noData}');
+    return FieldRow(label: '${f.id}: ${v ?? kNoData}');
   }
 
   Widget _bool(FieldCtx c) {
@@ -295,7 +296,7 @@ class OnOffButtons extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: can && !on ? () => c.onChanged(true) : null,
             icon: const Icon(Icons.power),
-            label: Text(S.onCaps),
+            label: Text(context.l.onCaps),
           ),
         ),
         const SizedBox(width: Vp.gap),
@@ -303,7 +304,7 @@ class OnOffButtons extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: can && on ? () => c.onChanged(false) : null,
             icon: const Icon(Icons.power_off),
-            label: Text(S.offCaps),
+            label: Text(context.l.offCaps),
           ),
         ),
       ],

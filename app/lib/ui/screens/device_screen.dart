@@ -8,7 +8,8 @@ import '../../core/app_settings.dart';
 import '../../core/device_session.dart';
 import '../../core/model/vph_value.dart';
 import '../../core/transport/vph_transport.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../app_drawer.dart';
 import '../render/batch_bar.dart';
 import '../render/flags_field.dart' show activeFlags;
@@ -27,21 +28,31 @@ Future<_Leave> _askLeaveDialog(BuildContext context, DeviceSession s, int screen
   final r = await showDialog<_Leave>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: Text(S.unsavedTitle),
-      content: Text(S.unsavedBody(s.draftCount(screen))),
+      title: Text(context.l.unsavedTitle),
+      content: Text(context.l.unsavedBody(s.draftCount(screen))),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: Text(S.stay)),
-        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: Text(S.discard)),
-        FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: Text(S.save)),
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.stay), child: Text(context.l.stay)),
+        TextButton(onPressed: () => Navigator.pop(ctx, _Leave.discard), child: Text(context.l.discard)),
+        FilledButton(onPressed: () => Navigator.pop(ctx, _Leave.save), child: Text(context.l.save)),
       ],
     ),
   );
   return r ?? _Leave.stay;
 }
 
+/// Hop hien loi goc (chi Technician)
+Future<void> showErrorDetails(BuildContext context, String detail) => showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(ctx.l.errorDetails),
+        content: SingleChildScrollView(child: SelectableText(detail)),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: Text(ctx.l.close))],
+      ),
+    );
+
 /// Cac bao dong dang bat cua thiet bi (cho chuong thong bao tren Top App Bar):
 /// moi bit cua truong flags, va cac bool co goi y alarm / den warn dang bat
-List<String> activeAlarms(DeviceSession s) {
+List<String> activeAlarms(AppLocalizations l, DeviceSession s) {
   final out = <String>[];
   final seen = <String>{};
   for (final sc in s.screens) {
@@ -49,7 +60,7 @@ List<String> activeAlarms(DeviceSession s) {
       if (!seen.add(f.id)) continue;
       final v = s.values[f.id];
       if (f.type == 'flags') {
-        if (v != null) out.addAll(activeFlags(f, v));
+        if (v != null) out.addAll(activeFlags(l, f, v));
       } else if (f.type == 'bool' && (f.hint('alarm') || (f.hint('warn') && !f.hint('hero'))) && asBool(v) == true) {
         out.add(f.label);
       }
@@ -165,12 +176,30 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
   void _onMessage(SessionMessage m) {
     if (!mounted) return;
     final cs = Theme.of(context).colorScheme;
+    final l = context.l;
+    final err = m.error;
+    final text = err != null
+        ? errorText(l, err)
+        : switch (m.kind!) {
+            MsgKind.saved => l.saved,
+            MsgKind.interfaceReloaded => l.interfaceReloaded,
+            MsgKind.commandSent => l.commandSent(m.label),
+            MsgKind.turnedOn => l.turnedOn(m.label),
+            MsgKind.turnedOff => l.turnedOff(m.label),
+            MsgKind.changedTo => l.changedTo(m.label, m.value),
+          };
+    // Technician: them nut Details hien loi goc
+    final detail = _tech ? err?.shortDetail : null;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(
-        content: Text(m.text, style: TextStyle(color: m.ok ? Colors.white : cs.onError)),
+        content: Text(text, style: TextStyle(color: m.ok ? Colors.white : cs.onError)),
         backgroundColor: m.ok ? Vp.okSolid : cs.error,
         duration: Duration(seconds: m.ok ? 2 : 5),
+        action: detail == null
+            ? null
+            : SnackBarAction(
+                label: l.details, textColor: cs.onError, onPressed: () => showErrorDetails(context, detail)),
       ));
   }
 
@@ -252,10 +281,10 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
 
   /// Dong phu duoi ten thiet bi: chu va mau theo trang thai ket noi (mau tren nen thanh dam)
   (String, Color) _link() => switch (s.status) {
-        LinkStatus.ready => (S.connected, VpBars.of(context).ok),
-        LinkStatus.connecting || LinkStatus.loading => (S.connecting, Vp.barCaution),
-        LinkStatus.reconnecting => (S.reconnecting, Vp.barCaution),
-        _ => (S.disconnected, Vp.barStop),
+        LinkStatus.ready => (context.l.connected, VpBars.of(context).ok),
+        LinkStatus.connecting || LinkStatus.loading => (context.l.connecting, Vp.barCaution),
+        LinkStatus.reconnecting => (context.l.reconnecting, Vp.barCaution),
+        _ => (context.l.disconnected, Vp.barStop),
       };
 
   /// Ngat ket noi: lam ngay; con thay doi chua luu thi hoi lai truoc
@@ -263,7 +292,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
     final nav = Navigator.of(context);
     if (s.drafts.values.any((d) => d.isNotEmpty)) {
       final ok = await askConfirm(context,
-          title: S.disconnectTitle(s.displayName), body: S.disconnectBody, action: S.disconnect, danger: true);
+          title: context.l.disconnectTitle(s.displayName), body: context.l.disconnectBody, action: context.l.disconnect, danger: true);
       if (!ok) return;
     }
     s.drafts.clear();
@@ -278,7 +307,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
         listenable: s,
         builder: (ctx, _) {
           final cs = Theme.of(ctx).colorScheme;
-          final list = activeAlarms(s);
+          final list = activeAlarms(ctx.l, s);
           return SafeArea(
             child: ListView(
               shrinkWrap: true,
@@ -286,13 +315,13 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
               children: [
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: Text(S.alarmsTitle, style: Theme.of(ctx).textTheme.titleMedium),
+                  child: Text(context.l.alarmsTitle, style: Theme.of(ctx).textTheme.titleMedium),
                 ),
                 if (list.isEmpty)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: Icon(Icons.check_circle, color: Vp.ok(cs)),
-                    title: Text(S.alarmNone),
+                    title: Text(context.l.alarmNone),
                   ),
                 for (final a in list)
                   Container(
@@ -321,7 +350,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
   Widget _drawer(BuildContext context, List<int> menuIdx) {
     final link = _link();
     final i = s.info;
-    final sub = i == null ? S.appName : '${i.model} · ${S.infoFw} ${i.fw}';
+    final sub = i == null ? kAppName : '${i.model} · ${context.l.infoFw} ${i.fw}';
     final pageTheme = Theme.of(context);
     final nav = Navigator.of(context);
     // Trang cua thiet bi giu bo giao dien cua thiet bi; trang cua app dung giao dien chung
@@ -335,9 +364,9 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
       statusColor: link.$2,
       sections: [
         DrawerSection('', [
-          DrawerEntry(icon: Icons.devices_other, label: S.deviceList, onTap: _leaveScreen),
+          DrawerEntry(icon: Icons.devices_other, label: context.l.deviceList, onTap: _leaveScreen),
         ]),
-        DrawerSection(S.secDevice, [
+        DrawerSection(context.l.secDevice, [
           // Cac man cai dat / thong tin cua thiet bi (nav:"menu")
           for (final m in menuIdx)
             DrawerEntry(
@@ -348,16 +377,16 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
             ),
           DrawerEntry(
             icon: Icons.info_outline,
-            label: S.deviceInfo,
+            label: context.l.deviceInfo,
             enabled: s.info != null,
             onTap: () => push(InfoScreen(session: s)),
           ),
-          if (_tech) DrawerEntry(icon: Icons.sync, label: S.reloadInterface, enabled: s.ready, onTap: s.reloadSchema),
+          if (_tech) DrawerEntry(icon: Icons.sync, label: context.l.reloadInterface, enabled: s.ready, onTap: s.reloadSchema),
         ]),
-        DrawerSection(S.secApp, [
-          DrawerEntry(icon: Icons.settings_outlined, label: S.settings, onTap: () => pushApp(const SettingsScreen())),
-          DrawerEntry(icon: Icons.menu_book_outlined, label: S.helpAbout, onTap: () => pushApp(const AboutScreen())),
-          DrawerEntry(icon: Icons.logout, label: S.disconnect, danger: true, onTap: _disconnect),
+        DrawerSection(context.l.secApp, [
+          DrawerEntry(icon: Icons.settings_outlined, label: context.l.settings, onTap: () => pushApp(const SettingsScreen())),
+          DrawerEntry(icon: Icons.menu_book_outlined, label: context.l.helpAbout, onTap: () => pushApp(const AboutScreen())),
+          DrawerEntry(icon: Icons.logout, label: context.l.disconnect, danger: true, onTap: _disconnect),
         ]),
       ],
     );
@@ -377,22 +406,27 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
         return _center([
           Icon(Icons.bluetooth_disabled, size: 56, color: cs.error),
           const SizedBox(height: 12),
-          Text(S.connectFailed, style: Theme.of(context).textTheme.titleLarge),
+          Text(context.l.connectFailed, style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: 8),
-          Text(s.error ?? '', textAlign: TextAlign.center),
+          Text(s.error == null ? '' : errorText(context.l, s.error!), textAlign: TextAlign.center),
+          if (_tech && s.error?.shortDetail != null)
+            TextButton(
+              onPressed: () => showErrorDetails(context, s.error!.shortDetail!),
+              child: Text(context.l.details),
+            ),
           const SizedBox(height: 16),
-          FilledButton.icon(onPressed: s.connect, icon: const Icon(Icons.refresh), label: Text(S.retry)),
-          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(S.back)),
+          FilledButton.icon(onPressed: s.connect, icon: const Icon(Icons.refresh), label: Text(context.l.retry)),
+          TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(context.l.back)),
         ]);
       }
       return _center([
         const CircularProgressIndicator(),
         const SizedBox(height: 16),
-        Text(s.status == LinkStatus.loading ? S.loadingDevice : S.connecting),
+        Text(s.status == LinkStatus.loading ? context.l.loadingDevice : context.l.connecting),
       ]);
     }
     final tabs = _tabs;
-    if (tabs == null) return _center([Text(S.noScreens)]);
+    if (tabs == null) return _center([Text(context.l.noScreens)]);
     final lost = s.status != LinkStatus.ready;
     final needUpdate = (s.info?.pv ?? 1) > VphTransport.supportedPv;
     return Column(
@@ -411,7 +445,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
                     child: CircularProgressIndicator(strokeWidth: 2, color: cs.onTertiaryContainer),
                   ),
             content: Text(
-              s.status == LinkStatus.failed ? S.lostGiveUp : S.lostRetrying,
+              s.status == LinkStatus.failed ? context.l.lostGiveUp : context.l.lostRetrying,
               style: TextStyle(
                 color: s.status == LinkStatus.failed ? cs.onErrorContainer : cs.onTertiaryContainer,
                 fontWeight: FontWeight.w600,
@@ -419,14 +453,14 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
             ),
             actions: [
               if (s.status == LinkStatus.failed)
-                TextButton(onPressed: s.connect, child: Text(S.retry))
+                TextButton(onPressed: s.connect, child: Text(context.l.retry))
               else
                 const SizedBox.shrink(),
             ],
           ),
         if (needUpdate)
           MaterialBanner(
-            content: Text(S.needUpdate),
+            content: Text(context.l.needUpdate),
             leading: const Icon(Icons.system_update),
             actions: const [SizedBox.shrink()],
           ),
@@ -476,7 +510,7 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
             if (!_tabIdx.contains(i) && (_tech || !s.screens[i].adv)) i,
         ];
         final showTabs = tabs != null && s.hasEverConnected && n >= 2;
-        final alarms = s.hasEverConnected ? activeAlarms(s).length : 0;
+        final alarms = s.hasEverConnected ? activeAlarms(context.l, s).length : 0;
         return PopScope(
           canPop: s.draftCount(_shown) == 0,
           onPopInvokedWithResult: (didPop, _) {
@@ -504,12 +538,12 @@ class _DeviceScreenState extends State<_DeviceView> with TickerProviderStateMixi
                       border: Border.all(color: Vp.barCaution),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Text(S.techChip,
+                    child: const Text(kTechChip,
                         style: TextStyle(color: Vp.barCaution, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.6)),
                   ),
                 // Top Action Item: chuong thong bao kem so bao dong dang bat
                 IconButton(
-                  tooltip: S.alarmsTooltip,
+                  tooltip: context.l.alarmsTooltip,
                   onPressed: s.hasEverConnected ? _showAlarms : null,
                   icon: Badge(
                     isLabelVisible: alarms > 0,
@@ -580,11 +614,11 @@ class _MenuScreenPage extends StatelessWidget {
                       backgroundColor: failed ? cs.errorContainer : cs.tertiaryContainer,
                       dividerColor: Colors.transparent,
                       content: Text(
-                        failed ? S.lostGiveUp : S.lostRetrying,
+                        failed ? context.l.lostGiveUp : context.l.lostRetrying,
                         style: TextStyle(color: failed ? cs.onErrorContainer : cs.onTertiaryContainer),
                       ),
                       actions: [
-                        if (failed) TextButton(onPressed: s.connect, child: Text(S.retry)) else const SizedBox.shrink(),
+                        if (failed) TextButton(onPressed: s.connect, child: Text(context.l.retry)) else const SizedBox.shrink(),
                       ],
                     ),
                   Expanded(

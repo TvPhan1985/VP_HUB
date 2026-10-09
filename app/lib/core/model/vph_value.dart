@@ -1,14 +1,19 @@
+import '../errors.dart';
+
 /// Ket qua mot lenh ghi (PROTOCOL §6.4)
 class VphResult {
   final bool ok;
-  final String? err;
+  final AppError? error;
   const VphResult.ok()
       : ok = true,
-        err = null;
-  const VphResult.fail(this.err) : ok = false;
+        error = null;
+  const VphResult.fail(AppError this.error) : ok = false;
+
+  /// Cau `err` do thiet bi gui (neu co)
+  String? get err => error?.deviceText;
 
   @override
-  String toString() => ok ? 'ok' : 'loi: $err';
+  String toString() => ok ? 'ok' : 'loi: $error';
 }
 
 /// Doi gia tri VALUES sang bool (chap nhan true/false va 0/1)

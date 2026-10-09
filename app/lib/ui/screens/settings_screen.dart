@@ -4,14 +4,15 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/app_settings.dart';
 import '../../core/schema_cache.dart';
-import '../../l10n/strings.dart';
+import '../../core/consts.dart';
+import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'demo_screen.dart';
 
-String themeModeLabel(ThemeMode m) => switch (m) {
-      ThemeMode.light => S.themeLight,
-      ThemeMode.dark => S.themeDark,
-      ThemeMode.system => S.themeSystem,
+String themeModeLabel(AppLocalizations l, ThemeMode m) => switch (m) {
+      ThemeMode.light => l.themeLight,
+      ThemeMode.dark => l.themeDark,
+      ThemeMode.system => l.themeSystem,
     };
 
 /// Hop chon mot gia tri trong danh sach (Theme, Language)
@@ -51,7 +52,7 @@ Future<bool> askConfirm(
         title: Text(title),
         content: body == null ? null : Text(body),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.cancel)),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(context.l.cancel)),
           FilledButton(
             style: danger ? FilledButton.styleFrom(backgroundColor: cs.error, foregroundColor: cs.onError) : null,
             onPressed: () => Navigator.pop(ctx, true),
@@ -83,9 +84,9 @@ Future<String?> askPin(
           final pin = a.text;
           String? e;
           if (!AppSettings.validPin(pin)) {
-            e = S.pinFormat;
+            e = context.l.pinFormat;
           } else if (confirm && b.text != pin) {
-            e = S.pinMismatch;
+            e = context.l.pinMismatch;
           } else {
             e = check?.call(pin);
           }
@@ -114,13 +115,13 @@ Future<String?> askPin(
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              field(a, confirm ? S.newPin : S.enterPin, confirm ? null : err, last: !confirm, focus: true),
-              if (confirm) ...[const SizedBox(height: 8), field(b, S.confirmPin, err, last: true)],
+              field(a, confirm ? context.l.newPin : context.l.enterPin, confirm ? null : err, last: !confirm, focus: true),
+              if (confirm) ...[const SizedBox(height: 8), field(b, context.l.confirmPin, err, last: true)],
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.cancel)),
-            FilledButton(onPressed: submit, child: Text(action ?? S.save)),
+            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.l.cancel)),
+            FilledButton(onPressed: submit, child: Text(action ?? context.l.save)),
           ],
         );
       },
@@ -143,34 +144,34 @@ class SettingsScreen extends StatelessWidget {
     }
     final pin = await askPin(
       context,
-      title: S.enterPin,
-      action: S.turnOn,
-      check: (p) => p == st.pin ? null : S.pinWrong,
+      title: context.l.enterPin,
+      action: context.l.turnOn,
+      check: (p) => p == st.pin ? null : context.l.pinWrong,
     );
     if (pin != null) await st.setTechnician(true, pin: pin);
   }
 
   Future<void> _setPin(BuildContext context, AppSettings st) async {
-    final pin = await askPin(context, title: S.setPin, confirm: true);
+    final pin = await askPin(context, title: context.l.setPin, confirm: true);
     if (pin == null) return;
     await st.setPin(pin);
-    if (context.mounted) _toast(context, S.pinSet);
+    if (context.mounted) _toast(context, context.l.pinSet);
   }
 
   Future<void> _removePin(BuildContext context, AppSettings st) async {
     final ok = await askConfirm(context,
-        title: S.removePinTitle, body: S.removePinBody, action: S.remove, danger: true);
+        title: context.l.removePinTitle, body: context.l.removePinBody, action: context.l.remove, danger: true);
     if (!ok) return;
     await st.setPin(null);
-    if (context.mounted) _toast(context, S.pinRemoved);
+    if (context.mounted) _toast(context, context.l.pinRemoved);
   }
 
   Future<void> _clearCache(BuildContext context, KvStore store) async {
     final ok = await askConfirm(context,
-        title: S.clearCacheTitle, body: S.clearCacheBody, action: S.clear, danger: true);
+        title: context.l.clearCacheTitle, body: context.l.clearCacheBody, action: context.l.clear, danger: true);
     if (!ok) return;
     await SchemaCache(store).clearAll();
-    if (context.mounted) _toast(context, S.cacheCleared);
+    if (context.mounted) _toast(context, context.l.cacheCleared);
   }
 
   Widget _section(BuildContext context, String title, List<Widget> tiles) {
@@ -201,94 +202,94 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = SettingsScope.maybeOf(context);
-    if (st == null) return Scaffold(appBar: AppBar(title: Text(S.settings)));
+    if (st == null) return Scaffold(appBar: AppBar(title: Text(context.l.settings)));
     final sub = Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
     Widget value(String s) => Text(s, style: sub);
     void push(Widget page) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
 
     return Scaffold(
-      appBar: AppBar(titleSpacing: null, title: Text(S.settings)),
+      appBar: AppBar(titleSpacing: null, title: Text(context.l.settings)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Vp.pad, 0, Vp.pad, 24),
         children: [
-          _section(context, S.secGeneral, [
+          _section(context, context.l.secGeneral, [
             ListTile(
               leading: const Icon(Icons.palette_outlined),
-              title: Text(S.theme),
-              trailing: value(themeModeLabel(st.mode)),
+              title: Text(context.l.theme),
+              trailing: value(themeModeLabel(context.l, st.mode)),
               onTap: () async {
-                final m = await _pickOne(context, S.theme,
-                    const [ThemeMode.system, ThemeMode.light, ThemeMode.dark], st.mode, themeModeLabel);
+                final m = await _pickOne(context, context.l.theme,
+                    const [ThemeMode.system, ThemeMode.light, ThemeMode.dark], st.mode, (m) => themeModeLabel(context.l, m));
                 if (m != null) await st.setMode(m);
               },
             ),
             ListTile(
               leading: const Icon(Icons.language),
-              title: Text(S.language),
-              trailing: value(Lang.nameOf(st.lang)),
+              title: Text(context.l.language),
+              trailing: value(languageName(st.lang)),
               onTap: () async {
-                final c = await _pickOne(context, S.language, const [Lang.en, Lang.vi], st.lang, Lang.nameOf);
+                final c = await _pickOne(context, context.l.language, const ['en', 'vi'], st.lang, languageName);
                 if (c != null) await st.setLang(c);
               },
             ),
             SwitchListTile(
               secondary: const Icon(Icons.bluetooth_connected),
-              title: Text(S.autoConnect),
+              title: Text(context.l.autoConnect),
               value: st.autoConnect,
               onChanged: st.setAutoConnect,
             ),
             SwitchListTile(
               secondary: const Icon(Icons.light_mode_outlined),
-              title: Text(S.keepAwake),
+              title: Text(context.l.keepAwake),
               value: st.keepScreenOn,
               onChanged: st.setKeepScreenOn,
             ),
           ]),
-          _section(context, S.secAdvanced, [
+          _section(context, context.l.secAdvanced, [
             SwitchListTile(
               secondary: const Icon(Icons.engineering_outlined),
-              title: Text(S.techMode),
-              subtitle: Text(S.techModeSub),
+              title: Text(context.l.techMode),
+              subtitle: Text(context.l.techModeSub),
               value: st.technician,
               onChanged: (on) => _toggleTech(context, st, on),
             ),
             if (st.technician)
               ListTile(
                 leading: const Icon(Icons.pin_outlined),
-                title: Text(st.hasPin ? S.removePin : S.setPin),
-                subtitle: st.hasPin ? null : Text(S.pinSub),
+                title: Text(st.hasPin ? context.l.removePin : context.l.setPin),
+                subtitle: st.hasPin ? null : Text(context.l.pinSub),
                 onTap: () => st.hasPin ? _removePin(context, st) : _setPin(context, st),
               ),
           ]),
           if (st.technician)
-            _section(context, S.secDeveloper, [
+            _section(context, context.l.secDeveloper, [
               ListTile(
                 leading: const Icon(Icons.science_outlined),
-                title: Text(S.demoTitle),
+                title: Text(context.l.demoTitle),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => push(const DemoScreen()),
               ),
               ListTile(
                 leading: const Icon(Icons.folder_open),
-                title: Text(S.openJson),
+                title: Text(context.l.openJson),
                 onTap: () => DemoScreen.pickAndOpen(context),
               ),
               SwitchListTile(
                 secondary: const Icon(Icons.tag),
-                title: Text(S.showAddr),
+                title: Text(context.l.showAddr),
                 value: st.showAddresses,
                 onChanged: st.setShowAddresses,
               ),
               ListTile(
                 leading: const Icon(Icons.delete_sweep_outlined),
-                title: Text(S.clearCache),
+                title: Text(context.l.clearCache),
                 onTap: () => _clearCache(context, st.store),
               ),
             ]),
-          _section(context, S.secAbout, [
+          _section(context, context.l.secAbout, [
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: Text(S.versionLabel),
+              title: Text(context.l.versionLabel),
               trailing: FutureBuilder<PackageInfo>(
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snap) =>
@@ -297,9 +298,9 @@ class SettingsScreen extends StatelessWidget {
             ),
             ListTile(
               leading: const Icon(Icons.description_outlined),
-              title: Text(S.licenses),
+              title: Text(context.l.licenses),
               trailing: const Icon(Icons.chevron_right),
-              onTap: () => showLicensePage(context: context, applicationName: S.appName),
+              onTap: () => showLicensePage(context: context, applicationName: kAppName),
             ),
           ]),
         ],

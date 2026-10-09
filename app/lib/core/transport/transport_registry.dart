@@ -1,4 +1,4 @@
-import '../../l10n/strings.dart';
+import '../errors.dart';
 import '../schema_cache.dart';
 import 'gatt_link.dart';
 import 'legacy_c3relay.dart';
@@ -26,21 +26,24 @@ String iconForKind(TransportKind? k) => switch (k) {
       _ => 'generic',
     };
 
-DeviceTransport createTransport(TransportKind kind, GattLink link, SchemaCache cache) => switch (kind) {
+/// [lang]: ngon ngu ('en' | 'vi') cua schema luu san trong app (adapter doi cu)
+DeviceTransport createTransport(TransportKind kind, GattLink link, SchemaCache cache, {String lang = 'en'}) =>
+    switch (kind) {
       TransportKind.vph => VphTransport(link, cache),
-      TransportKind.c3relay => C3RelayTransport(link),
-      TransportKind.kiln => KilnTransport(link, cache),
+      TransportKind.c3relay => C3RelayTransport(link, lang: lang),
+      TransportKind.kiln => KilnTransport(link, cache, lang: lang),
     };
 
 /// Ket noi roi chon transport theo dich vu tim thay tren thiet bi
-Future<DeviceTransport> connectTransport(GattLink link, SchemaCache cache) async {
+Future<DeviceTransport> connectTransport(GattLink link, SchemaCache cache, {String lang = 'en'}) async {
   try {
     await link.connect();
     final kind = kindForServices(link.services);
-    if (kind == null) throw Exception(S.errUnsupported);
-    return createTransport(kind, link, cache);
-  } catch (_) {
+    if (kind == null) throw AppError(ErrorKind.unsupported, 'services: ${link.services.join(', ')}');
+    return createTransport(kind, link, cache, lang: lang);
+  } catch (e) {
     await link.disconnect();
-    rethrow;
+    // Khong ket noi duoc / het gio: "Can't reach the device"
+    throw AppError.from(e, fallback: ErrorKind.unreachable);
   }
 }

@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vphub/core/errors.dart';
 import 'package:vphub/core/model/vph_schema.dart';
 import 'package:vphub/core/transport/legacy_c3relay.dart';
-import 'package:vphub/l10n/strings.dart';
 import 'package:vphub/core/transport/uuids.dart';
 
 import 'fake_link.dart';
@@ -308,7 +308,7 @@ void main() {
       await t.open();
       final r2 = await t.write('mode', 'auto');
       expect(r2.ok, isFalse);
-      expect(r2.err, S.errNoResponse);
+      expect(r2.error!.kind, ErrorKind.noResponse);
     });
   });
 }

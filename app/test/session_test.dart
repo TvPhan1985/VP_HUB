@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vphub/core/errors.dart';
 import 'package:vphub/core/device_session.dart';
 import 'package:vphub/core/schema_cache.dart';
 import 'package:vphub/core/transport/demo_transport.dart';
@@ -106,7 +107,9 @@ void main() {
     await s.edit(0, s.fieldById('sv')!, 5000);
     await _settle();
     expect(msgs.last.ok, isFalse);
-    expect(msgs.last.text, 'Ngoài giới hạn');
+    // Cau `err` cua thiet bi hien nguyen van
+    expect(msgs.last.error!.kind, ErrorKind.device);
+    expect(msgs.last.error!.deviceText, 'Ngoài giới hạn');
     expect(s.valueOf(0, 'sv'), 100);
     s.dispose();
   });
@@ -165,7 +168,8 @@ void main() {
     expect(s.status, LinkStatus.failed);
     expect(made, 4);
     expect(s.hasEverConnected, isTrue);
-    expect(s.error, contains('khong thay thiet bi'));
+    expect(s.error!.kind, ErrorKind.unreachable);
+    expect(s.error!.detail, contains('khong thay thiet bi'));
     s.dispose();
   });
 
@@ -174,7 +178,9 @@ void main() {
     await s.connect();
     expect(s.status, LinkStatus.failed);
     expect(s.hasEverConnected, isFalse);
-    expect(s.error, 'Thiết bị không trả lời');
+    // Standard chi thay cau chuan; loi goc nam o detail (nut Details cua Technician)
+    expect(s.error!.kind, ErrorKind.unreachable);
+    expect(s.error!.detail, contains('Thiết bị không trả lời'));
     s.dispose();
   });
 
