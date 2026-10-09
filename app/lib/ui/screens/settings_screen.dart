@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../core/app_settings.dart';
+import '../../core/diag_log.dart';
 import '../../core/schema_cache.dart';
 import '../../core/consts.dart';
 import '../../l10n/l10n.dart';
@@ -166,6 +168,29 @@ class SettingsScreen extends StatelessWidget {
     if (context.mounted) _toast(context, context.l.pinRemoved);
   }
 
+  /// Chia se file nhat ky chan doan qua hop Share cua Android
+  Future<void> _exportLog(BuildContext context) async {
+    final log = DiagLog.instance;
+    final l = context.l;
+    final messenger = ScaffoldMessenger.of(context);
+    await log.flush();
+    final f = log.file;
+    if (log.lines.isEmpty || f == null || !await f.exists()) {
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l.exportLogEmpty)));
+      return;
+    }
+    try {
+      await SharePlus.instance.share(ShareParams(files: [XFile(f.path, mimeType: 'text/plain')], subject: DiagLog.fileName));
+    } catch (e) {
+      logVph('Xuat nhat ky loi: $e');
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l.errUnknown)));
+    }
+  }
+
   Future<void> _clearCache(BuildContext context, KvStore store) async {
     final ok = await askConfirm(context,
         title: context.l.clearCacheTitle, body: context.l.clearCacheBody, action: context.l.clear, danger: true);
@@ -279,6 +304,11 @@ class SettingsScreen extends StatelessWidget {
                 title: Text(context.l.showAddr),
                 value: st.showAddresses,
                 onChanged: st.setShowAddresses,
+              ),
+              ListTile(
+                leading: const Icon(Icons.ios_share),
+                title: Text(context.l.exportLog),
+                onTap: () => _exportLog(context),
               ),
               ListTile(
                 leading: const Icon(Icons.delete_sweep_outlined),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'diag_log.dart';
 import 'errors.dart';
 import 'model/vph_info.dart';
 import 'model/vph_schema.dart';
@@ -115,6 +116,7 @@ class DeviceSession extends ChangeNotifier {
   }
 
   void _fail(AppError e) {
+    logVph('LOI ${e.kind.name}${e.deviceText != null ? ' "${e.deviceText}"' : ''}${e.detail != null ? ' | ${e.detail}' : ''}');
     if (!_messages.isClosed) _messages.add(SessionMessage.failed(e));
   }
 
@@ -129,6 +131,7 @@ class DeviceSession extends ChangeNotifier {
   Future<bool> _connectOnce(int gen) async {
     status = hasEverConnected ? LinkStatus.reconnecting : LinkStatus.connecting;
     error = null;
+    logVph('${hasEverConnected ? 'Ket noi lai' : 'Ket noi'} ${deviceId ?? title}');
     notifyListeners();
     DeviceTransport? t;
     try {
@@ -156,12 +159,14 @@ class DeviceSession extends ChangeNotifier {
       if (gen != _gen) return false;
       status = LinkStatus.ready;
       hasEverConnected = true;
+      logVph('Da ket noi ${i.name} model=${i.model} fw=${i.fw} proto=${t.protoId} man=${screens.length} mtu=${t.stats.mtu}'
+          ' schema=${t.stats.schemaFromCache ? 'cache' : 'thiet bi'}');
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('VPHUB Ket noi loi: $e');
       if (gen != _gen) return false;
       error = AppError.from(e, fallback: ErrorKind.unreachable);
+      logVph('Ket noi loi ${error!.kind.name} | $e');
       await _teardown();
       status = LinkStatus.failed;
       notifyListeners();
@@ -198,6 +203,7 @@ class DeviceSession extends ChangeNotifier {
   Future<void> _onLost(int gen) async {
     if (gen != _gen || _disposed) return;
     final myGen = ++_gen;
+    logVph('Mat ket noi ${deviceId ?? title}, se thu lai ${reconnectDelays.length} lan');
     await _teardown();
     status = LinkStatus.reconnecting;
     notifyListeners();
@@ -210,6 +216,7 @@ class DeviceSession extends ChangeNotifier {
       status = LinkStatus.reconnecting;
       notifyListeners();
     }
+    logVph('Khong ket noi lai duoc ${deviceId ?? title}');
     status = LinkStatus.failed;
     notifyListeners();
   }
@@ -217,6 +224,7 @@ class DeviceSession extends ChangeNotifier {
   /// Ngat ket noi do nguoi dung, khong tu ket noi lai
   Future<void> close() async {
     _gen++;
+    logVph('Ngat ket noi ${deviceId ?? title} (nguoi dung)');
     await _teardown();
     status = LinkStatus.closed;
     notifyListeners();
@@ -295,6 +303,8 @@ class DeviceSession extends ChangeNotifier {
     if (f.type != 'act') _pending[f.id] = v;
     notifyListeners();
     final r = await t.write(f.id, f.type == 'act' ? 1 : v);
+    // Nhat ky: id va gia tri; khong ghi noi dung chuoi nguoi dung nhap
+    logVph('GHI ${f.id}=${f.type == 'act' ? 1 : logValue(f.type, v)} -> ${r.ok ? 'ok' : 'loi'}');
     busy.remove(f.id);
     _pending.remove(f.id);
     if (r.ok) {
@@ -328,6 +338,8 @@ class DeviceSession extends ChangeNotifier {
     notifyListeners();
     final set = Map<String, dynamic>.from(d);
     final r = await t.writeBatch(set);
+    logVph('GHI LO ${[for (final e in set.entries) '${e.key}=${logValue(_fieldById[e.key]?.type, e.value)}'].join(' ')}'
+        ' -> ${r.ok ? 'ok' : 'loi'}');
     saving = false;
     if (r.ok) {
       values = {...values, ...set};

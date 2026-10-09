@@ -162,7 +162,7 @@ Màn `SettingsScreen`:
 
 ## H6. Báo lỗi và nhật ký chẩn đoán
 
-- [ ] Lớp `core/errors.dart`: đổi mọi exception BLE/transport thành `AppError(kind, detail)`. Bảng tối thiểu:
+- [x] Lớp `core/errors.dart`: đổi mọi exception BLE/transport thành `AppError(kind, detail)`. Bảng tối thiểu:
 
 | Tình huống | Câu hiện cho người dùng |
 |---|---|
@@ -176,8 +176,8 @@ Màn `SettingsScreen`:
 | Lệnh quá dài | `Too many changes at once. Save fewer changes and try again.` |
 | Lỗi khác | `Something went wrong. Try again.` |
 
-- [ ] Standard: chỉ hiện câu trên. Technician: thêm nút `Details` hiện `detail` (lỗi gốc, rút gọn 300 ký tự).
-- [ ] **Nhật ký chẩn đoán:** ghi vòng (ring buffer) 500 dòng gần nhất trong bộ nhớ + file `vphub_log.txt` trong thư mục app (tối đa 256 KB, xoay vòng): kết nối, mất kết nối, MTU, lỗi, lệnh ghi (id, không ghi giá trị `str`). Technician → `Export diagnostics log` chia sẻ file qua hộp Share của Android (`share_plus`, kiểm tra license theo H1).
+- [x] Standard: chỉ hiện câu trên. Technician: thêm nút `Details` hiện `detail` (lỗi gốc, rút gọn 300 ký tự).
+- [x] **Nhật ký chẩn đoán:** ghi vòng (ring buffer) 500 dòng gần nhất trong bộ nhớ + file `vphub_log.txt` trong thư mục app (tối đa 256 KB, xoay vòng): kết nối, mất kết nối, MTU, lỗi, lệnh ghi (id, không ghi giá trị `str`). Technician → `Export diagnostics log` chia sẻ file qua hộp Share của Android (`share_plus`, kiểm tra license theo H1).
 
 ---
 

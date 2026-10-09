@@ -4,9 +4,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:universal_ble/universal_ble.dart';
 
+import '../diag_log.dart';
 import 'gatt_link.dart';
 
-void logVph(String msg) => debugPrint('VPHUB $msg');
+export '../diag_log.dart' show logVph;
 
 /// GattLink that, dung universal_ble (BSD-3-Clause)
 class UbGattLink implements GattLink {
